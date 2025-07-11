@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - Fixed Version with No Cart Duplication
+// Musicado Application JavaScript - Fixed Version with Lyrics Display
 (function() {
     'use strict';
 
@@ -125,7 +125,7 @@
             spanish: "Spanish",
             portuguese: "Portuguese",
             songTitles: "Give the songs a title (leave blank for us to choose):",
-            ownLyrics: "Do you have your own lyrics? Enter here:",
+            ownLyrics: "Do you have your own lyrics or a story about the song: Enter here:",
             continue: "Continue to Summary",
             orderSummary: "Order Summary",
             paymentInfo: "Payment Information",
@@ -270,7 +270,7 @@
             spanish: "Spaans",
             portuguese: "Portugees",
             songTitles: "Geef de liedjes een titel (laat leeg voor ons om te kiezen):",
-            ownLyrics: "Heeft u uw eigen teksten? Voer hier in:",
+            ownLyrics: "Heeft u uw eigen teksten of een verhaal over het liedje: Voer hier in:",
             continue: "Doorgaan naar Samenvatting",
             orderSummary: "Bestelling Samenvatting",
             paymentInfo: "Betalingsinformatie",
@@ -719,8 +719,9 @@
                 cartData.items[0].properties['Favorite Artists'] = artists.join(', ');
             }
 
-            if (formData.ownLyrics) {
-                cartData.items[0].properties['Custom Lyrics'] = formData.ownLyrics;
+            // FIXED: Include custom lyrics/story if provided
+            if (formData.ownLyrics && formData.ownLyrics.trim()) {
+                cartData.items[0].properties['Custom Lyrics/Story'] = formData.ownLyrics;
             }
 
             // Add words/names based on package
@@ -967,6 +968,7 @@
             }
         },
 
+        // FIXED: Updated showSummary function to include lyrics/story
         showSummary: function() {
             const summaryContent = document.getElementById('summaryContent');
             const totalPrice = document.getElementById('totalPrice');
@@ -1023,6 +1025,34 @@
                 if (words.length > 0) {
                     html += '<div class="summary-item"><div class="summary-label">Words/Names:</div><div class="summary-value">' + words.join(', ') + '</div></div>';
                 }
+            }
+
+            // FIXED: Display custom lyrics/story if provided
+            if (formData.ownLyrics && formData.ownLyrics.trim()) {
+                const lyricsLabel = currentLanguage === 'nl' ? 'Eigen Teksten/Verhaal:' : 'Custom Lyrics/Story:';
+                const lyricsText = formData.ownLyrics.trim();
+                
+                // Show a preview (first 200 characters) or full text if short
+                let lyricsDisplay = lyricsText;
+                if (lyricsText.length > 200) {
+                    lyricsDisplay = lyricsText.substring(0, 200) + '...';
+                }
+                
+                // Escape HTML and preserve line breaks
+                lyricsDisplay = lyricsDisplay
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;')
+                    .replace(/\n/g, '<br>');
+                
+                html += `<div class="summary-item">
+                    <div class="summary-label">${lyricsLabel}</div>
+                    <div class="summary-value lyrics-preview" style="font-style: italic; background: rgba(59, 130, 246, 0.1); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #3b82f6; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.4;">
+                        ${lyricsDisplay}
+                    </div>
+                </div>`;
             }
 
             summaryContent.innerHTML = html;

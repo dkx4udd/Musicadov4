@@ -58,14 +58,30 @@
           
           <div style="text-align: center; margin-top: 1.5rem;">
             <button onclick="window.MusicadoApp ? window.MusicadoApp.applyDiscountAndClose() : applyDiscountAndClose()" class="btn discount-continue">
-              Ga door naar Afrekenen
-            </button>
+  Korting Toepassen & Sluiten
+</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+//fallback DiscountandClose
+if (!window.applyDiscountAndClose) {
+  window.applyDiscountAndClose = function() {
+    console.log('Fallback: applyDiscountAndClose - DISCOUNT ONLY');
+    // ONLY apply discount, NO cart functionality
+    localStorage.setItem('discountAppliedViaModal', 'true');
+    const modal = document.getElementById('discountModal');
+    if (modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    alert('Korting van 15% toegepast! Ga verder met je bestelling om af te rekenen.');
+  };
+}
+
 
 <!-- Fallback JavaScript voor wanneer MusicadoApp niet geladen is -->
 <script>

@@ -37,6 +37,8 @@
     "intro": "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.",
     "main_intro": "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones.",
     "listen_examples": "Listen to our examples",
+    "own_lyrics": "Do you have your own lyrics or a story about the song: Enter here:",
+"enter_lyrics_placeholder": "Enter your lyrics or story about the song here...",
     "apply_discount_only": "Apply Discount & Close",
     "loading": "Loading...",
     "random_example": "Random example from our collection",

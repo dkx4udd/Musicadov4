@@ -283,11 +283,11 @@
           <div id="titleFields"></div>
         </div>
 
-    <!-- Own Lyrics -->
-<div class="form-group">
-  <label for="ownLyrics" data-translate="ownLyrics">Do you have your own lyrics or a story about the song: Enter here:</label>
-  <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Enter your lyrics or story about the song here..." data-translate-placeholder="enterLyricsPlaceholder"></textarea>
-</div>
+        <!-- Own Lyrics -->
+        <div class="form-group">
+          <label for="ownLyrics" data-translate="ownLyrics">Do you have your own lyrics or a story about the song: Enter here:</label>
+          <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Enter your lyrics or story about the song here..." data-translate-placeholder="enterLyricsPlaceholder"></textarea>
+        </div>
 
         <button type="submit" class="btn" data-translate="continue">Continue to Summary</button>
       </form>
@@ -393,7 +393,7 @@
         <h3 data-translate="discountCodeTitle">Discount Code</h3>
         <div class="discount-input-container">
           <input type="text" id="discountCodeInput" name="discountCode" placeholder="Enter discount code (optional)" data-translate-placeholder="discountCodePlaceholder">
-          <button type="button" onclick="applyDiscountCode()" class="btn discount-apply-btn" data-translate="applyDiscount">Apply</button>
+          <button type="button" onclick="MusicadoApp.applyDiscountCode()" class="btn discount-apply-btn" data-translate="applyDiscount">Apply</button>
         </div>
         <div id="discountMessage" class="discount-message"></div>
       </div>
@@ -416,17 +416,19 @@
       <div class="stripe-form" id="paymentSection">
         <h3 data-translate="paymentInfo">Payment Information</h3>
         <p data-translate="stripeNotice">Secure payment processing powered by Shopify</p>
-        <button class="btn" onclick="processPayment()" data-translate="payNow">Add to Cart & Checkout</button>
+        <!-- FIXED: Removed onclick handler to prevent duplicate submissions -->
+        <button id="processPaymentBtn" class="btn" data-translate="payNow">Add to Cart & Checkout</button>
       </div>
 
       <!-- Contact Request Section - Show for contact requests -->
       <div class="contact-request-section" id="contactSection" style="display: none;">
         <h3 data-translate="contactRequest">Contact Request</h3>
         <p data-translate="contactNotice">We will contact you within 24 hours to discuss your custom music needs and provide a personalized quote.</p>
-        <button class="btn" onclick="processPayment()" data-translate="submitRequest">Submit Contact Request</button>
+        <!-- FIXED: Removed onclick handler to prevent duplicate submissions -->
+        <button id="submitContactBtn" class="btn" data-translate="submitRequest">Submit Contact Request</button>
       </div>
 
-      <button class="btn" onclick="goBack()" style="background: #6c757d; margin-top: 1rem;" data-translate="goBack">Go Back</button>
+      <button class="btn" onclick="MusicadoApp.goBack()" style="background: #6c757d; margin-top: 1rem;" data-translate="goBack">Go Back</button>
     </div>
   </div>
 </div>
@@ -438,8 +440,8 @@
       <h2 data-translate="adminPanel">Admin Panel</h2>
       
       <div class="admin-controls">
-        <button class="btn" onclick="showPage('page1')" data-translate="backToCustomer">Back to Customer</button>
-        <button class="btn" onclick="exportToRTF()" data-translate="exportRTF">Export to RTF</button>
+        <button class="btn" onclick="MusicadoApp.showPage('page1')" data-translate="backToCustomer">Back to Customer</button>
+        <button class="btn" onclick="MusicadoApp.exportToRTF()" data-translate="exportRTF">Export to RTF</button>
         <select id="orderFilter">
           <option value="all" data-translate="allOrders">All Orders</option>
           <option value="pending" data-translate="pending">Pending</option>
@@ -496,7 +498,30 @@
   </div>
 </div>
 
+<!-- FIXED: Clean JavaScript event handling - no global onclick handlers -->
 <script>
-  // Homepage JavaScript will be handled by musicado.js
-  // No schema allowed in template files - only in sections
+  // Single event handler setup when DOM loads
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup payment button event handler (one time only)
+    const processPaymentBtn = document.getElementById('processPaymentBtn');
+    const submitContactBtn = document.getElementById('submitContactBtn');
+    
+    if (processPaymentBtn) {
+      processPaymentBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.MusicadoApp && window.MusicadoApp.processPayment) {
+          window.MusicadoApp.processPayment();
+        }
+      });
+    }
+    
+    if (submitContactBtn) {
+      submitContactBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.MusicadoApp && window.MusicadoApp.processPayment) {
+          window.MusicadoApp.processPayment();
+        }
+      });
+    }
+  });
 </script>

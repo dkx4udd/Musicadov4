@@ -1,25 +1,26 @@
-<!-- Betaling Sectie - Bijgewerkt om dubbele winkelwagen toevoegingen te voorkomen -->
+<!-- FIXED: Payment Section - Enhanced duplicate prevention -->
 <div class="payment-container">
-  <!-- Kortingscode Sectie -->
+  <!-- Discount Code Section -->
   <div class="discount-code-section">
     <h3>Kortingscode</h3>
     <div class="discount-input-container">
       <input type="text" id="discountCodeInput" name="discountCode" placeholder="Voer kortingscode in (optioneel)">
-      <button type="button" onclick="window.MusicadoApp && window.MusicadoApp.applyDiscountCode()" class="btn discount-apply-btn">
+      <!-- FIXED: Removed onclick handler, using event listener instead -->
+      <button type="button" id="discountApplyBtn" class="btn discount-apply-btn">
         Toepassen
       </button>
     </div>
     <div id="discountMessage" class="discount-message" style="display: none;"></div>
   </div>
 
-  <!-- Betaling Sectie - Verbergen voor contact verzoeken -->
+  <!-- Payment Section - Hide for contact requests -->
   <div class="stripe-form" id="paymentSection">
     <h3>Betalingsinformatie</h3>
     <p class="payment-notice">{{ section.settings.payment_notice | default: 'Veilige betalingsverwerking mogelijk gemaakt door Shopify' }}</p>
     
-    <!-- Updated: Removed form action to prevent double submission -->
+    <!-- FIXED: Removed form action and inline handlers -->
     <div class="cart-form-container" id="cartFormContainer">
-      <!-- Hidden fields for Shopify cart properties - will be populated by JavaScript -->
+      <!-- Hidden fields for Shopify cart properties -->
       <input type="hidden" name="properties[Pakket]" id="packageProperty" value="">
       <input type="hidden" name="properties[Muziekstijl 1]" id="style1Property" value="">
       <input type="hidden" name="properties[Muziekstijl 2]" id="style2Property" value="">
@@ -29,15 +30,15 @@
       <input type="hidden" name="properties[Woorden/Namen]" id="wordsProperty" value="">
       <input type="hidden" name="properties[Klant Details]" id="customerProperty" value="">
       
-      <!-- Optionele Eigenschappen -->
+      <!-- Optional Properties -->
       <input type="hidden" name="properties[Artiesten]" id="artistsProperty" value="">
       <input type="hidden" name="properties[Liedje Titels]" id="titlesProperty" value="">
       <input type="hidden" name="properties[Eigen Teksten]" id="lyricsProperty" value="">
       <input type="hidden" name="properties[Korting Toegepast]" id="discountProperty" value="">
       <input type="hidden" name="properties[Eindprijs]" id="finalPriceProperty" value="">
       
-      <!-- Betaling Knop - Updated to prevent double submission -->
-      <button type="button" onclick="processPayment()" class="btn payment-btn" id="paymentButton">
+      <!-- FIXED: Payment Button - Enhanced duplicate prevention -->
+      <button type="button" id="paymentButton" class="btn payment-btn" data-processing="false">
         <span class="button-text">Nu Betalen</span>
         <span class="button-loading" style="display: none;">
           <span class="loading-spinner"></span>
@@ -45,30 +46,35 @@
         </span>
       </button>
       
-      <!-- Betaling Beveiliging Bericht -->
+      <!-- Payment Security Notice -->
       <div class="payment-security">
         <p>🔒 Uw betalingsinformatie is veilig en versleuteld</p>
       </div>
     </div>
     
-    <!-- Betaling Fout Weergave -->
+    <!-- Payment Error Display -->
     <div id="paymentError" class="payment-error" style="display: none;">
       <p class="error-message"></p>
-      <button type="button" onclick="retryPayment()" class="btn btn-secondary">
+      <button type="button" id="retryPaymentBtn" class="btn btn-secondary">
         Probeer Opnieuw
       </button>
     </div>
   </div>
 
-  <!-- Contact Verzoek Sectie - Tonen voor contact verzoeken -->
+  <!-- Contact Request Section - Show for contact requests -->
   <div class="contact-request-section" id="contactSection" style="display: none;">
     <h3>Volledig Album Verzoek</h3>
     <div class="contact-notice">
       <p>We nemen binnen 24 uur contact met u op om uw aangepaste volledig album wensen te bespreken en een persoonlijke offerte te verstrekken.</p>
     </div>
     
-    <button type="button" onclick="processPayment()" class="btn contact-btn">
-      Volledig Album Verzoek Indienen
+    <!-- FIXED: Contact Button - Enhanced duplicate prevention -->
+    <button type="button" id="contactButton" class="btn contact-btn" data-processing="false">
+      <span class="button-text">Volledig Album Verzoek Indienen</span>
+      <span class="button-loading" style="display: none;">
+        <span class="loading-spinner"></span>
+        Verwerken...
+      </span>
     </button>
     
     <div class="contact-info">
@@ -80,7 +86,7 @@
     </div>
   </div>
 
-  <!-- Bestelling Samenvatting Herinnering -->
+  <!-- Order Reminder -->
   <div class="order-reminder">
     <h4>Belangrijke Informatie</h4>
     <ul>
@@ -96,74 +102,112 @@
   </div>
 </div>
 
-<!-- JavaScript Functies - Updated to prevent double submission -->
+<!-- FIXED: Enhanced JavaScript with better duplicate prevention -->
 <script>
-  // Prevent double submission flag
-  let isProcessingPayment = false;
+document.addEventListener('DOMContentLoaded', function() {
+  // FIXED: Enhanced duplicate prevention state
+  let paymentProcessingState = {
+    isProcessing: false,
+    submissionToken: null,
+    timeoutId: null
+  };
 
-  // Globale betalingsverwerking functie - Updated with double submission prevention
-  function processPayment() {
-    // Prevent double submission
-    if (isProcessingPayment) {
-      console.log('Payment already in progress, preventing double submission');
-      return;
+  // FIXED: Generate unique submission token
+  function generateSubmissionToken() {
+    return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // FIXED: Reset payment processing state
+  function resetPaymentState() {
+    paymentProcessingState.isProcessing = false;
+    paymentProcessingState.submissionToken = null;
+    if (paymentProcessingState.timeoutId) {
+      clearTimeout(paymentProcessingState.timeoutId);
+      paymentProcessingState.timeoutId = null;
     }
+    resetAllButtons();
+  }
 
-    if (window.MusicadoApp && window.MusicadoApp.processPayment) {
-      isProcessingPayment = true;
-      showPaymentLoading();
-      
-      try {
-        window.MusicadoApp.processPayment();
-      } catch (error) {
-        console.error('Payment processing error:', error);
-        showPaymentError('Er is een fout opgetreden. Probeer het opnieuw.');
-        isProcessingPayment = false;
+  // FIXED: Reset all button states
+  function resetAllButtons() {
+    const buttons = ['paymentButton', 'contactButton'];
+    buttons.forEach(buttonId => {
+      const button = document.getElementById(buttonId);
+      if (button) {
+        button.disabled = false;
+        button.setAttribute('data-processing', 'false');
+        const textSpan = button.querySelector('.button-text');
+        const loadingSpan = button.querySelector('.button-loading');
+        if (textSpan) textSpan.style.display = 'inline';
+        if (loadingSpan) loadingSpan.style.display = 'none';
       }
-    } else {
-      console.error('MusicadoApp niet geladen');
-      alert('Applicatiefout. Ververs de pagina.');
-    }
+    });
   }
 
-  // Probeer betaling opnieuw functie
-  function retryPayment() {
-    const errorDiv = document.getElementById('paymentError');
-    const paymentSection = document.getElementById('paymentSection');
-    
-    if (errorDiv) errorDiv.style.display = 'none';
-    if (paymentSection) paymentSection.style.display = 'block';
-    
-    // Reset payment processing flag
-    isProcessingPayment = false;
-    
-    // Reset knop status
-    resetPaymentButton();
-  }
+  // FIXED: Set button loading state
+  function setButtonLoading(buttonId, isLoading) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
 
-  // Reset betaling knop naar initiële status
-  function resetPaymentButton() {
-    const button = document.getElementById('paymentButton');
-    if (button) {
-      button.disabled = false;
-      button.querySelector('.button-text').style.display = 'inline';
-      button.querySelector('.button-loading').style.display = 'none';
-    }
-    // Reset processing flag
-    isProcessingPayment = false;
-  }
-
-  // Toon betaling laad status
-  function showPaymentLoading() {
-    const button = document.getElementById('paymentButton');
-    if (button) {
+    if (isLoading) {
       button.disabled = true;
-      button.querySelector('.button-text').style.display = 'none';
-      button.querySelector('.button-loading').style.display = 'inline-flex';
+      button.setAttribute('data-processing', 'true');
+      const textSpan = button.querySelector('.button-text');
+      const loadingSpan = button.querySelector('.button-loading');
+      if (textSpan) textSpan.style.display = 'none';
+      if (loadingSpan) loadingSpan.style.display = 'inline-flex';
+    } else {
+      button.disabled = false;
+      button.setAttribute('data-processing', 'false');
+      const textSpan = button.querySelector('.button-text');
+      const loadingSpan = button.querySelector('.button-loading');
+      if (textSpan) textSpan.style.display = 'inline';
+      if (loadingSpan) loadingSpan.style.display = 'none';
     }
   }
 
-  // Toon betaling fout
+  // FIXED: Enhanced payment processing function
+  function processPayment() {
+    // FIXED: Strict duplicate prevention
+    if (paymentProcessingState.isProcessing) {
+      console.log('Payment already in progress, preventing duplicate submission');
+      return false;
+    }
+
+    // FIXED: Validate that MusicadoApp is available
+    if (!window.MusicadoApp || !window.MusicadoApp.processPayment) {
+      console.error('MusicadoApp not available');
+      showPaymentError('Application error. Please refresh the page.');
+      return false;
+    }
+
+    // FIXED: Set processing state with unique token
+    paymentProcessingState.isProcessing = true;
+    paymentProcessingState.submissionToken = generateSubmissionToken();
+    
+    // FIXED: Set safety timeout to reset state
+    paymentProcessingState.timeoutId = setTimeout(() => {
+      console.warn('Payment processing timeout - resetting state');
+      resetPaymentState();
+    }, 30000); // 30 second timeout
+
+    // FIXED: Set button loading state
+    const activeSection = document.getElementById('contactSection').style.display !== 'none' ? 'contactButton' : 'paymentButton';
+    setButtonLoading(activeSection, true);
+
+    try {
+      // FIXED: Call the main payment processing function
+      window.MusicadoApp.processPayment();
+      return true;
+    } catch (error) {
+      console.error('Payment processing error:', error);
+      showPaymentError('Er is een fout opgetreden. Probeer het opnieuw.');
+      resetPaymentState();
+      return false;
+    }
+  }
+
+  // FIXED: Show payment error
   function showPaymentError(message) {
     const errorDiv = document.getElementById('paymentError');
     const paymentSection = document.getElementById('paymentSection');
@@ -174,31 +218,68 @@
       paymentSection.style.display = 'none';
     }
     
-    // Reset processing flag
-    isProcessingPayment = false;
-    resetPaymentButton();
+    resetPaymentState();
   }
 
-  // Success callback to reset processing flag
-  function onPaymentSuccess() {
-    isProcessingPayment = false;
+  // FIXED: Retry payment function
+  function retryPayment() {
+    const errorDiv = document.getElementById('paymentError');
+    const paymentSection = document.getElementById('paymentSection');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (paymentSection) paymentSection.style.display = 'block';
+    
+    resetPaymentState();
   }
 
-  // Error callback to reset processing flag
-  function onPaymentError(error) {
-    console.error('Payment error:', error);
-    isProcessingPayment = false;
-    showPaymentError(error.message || 'Er is een fout opgetreden bij de betaling.');
+  // FIXED: Apply discount code function
+  function applyDiscountCode() {
+    if (window.MusicadoApp && window.MusicadoApp.applyDiscountCode) {
+      window.MusicadoApp.applyDiscountCode();
+    } else {
+      console.error('MusicadoApp discount function not available');
+    }
   }
 
-  // Maak functies globaal beschikbaar
-  window.showPaymentLoading = showPaymentLoading;
-  window.showPaymentError = showPaymentError;
-  window.resetPaymentButton = resetPaymentButton;
-  window.onPaymentSuccess = onPaymentSuccess;
-  window.onPaymentError = onPaymentError;
+  // FIXED: Setup event listeners (one time only)
+  const paymentButton = document.getElementById('paymentButton');
+  const contactButton = document.getElementById('contactButton');
+  const discountApplyBtn = document.getElementById('discountApplyBtn');
+  const retryPaymentBtn = document.getElementById('retryPaymentBtn');
 
-  // Stel theme instellingen in voor JavaScript
+  if (paymentButton) {
+    paymentButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      processPayment();
+    });
+  }
+
+  if (contactButton) {
+    contactButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      processPayment();
+    });
+  }
+
+  if (discountApplyBtn) {
+    discountApplyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      applyDiscountCode();
+    });
+  }
+
+  if (retryPaymentBtn) {
+    retryPaymentBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      retryPayment();
+    });
+  }
+
+  // FIXED: Setup theme settings for JavaScript
   window.themeSettings = {
     singleSongVariantId: '{{ section.settings.single_song_variant_id }}',
     epVariantId: '{{ section.settings.ep_variant_id }}',
@@ -207,17 +288,40 @@
     discountPercentage: {{ section.settings.discount_percentage | default: 15 }}
   };
 
-  // Page unload prevention during payment processing
+  // FIXED: Page unload prevention during payment processing
   window.addEventListener('beforeunload', function(e) {
-    if (isProcessingPayment) {
+    if (paymentProcessingState.isProcessing) {
       e.preventDefault();
       e.returnValue = 'Je bestelling wordt verwerkt. Weet je zeker dat je de pagina wilt verlaten?';
       return e.returnValue;
     }
   });
+
+  // FIXED: Expose functions for external access (with state checking)
+  window.showPaymentError = showPaymentError;
+  window.resetPaymentState = resetPaymentState;
+  window.getPaymentState = function() {
+    return {
+      isProcessing: paymentProcessingState.isProcessing,
+      token: paymentProcessingState.submissionToken
+    };
+  };
+
+  // FIXED: Handle successful payment completion
+  window.onPaymentSuccess = function() {
+    console.log('Payment successful, resetting state');
+    resetPaymentState();
+  };
+
+  // FIXED: Handle payment error
+  window.onPaymentError = function(error) {
+    console.error('Payment error:', error);
+    showPaymentError(error.message || 'Er is een fout opgetreden bij de betaling.');
+  };
+});
 </script>
 
-<!-- CSS Stijlen - Updated with loading states -->
+<!-- FIXED: Enhanced CSS with better loading states -->
 <style>
   .payment-container {
     max-width: 600px;
@@ -265,7 +369,7 @@
     white-space: nowrap;
   }
 
-  .discount-apply-btn:hover {
+  .discount-apply-btn:hover:not(:disabled) {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     transform: translateY(-2px);
   }
@@ -319,11 +423,10 @@
     position: relative;
   }
 
-  .payment-btn {
+  /* FIXED: Enhanced button styles with processing states */
+  .payment-btn, .contact-btn {
     width: 100%;
     padding: 16px 24px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
     border: none;
     border-radius: 12px;
     font-size: 1.1rem;
@@ -332,18 +435,44 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .payment-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
   }
 
   .payment-btn:hover:not(:disabled) {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
   }
 
-  .payment-btn:disabled {
+  .contact-btn {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+  }
+
+  .contact-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    transform: translateY(-2px);
+  }
+
+  /* FIXED: Enhanced disabled and processing states */
+  .payment-btn:disabled, .contact-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
+  }
+
+  .payment-btn[data-processing="true"], .contact-btn[data-processing="true"] {
+    pointer-events: none;
   }
 
   .button-loading {
@@ -413,18 +542,6 @@
     line-height: 1.6;
   }
 
-  .contact-btn {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: #1e293b;
-    margin-bottom: 1.5rem;
-    width: 100%;
-    padding: 16px 24px;
-  }
-
-  .contact-btn:hover {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  }
-
   .contact-info {
     background: rgba(15, 23, 42, 0.3);
     border-radius: 8px;
@@ -481,13 +598,13 @@
     margin-right: 0.5rem;
   }
 
-  /* Processing state styling */
-  .cart-form-container.processing {
+  /* FIXED: Processing state styling */
+  .cart-form-container[data-processing="true"] {
     pointer-events: none;
     opacity: 0.8;
   }
 
-  .cart-form-container.processing::after {
+  .cart-form-container[data-processing="true"]::after {
     content: '';
     position: absolute;
     top: 0;
@@ -499,7 +616,7 @@
     pointer-events: none;
   }
 
-  /* Mobiele Responsiviteit */
+  /* Mobile Responsiveness */
   @media (max-width: 768px) {
     .payment-container {
       margin: 0;

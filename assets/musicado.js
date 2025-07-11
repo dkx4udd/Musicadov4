@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - Fixed Version with Lyrics Display
+// Musicado Application JavaScript - Fixed Version with Cart and Discount Issues Resolved
 (function() {
     'use strict';
 
@@ -227,7 +227,7 @@
             subscribe: "Aanmelden",
             newsletterTerms: "Geen spam, uitschrijven kan altijd. We respecteren je privacy.",
             legalDocumentTitle: "Juridisch Document voor Websitegebruik",
-            privacyStatement: "Welkom bij musicado (\"wij,\" \"ons,\" of \"onze\"). Uw privacy en de beveiliging van uw persoonlijke informatie zijn uiterst belangrijk voor ons. Deze Privacy- en Beschermingsverklaring legt uit hoe wij uw gegevens verzamelen, gebruiken, opslaan en beschermen wanneer u onze website bezoekt en AI-gecreëerde muziek koopt of onze gerelateerde diensten gebruikt.",
+            privacyStatement: "Welkom bij musicado (\"wij,\" \"ons,\" of \"onze\"). Uw privacy en de beveiliging van uw persoonlijke informatie zijn uiterst belangrijk voor ons. Deze Privacy- en Beschermingsverklaring legt uit hoe wij uw gegevens verzamelen, gebruiken, opslaan en beschermen wanneer u onze website bezoekt en door AI gecreëerde muziek koopt of onze gerelateerde diensten gebruikt.",
             fullAlbumContactTitle: "🎵 Volledig Album Aanvraag",
             fullAlbumContactDescription: "Geïnteresseerd in een volledig album? We maken graag iets geweldigs voor je! Laat je gegevens achter en we nemen binnen 24 uur contact met je op met een persoonlijke offerte.",
             emailAddress: "E-mailadres *",
@@ -310,6 +310,10 @@
     let discountModalShown = false;
     let appliedDiscountCode = null;
 
+    // FIXED: Enhanced payment processing prevention
+    let isProcessingPayment = false;
+    let paymentTimeout = null;
+
     // MP3 files - Updated with actual Shopify CDN URLs
     const mp3Files = [
         { 
@@ -385,10 +389,44 @@
         ]
     };
 
+    // FIXED: Clear discount state function
+    function clearDiscountState() {
+        // Clear all discount-related variables
+        appliedDiscountCode = null;
+        window.appliedDiscount = null;
+        localStorage.removeItem('discountAppliedViaModal');
+        
+        // Reset discount UI
+        const discountInput = document.getElementById('discountCodeInput');
+        const discountMessage = document.getElementById('discountMessage');
+        const applyBtn = document.querySelector('.discount-apply-btn');
+        
+        if (discountInput) {
+            discountInput.value = '';
+            discountInput.disabled = false;
+        }
+        if (discountMessage) {
+            discountMessage.style.display = 'none';
+            discountMessage.className = 'discount-message';
+        }
+        if (applyBtn) {
+            applyBtn.disabled = false;
+            applyBtn.style.opacity = '1';
+        }
+    }
+
     // Main Application Object
     const MusicadoApp = {
         init: function() {
             console.log('Musicado App Initializing...');
+            
+            // FIXED: Clear any stale discount state on init
+            clearDiscountState();
+            
+            // Reset processing flag
+            isProcessingPayment = false;
+            clearTimeout(paymentTimeout);
+            
             this.initializeLanguage();
             this.setupEventListeners();
             this.populateOrdersTable();
@@ -673,20 +711,36 @@
             return VARIANT_IDS[packageType] || null;
         },
 
-        // PAYMENT PROCESSING - This is where cart addition happens
-        // The discount modal does NOT add to cart - only this function does
-        addToShopifyCart: function() {
-            const variantId = this.getVariantId(formData.package);
-            
-            if (!variantId) {
-                console.error('No variant ID found for package:', formData.package);
-                alert('Product configuration error. Please try again.');
+        // FIXED: Process payment with enhanced duplicate prevention
+        processPayment: function() {
+            // FIXED: Enhanced duplicate submission prevention
+            if (isProcessingPayment) {
+                console.log('Payment already in progress, preventing duplicate submission');
                 return;
             }
 
+            // Validate customer details first
+            if (!this.validateCustomerDetails()) {
+                return;
+            }
+
+            // Set processing flag with timeout reset
+            isProcessingPayment = true;
+            clearTimeout(paymentTimeout);
+            
+            // Reset flag after 10 seconds as fallback
+            paymentTimeout = setTimeout(() => {
+                isProcessingPayment = false;
+                console.log('Payment processing timeout - reset flag');
+            }, 10000);
+
             // Collect customer details
             const customerForm = document.getElementById('customerDetailsForm');
-            if (!customerForm) return;
+            if (!customerForm) {
+                isProcessingPayment = false;
+                clearTimeout(paymentTimeout);
+                return;
+            }
             
             const customerData = new FormData(customerForm);
             const customerDetails = {};
@@ -694,7 +748,66 @@
                 customerDetails[key] = value;
             }
 
-            // Prepare cart data
+            // Handle contact us option differently
+            if (formData.package === 'contact') {
+                this.handleContactRequest(customerDetails);
+                return;
+            }
+
+            // For actual products, integrate with Shopify cart
+            this.addToShopifyCart(customerDetails);
+        },
+
+        // FIXED: Separate contact request handling
+        handleContactRequest: function(customerDetails) {
+            alert(currentLanguage === 'nl' ? 
+                'Bedankt voor uw interesse! We nemen binnen 24 uur contact met u op via e-mail voor een persoonlijk gesprek.' : 
+                'Thank you for your interest! We will contact you within 24 hours via email for a personal consultation.');
+            
+            // Save contact request
+            const contactRequest = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                customerName: `${customerDetails.firstName} ${customerDetails.middleName || ''} ${customerDetails.lastName}`.replace(/\s+/g, ' ').trim(),
+                customerEmail: customerDetails.customerEmail,
+                customerPhone: customerDetails.mobilePhone,
+                deliveryMethod: 'email',
+                package: 'Full Album Request',
+                originalPrice: 'Contact',
+                finalPrice: 'Contact',
+                status: 'contact_request',
+                orderData: formData,
+                customerDetails: customerDetails
+            };
+            
+            orders.push(contactRequest);
+            localStorage.setItem('musicOrders', JSON.stringify(orders));
+            
+            // Reset processing flag and show page 1
+            isProcessingPayment = false;
+            clearTimeout(paymentTimeout);
+            
+            // Clear form data
+            formData = {};
+            
+            this.showPage('page1');
+        },
+
+        // FIXED: Cart addition with better error handling and duplicate prevention
+        addToShopifyCart: function(customerDetails) {
+            const variantId = this.getVariantId(formData.package);
+            
+            if (!variantId) {
+                console.error('No variant ID found for package:', formData.package);
+                alert('Product configuration error. Please contact support.');
+                isProcessingPayment = false;
+                clearTimeout(paymentTimeout);
+                return;
+            }
+
+            console.log('Adding to cart with variant ID:', variantId);
+
+            // Prepare cart data - FIXED: Only include discount if actually applied
             const cartData = {
                 items: [{
                     id: variantId,
@@ -719,7 +832,7 @@
                 cartData.items[0].properties['Favorite Artists'] = artists.join(', ');
             }
 
-            // FIXED: Include custom lyrics/story if provided
+            // Include custom lyrics/story if provided
             if (formData.ownLyrics && formData.ownLyrics.trim()) {
                 cartData.items[0].properties['Custom Lyrics/Story'] = formData.ownLyrics;
             }
@@ -745,8 +858,8 @@
                 }
             }
 
-            // Add discount information if applied
-            if (appliedDiscountCode) {
+            // FIXED: Only add discount if actually applied and valid
+            if (appliedDiscountCode && (appliedDiscountCode === '15%MUSIC')) {
                 cartData.items[0].properties['Discount Applied'] = appliedDiscountCode;
             }
 
@@ -758,17 +871,46 @@
                 },
                 body: JSON.stringify(cartData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                console.log('Added to cart:', data);
+                console.log('Successfully added to cart:', data);
+                
+                // Reset processing flag
+                isProcessingPayment = false;
+                clearTimeout(paymentTimeout);
+                
+                // Clear form data
+                formData = {};
+                
                 // Redirect to cart
                 window.location.href = '/cart';
             })
             .catch(error => {
                 console.error('Error adding to cart:', error);
-                alert(currentLanguage === 'nl' ? 
-                    'Er was een fout bij het toevoegen aan winkelwagen. Probeer het opnieuw.' : 
-                    'There was an error adding to cart. Please try again.');
+                
+                // Reset processing flag
+                isProcessingPayment = false;
+                clearTimeout(paymentTimeout);
+                
+                // Show user-friendly error
+                if (error.message.includes('404')) {
+                    alert(currentLanguage === 'nl' ? 
+                        'Product niet gevonden. Controleer de product configuratie.' : 
+                        'Product not found. Please check product configuration.');
+                } else if (error.message.includes('422')) {
+                    alert(currentLanguage === 'nl' ? 
+                        'Product niet beschikbaar. Probeer het later opnieuw.' : 
+                        'Product unavailable. Please try again later.');
+                } else {
+                    alert(currentLanguage === 'nl' ? 
+                        'Er was een fout bij het toevoegen aan winkelwagen. Probeer het opnieuw.' : 
+                        'There was an error adding to cart. Please try again.');
+                }
             });
         },
 
@@ -1076,6 +1218,7 @@
                     if (codeInput && !codeInput.value) {
                         codeInput.value = '15%MUSIC';
                         codeInput.disabled = true;
+                        appliedDiscountCode = '15%MUSIC';
                         
                         const applyBtn = document.querySelector('.discount-apply-btn');
                         if (applyBtn) {
@@ -1093,6 +1236,7 @@
             }
         },
 
+        // FIXED: Calculate total with proper discount logic
         calculateTotal: function() {
             // Skip calculation for contact packages
             if (formData.package === 'contact') {
@@ -1107,13 +1251,19 @@
             
             let discountAmount = 0;
             
-            // Check if discount was applied via modal or discount code
-            if (localStorage.getItem('discountAppliedViaModal') === 'true' || appliedDiscountCode === '15%MUSIC') {
+            // FIXED: Only apply discount if explicitly set and valid
+            const hasValidDiscount = (
+                (appliedDiscountCode === '15%MUSIC') || 
+                (localStorage.getItem('discountAppliedViaModal') === 'true' && appliedDiscountCode === '15%MUSIC')
+            );
+            
+            if (hasValidDiscount) {
                 discountAmount = originalPrice * 0.15;
                 window.appliedDiscount = discountAmount;
-                appliedDiscountCode = '15%MUSIC';
-            } else if (window.appliedDiscount) {
-                discountAmount = window.appliedDiscount;
+            } else {
+                // Clear any stale discount data
+                window.appliedDiscount = null;
+                appliedDiscountCode = null;
             }
             
             const finalPrice = originalPrice - discountAmount;
@@ -1162,57 +1312,24 @@
             }
         },
 
+        // FIXED: Reset form and clear all state when going back
         goBack: function() {
-            this.showPage('page1');
-        },
-
-        processPayment: function() {
-            // Validate customer details first
-            if (!this.validateCustomerDetails()) {
-                return;
-            }
-
-            // Collect customer details
-            const customerForm = document.getElementById('customerDetailsForm');
-            if (!customerForm) return;
+            // Clear discount state
+            clearDiscountState();
             
-            const customerData = new FormData(customerForm);
-            const customerDetails = {};
-            for (let [key, value] of customerData.entries()) {
-                customerDetails[key] = value;
-            }
-
-            // Handle contact us option differently
-            if (formData.package === 'contact') {
-                alert(currentLanguage === 'nl' ? 
-                    'Bedankt voor uw interesse! We nemen binnen 24 uur contact met u op via e-mail voor een persoonlijk gesprek.' : 
-                    'Thank you for your interest! We will contact you within 24 hours via email for a personal consultation.');
-                
-                // Save contact request
-                const contactRequest = {
-                    id: Date.now(),
-                    date: new Date().toLocaleDateString(),
-                    customerName: `${customerDetails.firstName} ${customerDetails.middleName || ''} ${customerDetails.lastName}`.replace(/\s+/g, ' ').trim(),
-                    customerEmail: customerDetails.customerEmail,
-                    customerPhone: customerDetails.mobilePhone,
-                    deliveryMethod: 'email',
-                    package: 'Full Album Request',
-                    originalPrice: 'Contact',
-                    finalPrice: 'Contact',
-                    status: 'contact_request',
-                    orderData: formData,
-                    customerDetails: customerDetails
-                };
-                
-                orders.push(contactRequest);
-                localStorage.setItem('musicOrders', JSON.stringify(orders));
-                
-                this.showPage('page1');
-                return;
-            }
-
-            // For actual products, integrate with Shopify cart
-            this.addToShopifyCart();
+            // Reset processing flag
+            isProcessingPayment = false;
+            clearTimeout(paymentTimeout);
+            
+            // Clear form data
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                if (form.id !== 'selectionForm') {
+                    form.reset();
+                }
+            });
+            
+            this.showPage('page1');
         },
 
         validateCustomerDetails: function() {
@@ -1275,7 +1392,7 @@
             return isValid;
         },
 
-        // Discount Code Functions
+        // FIXED: Apply discount code with better validation
         applyDiscountCode: function() {
             const codeInput = document.getElementById('discountCodeInput');
             const messageDiv = document.getElementById('discountMessage');
@@ -1289,11 +1406,12 @@
             messageDiv.style.display = 'none';
             
             if (!code) {
+                this.showDiscountMessage('error', currentLanguage === 'nl' ? 'Voer een geldige code in.' : 'Please enter a valid code.');
                 return;
             }
             
             // Check if discount already applied
-            if (appliedDiscountCode || localStorage.getItem('discountAppliedViaModal') === 'true') {
+            if (appliedDiscountCode === '15%MUSIC') {
                 this.showDiscountMessage('error', currentLanguage === 'nl' ? 'Kortingscode al toegepast.' : 'Discount code already applied.');
                 return;
             }
@@ -1301,6 +1419,11 @@
             // Validate discount code
             if (code === '15%MUSIC') {
                 const originalPrice = parseFloat(formData.price);
+                if (isNaN(originalPrice)) {
+                    this.showDiscountMessage('error', currentLanguage === 'nl' ? 'Geen geldige prijs gevonden.' : 'No valid price found.');
+                    return;
+                }
+                
                 const discountAmount = originalPrice * 0.15;
                 window.appliedDiscount = discountAmount;
                 appliedDiscountCode = code;
@@ -1321,7 +1444,7 @@
                 }
                 
             } else {
-                this.showDiscountMessage('error', currentLanguage === 'nl' ? 'Ongeldige kortingscode. Controleer en probeer opnieuw.' : 'Invalid discount code. Please check and try again.');
+                this.showDiscountMessage('error', currentLanguage === 'nl' ? 'Ongeldige kortingscode.' : 'Invalid discount code.');
             }
         },
 
@@ -1964,6 +2087,10 @@
             URL.revokeObjectURL(url);
         }
     };
+
+    // Export helper functions
+    window.clearDiscountState = clearDiscountState;
+    window.isProcessingPayment = () => isProcessingPayment;
 
     // Export the app to global scope
     window.MusicadoApp = MusicadoApp;

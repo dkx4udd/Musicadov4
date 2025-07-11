@@ -1,0 +1,390 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+
+  {%- if settings.favicon != blank -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+  {%- endif -%}
+
+  {%- unless settings.type_header_font.system? and settings.type_body_font.system? -%}
+    <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+  {%- endunless -%}
+
+  <title>
+    {{ page_title }}
+    {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
+    {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
+    {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+  </title>
+
+  {% if page_description %}
+    <meta name="description" content="{{ page_description | escape }}">
+  {% endif %}
+
+  {% render 'meta-tags' %}
+
+  <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+  {%- unless settings.type_body_font.system? -%}
+    <link rel="preload" as="font" href="{{ settings.type_body_font | font_url }}" type="font/woff2" crossorigin>
+  {%- endunless -%}
+  {%- unless settings.type_header_font.system? -%}
+    <link rel="preload" as="font" href="{{ settings.type_header_font | font_url }}" type="font/woff2" crossorigin>
+  {%- endunless -%}
+
+  <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
+  
+  {% if shop.enabled_currencies.size > 1 %}
+    <script src="{{ 'currency.js' | asset_url }}" defer="defer"></script>
+  {% endif %}
+
+  {{ content_for_header }}
+</head>
+
+<body class="gradient">
+  <a class="skip-to-content-link button visually-hidden" href="#MainContent">
+    {{ 'accessibility.skip_to_text' | t }}
+  </a>
+
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">🎵 {{ shop.name }}</div>
+        <div class="language-selector">
+          <button class="lang-btn active" data-lang="nl">Nederlands</button>
+          <button class="lang-btn" data-lang="en">English</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
+    {{ content_for_layout }}
+  </main>
+
+  <!-- Newsletter Signup Section -->
+  <div class="newsletter-section">
+    <div class="container">
+      <div class="newsletter-card">
+        <div class="newsletter-content">
+          <h3 data-translate="newsletterTitle">Sign up to get special discounts</h3>
+          <p data-translate="newsletterDescription">Be the first to know about new music styles, exclusive offers, and special promotions!</p>
+          <form id="newsletterForm" class="newsletter-form">
+            <div class="newsletter-input-group">
+              <input type="email" id="newsletterEmail" name="newsletterEmail" placeholder="Enter your email address" data-translate-placeholder="newsletterEmailPlaceholder" required>
+              <button type="submit" class="btn newsletter-btn" data-translate="subscribe">Subscribe</button>
+            </div>
+            <p class="newsletter-terms" data-translate="newsletterTerms">
+              No spam, unsubscribe at any time. We respect your privacy.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="privacy-statement">
+        <p data-translate="privacyStatement">
+          Welcome to <strong>{{ shop.name }}</strong> ("we," "our," or "us"). Your privacy and the security of your personal information are extremely important to us. This Privacy and Protection Statement explains how we collect, use, store, and protect your data when you visit our website and purchase AI-created music or use our related services.
+        </p>
+        <div class="footer-links">
+          <a href="#" id="fullPrivacyLink" data-translate="readFullPrivacy">Read our full privacy policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Privacy Policy Modal -->
+  <div id="privacyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 data-translate="legalDocumentTitle">Legal Document for Website Use</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="legal-content" data-translate="legalDocument">
+          <p><strong>Applies to: {{ shop.name }}</strong><br>
+          <strong>Last update: 19-06-2025</strong></p>
+
+          <h3>1. Privacy Policy</h3>
+          <p>{{ shop.name }} respects the privacy of all users of its website and ensures that the personal information you provide us is treated confidentially.</p>
+          
+          <h4>1.1 Data we collect</h4>
+          <ul>
+            <li>Name, email address, telephone number</li>
+            <li>Billing and payment information</li>
+            <li>IP address and browser information</li>
+            <li>Usage data (e.g. page views, purchases)</li>
+          </ul>
+          
+          <h4>1.2 Purposes</h4>
+          <ul>
+            <li>Processing orders and payments</li>
+            <li>Improving the website and customer experience</li>
+            <li>Sending updates or marketing (after consent)</li>
+          </ul>
+          
+          <h4>1.3 Legal basis</h4>
+          <ul>
+            <li>Performance of a contract</li>
+            <li>Legal obligation</li>
+            <li>Consent (for e.g. marketing)</li>
+            <li>Legitimate interest (e.g. security)</li>
+          </ul>
+          
+          <h4>1.4 Retention period</h4>
+          <p>Personal data is not kept longer than necessary, in accordance with legal retention periods.</p>
+          
+          <h4>1.5 Sharing with third parties</h4>
+          <ul>
+            <li>Trusted processors such as payment providers, hosting services and newsletter tools</li>
+            <li>Only when necessary for service provision or to comply with legal obligations</li>
+          </ul>
+          
+          <h4>1.6 Security</h4>
+          <p>SSL security, limited access, and encryption of sensitive data</p>
+          
+          <h4>1.7 Data subject rights</h4>
+          <p>Right to access, correction, deletion, objection and data portability<br>
+          Requests can be sent to: contact@{{ shop.domain }}</p>
+          
+          <h4>1.8 International transfer</h4>
+          <p>If data is processed outside the EU, we ensure adequate protection through, for example, EU standard contracts.</p>
+
+          <h3>2. Cookie Policy</h3>
+          
+          <h4>2.1 What are cookies?</h4>
+          <p>Cookies are small text files that are placed on your device when you visit our website.</p>
+          
+          <h4>2.2 Types of cookies we use</h4>
+          <ul>
+            <li>Functional cookies (necessary)</li>
+            <li>Analytical cookies (e.g. Google Analytics)</li>
+            <li>Marketing/tracking cookies (only with consent)</li>
+          </ul>
+          
+          <h4>2.3 Cookie banner</h4>
+          <p>On first visit we ask for consent for non-essential cookies. You can always adjust your preferences via the settings.</p>
+          
+          <h4>2.4 Cookie management</h4>
+          <p>You can delete or block cookies via your browser settings.</p>
+
+          <h3>3. Disclaimer</h3>
+          <p>The content of this website has been compiled with the greatest possible care. However, {{ shop.name }} accepts no liability for inaccuracies or incompleteness.</p>
+          <ul>
+            <li>Information and prices on this site may be changed at any time.</li>
+            <li>No rights can be derived from the content of this site.</li>
+            <li>{{ shop.name }} is not responsible for content of external links.</li>
+          </ul>
+
+          <h3>4. General Terms and Conditions</h3>
+          
+          <h4>4.1 Identity of the entrepreneur</h4>
+          <p>{{ shop.name }}<br>
+          [Address]<br>
+          Chamber of Commerce: [CoC number]<br>
+          VAT: [VAT number]<br>
+          Email: contact@{{ shop.domain }}</p>
+          
+          <h4>4.2 Applicability</h4>
+          <p>These general terms and conditions apply to every offer from {{ shop.name }} and to every agreement concluded.</p>
+          
+          <h4>4.3 Offer and agreement</h4>
+          <ul>
+            <li>Products are clearly and completely described.</li>
+            <li>The agreement is concluded upon acceptance of the offer and payment.</li>
+          </ul>
+          
+          <h4>4.4 Prices</h4>
+          <ul>
+            <li>All prices include VAT, unless otherwise stated.</li>
+            <li>Obvious errors are not binding.</li>
+          </ul>
+          
+          <h4>4.5 Right of withdrawal (consumers)</h4>
+          <ul>
+            <li>You have 14 days to change your mind without giving a reason.</li>
+            <li>The period starts the day after delivery.</li>
+            <li>For digital products, the right of withdrawal expires as soon as the product has been downloaded and you have given explicit consent for this.</li>
+          </ul>
+          
+          <h4>4.6 Delivery and performance</h4>
+          <ul>
+            <li>Delivery takes place digitally or physically, as agreed.</li>
+            <li>Terms are indicative.</li>
+          </ul>
+          
+          <h4>4.7 Complaints procedure</h4>
+          <ul>
+            <li>Complaints must be reported within 7 days of detection.</li>
+            <li>We strive to handle complaints within 14 days.</li>
+          </ul>
+          
+          <h4>4.8 Liability</h4>
+          <p>{{ shop.name }} is not liable for indirect damage unless legally required.</p>
+          
+          <h4>4.9 Applicable law</h4>
+          <ul>
+            <li>Dutch law applies to all agreements.</li>
+            <li>Disputes are submitted to the competent court in the district of {{ shop.name }}.</li>
+          </ul>
+
+          <p><strong>For questions you can contact us via: contact@{{ shop.domain }}</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Album Contact Modal -->
+  <div id="fullAlbumModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 data-translate="fullAlbumContactTitle">🎵 Full Album Inquiry</h2>
+        <span class="close" id="fullAlbumClose">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p data-translate="fullAlbumContactDescription">
+          Interested in a full album? We'd love to create something amazing for you! 
+          Leave your details and we'll contact you within 24 hours with a personalized quote.
+        </p>
+        
+        <form id="fullAlbumContactForm">
+          <div class="form-group">
+            <label for="fullAlbumEmail" data-translate="emailAddress">Email Address *</label>
+            <input type="email" id="fullAlbumEmail" name="email" required 
+                   placeholder="your@email.com" data-translate-placeholder="emailPlaceholder">
+          </div>
+          
+          <div class="form-group">
+            <label for="fullAlbumPhone" data-translate="phoneNumber">Mobile Phone *</label>
+            <input type="tel" id="fullAlbumPhone" name="phone" required 
+                   placeholder="+31 6 12345678" data-translate-placeholder="phonePlaceholder">
+          </div>
+          
+          <div class="form-group">
+            <label for="fullAlbumTopic" data-translate="topic">Topic</label>
+            <textarea id="fullAlbumTopic" name="topic" readonly rows="2">Interested in a full album please contact me</textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="fullAlbumNotes" data-translate="additionalNotes">Additional Notes (Optional)</label>
+            <textarea id="fullAlbumNotes" name="notes" rows="3" 
+                      placeholder="Tell us more about your album vision..." 
+                      data-translate-placeholder="notesPlaceholder"></textarea>
+          </div>
+          
+          <div style="text-align: center; margin-top: 1.5rem;">
+            <button type="submit" class="btn" data-translate="submitContact">Submit Contact Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Updated Discount Code Modal with Email Consent -->
+  <div id="discountModal" class="modal discount-modal">
+    <div class="modal-content discount-content">
+      <div class="modal-header discount-header">
+        <h2 data-translate="discountTitle">🎵 Get 15% OFF Your Purchase!</h2>
+        <span class="close discount-close">&times;</span>
+      </div>
+      <div class="modal-body discount-body">
+        <!-- Step 1: Email Collection with Consent -->
+        <div id="discountEmailStep" class="discount-step active">
+          <p class="discount-description" data-translate="discountEmailDescription">
+            Enter your email to unlock 15% off your custom song creation!
+          </p>
+          
+          <div class="discount-input-group">
+            <input type="email" id="discountEmail" placeholder="Enter your email address" 
+                   data-translate-placeholder="discountEmailPlaceholder" required>
+          </div>
+          
+          <!-- Email Consent Section -->
+          <div class="discount-consent-section">
+            <div class="discount-consent-checkbox" id="emailConsentCheckbox">
+              <input type="checkbox" id="emailConsent" name="emailConsent" required>
+              <label for="emailConsent" data-translate="emailConsentText">
+                I agree to receive promotional emails and special offers from {{ shop.name }}. You can unsubscribe at any time.
+              </label>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 1.5rem;">
+            <button onclick="submitDiscountEmail()" class="btn discount-btn" data-translate="getDiscount">
+              Get My 15% Discount
+            </button>
+          </div>
+          
+          <p class="discount-terms" data-translate="discountTermsPrivacy">
+            We respect your privacy. No spam, and you can unsubscribe anytime.
+          </p>
+        </div>
+
+        <!-- Step 2: Success with Discount Code -->
+        <div id="discountSuccessStep" class="discount-step">
+          <div class="discount-success">
+            <h3 data-translate="discountSuccessTitle">🎉 Thank You!</h3>
+            <p class="discount-instructions" data-translate="discountSuccessMessage">
+              Your discount has been applied! Use the code below at checkout:
+            </p>
+            
+            <div class="discount-code-display">
+              <span class="discount-code">15%MUSIC</span>
+              <button onclick="copyDiscountCode()" class="copy-btn" data-translate="copyCode">Copy Code</button>
+            </div>
+            
+            <p class="discount-instructions" data-translate="discountValidityInfo">
+              This code is valid for 30 days and has been automatically applied to your cart.
+            </p>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+              <button onclick="applyDiscountAndClose()" class="btn discount-continue" data-translate="continueToCheckout">
+                Continue to Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul hidden>
+    <li id="a11y-refresh-page-message">{{ 'accessibility.refresh_page' | t }}</li>
+  </ul>
+
+  <script>
+    window.shopUrl = '{{ request.origin }}';
+    window.routes = {
+      cart_add_url: '{{ routes.cart_add_url }}',
+      cart_change_url: '{{ routes.cart_change_url }}',
+      cart_update_url: '{{ routes.cart_update_url }}',
+      cart_url: '{{ routes.cart_url }}',
+      predictive_search_url: '{{ routes.predictive_search_url }}'
+    };
+
+    window.cartStrings = {
+      error: `{{ 'sections.cart.cart_error' | t }}`,
+      quantityError: `{{ 'sections.cart.quantity_error' | t }}`
+    }
+
+    window.variantStrings = {
+      addToCart: `{{ 'products.product.add_to_cart' | t }}`,
+      soldOut: `{{ 'products.product.sold_out' | t }}`,
+      unavailable: `{{ 'products.product.unavailable' | t }}`,
+    }
+  </script>
+
+  <!-- Theme JavaScript -->
+  {{ 'musicado.js' | asset_url | script_tag }}
+</body>
+</html>

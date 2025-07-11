@@ -1,0 +1,46 @@
+<!-- Discount Code Section -->
+<div class="discount-code-section">
+  <h3>{{ 'musicado.discount_code_title' | t }}</h3>
+  <div class="discount-input-container">
+    <input type="text" id="discountCodeInput" name="discountCode" placeholder="{{ 'musicado.discount_code_placeholder' | t }}">
+    <button type="button" onclick="MusicadoApp.applyDiscountCode()" class="btn discount-apply-btn">
+      {{ 'musicado.apply_discount' | t }}
+    </button>
+  </div>
+  <div id="discountMessage" class="discount-message"></div>
+</div>
+
+{% schema %}
+{
+  "name": "Discount Code Section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Discount Settings"
+    },
+    {
+      "type": "text",
+      "id": "default_discount_code",
+      "label": "Default Discount Code",
+      "default": "15%MUSIC",
+      "info": "The discount code that will be accepted"
+    },
+    {
+      "type": "range",
+      "id": "discount_percentage",
+      "min": 5,
+      "max": 50,
+      "step": 5,
+      "unit": "%",
+      "label": "Discount Percentage",
+      "default": 15,
+      "info": "Percentage discount to apply"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Discount Code Section"
+    }
+  ]
+}
+{% endschema %}

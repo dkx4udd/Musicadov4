@@ -1,0 +1,195 @@
+<div class="card">
+  <div class="intro-text">
+    Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken.
+  </div>
+
+  <form id="selectionForm">
+    <!-- Pakket Selectie -->
+    <div class="form-group">
+      <label>Selecteer uw pakket:</label>
+      <div class="radio-group">
+        <div class="radio-option">
+          <input type="radio" name="package" value="one" id="pkg1" data-price="{{ section.settings.single_song_price | default: '49' }}">
+          <label for="pkg1">
+            <span>Één Liedje</span> - 
+            <span class="price">€{{ section.settings.single_song_price | default: '49' }}</span>
+          </label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" name="package" value="ep" id="pkg2" data-price="{{ section.settings.ep_price | default: '99' }}">
+          <label for="pkg2">
+            <span>EP (4 liedjes)</span> - 
+            <span class="price">€{{ section.settings.ep_price | default: '99' }}</span>
+          </label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" name="package" value="contact" id="pkg3" data-price="contact">
+          <label for="pkg3">
+            <span>Volledig Album:</span> 
+            <span>Neem contact op voor prijs op aanvraag</span>
+          </label>
+        </div>
+      </div>
+      <div class="package-disclaimer">
+        <p>Alle gemaakte liedjes kunnen alleen voor persoonlijk gebruik worden gebruikt. Voor commercieel gebruik, neem contact met ons op. We kunnen uw liedje op verzoek op Spotify publiceren.</p>
+      </div>
+    </div>
+
+    <!-- Muziekstijl -->
+    <div class="form-group">
+      <label>Selecteer uw twee favoriete muziekstijlen:</label>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="musicStyle1">Eerste Muziekstijl *</label>
+          <select id="musicStyle1" name="musicStyle1" required>
+            <option value="">-- Selecteer een optie --</option>
+            <option value="POP">POP</option>
+            <option value="ROCK">ROCK</option>
+            <option value="HIP_HOP_RAP">HIP/HOP RAP</option>
+            <option value="ELECTRONIC">Electronic</option>
+            <option value="LATIN">LATIN</option>
+            <option value="CLASSICAL">CLASSICAL</option>
+            <option value="COUNTRY">COUNTRY</option>
+            <option value="JAZZ_BLUES">JAZZ/BLUES</option>
+            <option value="METAL">METAL</option>
+            <option value="REGGAE">REGGAE</option>
+            <option value="LOCAL">LOCAL</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="musicStyle2">Tweede Muziekstijl *</label>
+          <select id="musicStyle2" name="musicStyle2" required>
+            <option value="">-- Selecteer een optie --</option>
+            <option value="POP">POP</option>
+            <option value="ROCK">ROCK</option>
+            <option value="HIP_HOP_RAP">HIP/HOP RAP</option>
+            <option value="ELECTRONIC">Electronic</option>
+            <option value="LATIN">LATIN</option>
+            <option value="CLASSICAL">CLASSICAL</option>
+            <option value="COUNTRY">COUNTRY</option>
+            <option value="JAZZ_BLUES">JAZZ/BLUES</option>
+            <option value="METAL">METAL</option>
+            <option value="REGGAE">REGGAE</option>
+            <option value="LOCAL">LOCAL</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Favoriete Artiesten -->
+    <div class="form-group">
+      <label>Voer uw favoriete artiesten in:</label>
+      <input type="text" name="artist1" placeholder="Artiest 1" style="margin-bottom: 10px;">
+      <input type="text" name="artist2" placeholder="Artiest 2" style="margin-bottom: 10px;">
+      <input type="text" name="artist3" placeholder="Artiest 3">
+    </div>
+
+    <!-- Stem Selectie -->
+    <div class="form-group">
+      <label>Selecteer stem voorkeur:</label>
+      <div class="radio-group">
+        <div class="radio-option">
+          <input type="radio" name="voiceType" value="male" id="voiceMale">
+          <label for="voiceMale">
+            <span>Mannelijke Stem</span>
+          </label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" name="voiceType" value="female" id="voiceFemale">
+          <label for="voiceFemale">
+            <span>Vrouwelijke Stem</span>
+          </label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" name="voiceType" value="no_preference" id="voiceNoPreference">
+          <label for="voiceNoPreference">
+            <span>Geen Voorkeur</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reden -->
+    <div class="form-group">
+      <label for="reason">Reden voor dit liedje:</label>
+      <select id="reason" name="reason" required>
+        <option value="">-- Selecteer een optie --</option>
+        <option value="myself">Voor mezelf</option>
+        <option value="love">Voor mijn liefde</option>
+        <option value="friend">Voor mijn vriend</option>
+        <option value="mom">Voor mama</option>
+        <option value="dad">Voor mijn vader</option>
+        <option value="sibling">Voor mijn broer of zus</option>
+        <option value="other">Anders</option>
+      </select>
+      <input type="text" id="otherReason" name="otherReason" placeholder="Specificeer alstublieft" style="margin-top: 10px; display: none;">
+    </div>
+
+    <!-- Woorden/Namen -->
+    <div class="form-group" id="wordsSection">
+      <label>Welke woorden of namen wilt u terug hebben in de liedjes:</label>
+      <div id="wordsContainer">
+        <!-- Woorden worden ingevuld op basis van pakket selectie -->
+      </div>
+    </div>
+
+    <!-- Taal -->
+    <div class="form-group">
+      <label for="songLanguage">In welke taal wilt u dat de liedjes zijn:</label>
+      <select id="songLanguage" name="songLanguage" required>
+        <option value="">-- Selecteer een optie --</option>
+        <option value="dutch">Nederlands</option>
+        <option value="english">English</option>
+        <option value="french">Français</option>
+        <option value="german">Deutsch</option>
+        <option value="spanish">Español</option>
+        <option value="portuguese">Português</option>
+      </select>
+    </div>
+
+    <!-- Liedje Titels -->
+    <div class="form-group song-titles" id="songTitles">
+      <label>Geef de liedjes een titel (laat leeg voor ons om te kiezen):</label>
+      <div id="titleFields"></div>
+    </div>
+
+    <!-- Eigen Teksten -->
+    <div class="form-group">
+      <label for="ownLyrics">Heeft u uw eigen teksten? Voer hier in:</label>
+      <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Voer uw teksten hier in..."></textarea>
+    </div>
+
+    <button type="submit" class="btn">Doorgaan naar Samenvatting</button>
+  </form>
+</div>
+
+{% schema %}
+{
+  "name": "Muziek Bestel Formulier",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Prijzen"
+    },
+    {
+      "type": "text",
+      "id": "single_song_price",
+      "label": "Enkel Liedje Prijs",
+      "default": "49",
+      "info": "Prijs voor één liedje (zonder valuta symbool)"
+    },
+    {
+      "type": "text",
+      "id": "ep_price",
+      "label": "EP Prijs (4 liedjes)",
+      "default": "99",
+      "info": "Prijs voor EP pakket (zonder valuta symbool)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Muziek Bestel Formulier"
+    }
+  ]
+}
+{% endschema %}

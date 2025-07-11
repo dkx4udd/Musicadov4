@@ -1,0 +1,46 @@
+<!-- Disclaimer Section -->
+<div class="disclaimer-section">
+  <div class="disclaimer-box">
+    <h4>{{ 'musicado.important_info' | t }}</h4>
+    <ul>
+      <li>{{ 'musicado.delivery_time' | t }}</li>
+      <li>
+        <span>{{ 'musicado.questions_contact' | t }}</span> 
+        <a href="mailto:{{ section.settings.contact_email | default: 'contact@musicado.nl' }}" class="contact-link">
+          {{ section.settings.contact_email | default: 'contact@musicado.nl' }}
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Disclaimer Section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Contact Information"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Contact Email",
+      "default": "contact@musicado.nl",
+      "info": "Email address for customer inquiries"
+    },
+    {
+      "type": "text",
+      "id": "delivery_time_text",
+      "label": "Delivery Time Text",
+      "default": "We will deliver the music within 3 days to the chosen receipt option.",
+      "info": "Text explaining delivery timeframe"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Disclaimer Section"
+    }
+  ]
+}
+{% endschema %}

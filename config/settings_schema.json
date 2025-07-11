@@ -1,0 +1,312 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Musicado",
+    "theme_version": "1.0.0",
+    "theme_author": "Musicado Team",
+    "theme_documentation_url": "https://musicado.nl/theme-docs",
+    "theme_support_email": "support@musicado.nl"
+  },
+  {
+    "name": "General",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "banner_image",
+        "label": "Homepage Banner Image"
+      },
+      {
+        "type": "text",
+        "id": "banner_title",
+        "label": "Homepage Banner Title",
+        "default": "🎵 musicado"
+      },
+      {
+        "type": "textarea",
+        "id": "intro_text",
+        "label": "Homepage Introduction Text",
+        "default": "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones."
+      },
+      {
+        "type": "header",
+        "content": "Contact Information"
+      },
+      {
+        "type": "text",
+        "id": "contact_email",
+        "label": "Contact Email",
+        "default": "contact@musicado.nl"
+      },
+      {
+        "type": "text",
+        "id": "contact_phone",
+        "label": "Contact Phone",
+        "default": "+31 6 12345678"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_product_audio_examples",
+        "label": "Show Audio Examples on Product Pages",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Audio Examples",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Example Audio Files"
+      },
+      {
+        "type": "paragraph",
+        "content": "Upload your example MP3 files to the assets folder and reference them here."
+      },
+      {
+        "type": "text",
+        "id": "example_audio_1",
+        "label": "Example Audio 1 Filename",
+        "default": "Wonderlijke wereld van AI - Matelletam.mp3",
+        "info": "Just the filename, e.g. 'example1.mp3'"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_1_title",
+        "label": "Example Audio 1 Title",
+        "default": "Wonderlijke wereld van AI - Matelletam"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_1_style",
+        "label": "Example Audio 1 Style",
+        "default": "Electronic/Ambient style"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_2",
+        "label": "Example Audio 2 Filename",
+        "default": "Wonderlijke wereld van AI - RockyRocky.mp3"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_2_title",
+        "label": "Example Audio 2 Title", 
+        "default": "Wonderlijke wereld van AI - RockyRocky"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_2_style",
+        "label": "Example Audio 2 Style",
+        "default": "Rock/Pop style"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_3",
+        "label": "Example Audio 3 Filename",
+        "default": "Survivor - Eye Of The Tiger.mp3"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_3_title",
+        "label": "Example Audio 3 Title",
+        "default": "Survivor - Eye Of The Tiger"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_3_style",
+        "label": "Example Audio 3 Style",
+        "default": "Classic Rock style"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_4",
+        "label": "Example Audio 4 Filename",
+        "default": "Music for vlogs - Birthday.mp3"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_4_title",
+        "label": "Example Audio 4 Title",
+        "default": "Birthday Celebration"
+      },
+      {
+        "type": "text",
+        "id": "example_audio_4_style",
+        "label": "Example Audio 4 Style",
+        "default": "Upbeat/Celebration style"
+      }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Theme Colors"
+      },
+      {
+        "type": "color",
+        "id": "color_primary",
+        "label": "Primary Color",
+        "default": "#3b82f6"
+      },
+      {
+        "type": "color", 
+        "id": "color_secondary",
+        "label": "Secondary Color",
+        "default": "#06b6d4"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Accent Color",
+        "default": "#fbbf24"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Background Color",
+        "default": "#0f172a"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Text Color",
+        "default": "#e2e8f0"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "font_picker",
+        "id": "type_header_font",
+        "default": "assistant_n4",
+        "label": "Heading font",
+        "info": "Used for headings and titles"
+      },
+      {
+        "type": "range",
+        "id": "heading_scale",
+        "min": 100,
+        "max": 150,
+        "step": 5,
+        "unit": "%",
+        "label": "Heading scale",
+        "default": 100
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
+        "default": "assistant_n4", 
+        "label": "Body font",
+        "info": "Used for body text and form fields"
+      },
+      {
+        "type": "range",
+        "id": "body_scale",
+        "min": 90,
+        "max": 120,
+        "step": 5,
+        "unit": "%",
+        "label": "Body font scale",
+        "default": 100
+      }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "options": [
+          {
+            "value": "notification",
+            "label": "Notification"
+          },
+          {
+            "value": "drawer",
+            "label": "Drawer"
+          },
+          {
+            "value": "page",
+            "label": "Page"
+          }
+        ],
+        "default": "notification",
+        "label": "Cart type",
+        "info": "Controls how the cart is displayed when items are added"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_cart_note",
+        "default": false,
+        "label": "Enable cart notes"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_shipping_estimator",
+        "default": true,
+        "label": "Show shipping estimator"
+      }
+    ]
+  },
+  {
+    "name": "Social Media",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Social Media Links"
+      },
+      {
+        "type": "text",
+        "id": "social_twitter_link",
+        "label": "Twitter",
+        "info": "https://twitter.com/yourstore"
+      },
+      {
+        "type": "text",
+        "id": "social_facebook_link", 
+        "label": "Facebook",
+        "info": "https://facebook.com/yourstore"
+      },
+      {
+        "type": "text",
+        "id": "social_pinterest_link",
+        "label": "Pinterest"
+      },
+      {
+        "type": "text",
+        "id": "social_instagram_link",
+        "label": "Instagram"
+      },
+      {
+        "type": "text",
+        "id": "social_tiktok_link",
+        "label": "TikTok"
+      },
+      {
+        "type": "text",
+        "id": "social_tumblr_link",
+        "label": "Tumblr"
+      },
+      {
+        "type": "text",
+        "id": "social_snapchat_link",
+        "label": "Snapchat"
+      },
+      {
+        "type": "text",
+        "id": "social_youtube_link",
+        "label": "YouTube"
+      },
+      {
+        "type": "text",
+        "id": "social_vimeo_link",
+        "label": "Vimeo"
+      }
+    ]
+  }
+]

@@ -1,0 +1,634 @@
+<!-- Product Template for Music Packages -->
+<div class="page active">
+  <div class="container">
+    
+    <!-- Product Banner -->
+    <div class="banner">
+      {% if product.featured_image %}
+        <img src="{{ product.featured_image | image_url: width: 1200 }}" alt="{{ product.title | escape }}">
+      {% endif %}
+      <div class="banner-content">
+        {{ product.title }}
+      </div>
+    </div>
+
+    <!-- Product Information Card -->
+    <div class="card">
+      <div class="product-info">
+        <h1 class="product-title">{{ product.title }}</h1>
+        
+        {% if product.description != blank %}
+          <div class="product-description">
+            {{ product.description }}
+          </div>
+        {% endif %}
+
+        <!-- Price Display -->
+        <div class="product-price">
+          <span class="price">{{ product.price | money }}</span>
+          {% if product.compare_at_price > product.price %}
+            <span class="compare-price">{{ product.compare_at_price | money }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Package Type Detection -->
+        {% assign package_type = 'one' %}
+        {% if product.handle contains 'ep' or product.title contains 'EP' or product.title contains '4' %}
+          {% assign package_type = 'ep' %}
+        {% elsif product.handle contains 'album' or product.title contains 'Album' %}
+          {% assign package_type = 'album' %}
+        {% endif %}
+
+        <!-- Product Form -->
+        <div class="product-form-container">
+          <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" id="product-form" class="product-form">
+            
+            <!-- Hidden fields for package type -->
+            <input type="hidden" name="properties[Package Type]" value="{{ package_type }}">
+            <input type="hidden" name="properties[Product Handle]" value="{{ product.handle }}">
+            
+            <!-- Variant Selection (if applicable) -->
+            {% unless product.has_only_default_variant %}
+              <div class="form-group">
+                <label for="variant-select">Package Options:</label>
+                <select name="id" id="variant-select" class="product-variant-select">
+                  {% for variant in product.variants %}
+                    <option 
+                      value="{{ variant.id }}"
+                      {% if variant == product.selected_or_first_available_variant %}selected="selected"{% endif %}
+                      {% unless variant.available %}disabled{% endunless %}
+                    >
+                      {{ variant.title }} - {{ variant.price | money }}
+                      {% unless variant.available %} (Sold out){% endunless %}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% else %}
+              <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+            {% endunless %}
+
+            <!-- Music Customization Fields -->
+            <div class="customization-section">
+              <h3>Customize Your Music</h3>
+              
+              <!-- Music Styles -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="music-style-1">First Music Style *</label>
+                  <select name="properties[Music Style 1]" id="music-style-1" required>
+                    <option value="">-- Select a style --</option>
+                    <option value="POP">POP</option>
+                    <option value="ROCK">ROCK</option>
+                    <option value="HIP_HOP_RAP">HIP HOP/RAP</option>
+                    <option value="ELECTRONIC">Electronic</option>
+                    <option value="LATIN">LATIN</option>
+                    <option value="CLASSICAL">CLASSICAL</option>
+                    <option value="COUNTRY">COUNTRY</option>
+                    <option value="JAZZ_BLUES">JAZZ/BLUES</option>
+                    <option value="METAL">METAL</option>
+                    <option value="REGGAE">REGGAE</option>
+                    <option value="LOCAL">LOCAL</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="music-style-2">Second Music Style *</label>
+                  <select name="properties[Music Style 2]" id="music-style-2" required>
+                    <option value="">-- Select a style --</option>
+                    <option value="POP">POP</option>
+                    <option value="ROCK">ROCK</option>
+                    <option value="HIP_HOP_RAP">HIP HOP/RAP</option>
+                    <option value="ELECTRONIC">Electronic</option>
+                    <option value="LATIN">LATIN</option>
+                    <option value="CLASSICAL">CLASSICAL</option>
+                    <option value="COUNTRY">COUNTRY</option>
+                    <option value="JAZZ_BLUES">JAZZ/BLUES</option>
+                    <option value="METAL">METAL</option>
+                    <option value="REGGAE">REGGAE</option>
+                    <option value="LOCAL">LOCAL</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Voice Preference -->
+              <div class="form-group">
+                <label>Voice Preference:</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input type="radio" name="properties[Voice Type]" value="male" id="voice-male">
+                    <label for="voice-male">Male Voice</label>
+                  </div>
+                  <div class="radio-option">
+                    <input type="radio" name="properties[Voice Type]" value="female" id="voice-female">
+                    <label for="voice-female">Female Voice</label>
+                  </div>
+                  <div class="radio-option">
+                    <input type="radio" name="properties[Voice Type]" value="no_preference" id="voice-no-preference">
+                    <label for="voice-no-preference">No Preference</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Language Selection -->
+              <div class="form-group">
+                <label for="song-language">Song Language *</label>
+                <select name="properties[Language]" id="song-language" required>
+                  <option value="">-- Select a language --</option>
+                  <option value="dutch">Dutch</option>
+                  <option value="english">English</option>
+                  <option value="french">French</option>
+                  <option value="german">German</option>
+                  <option value="spanish">Spanish</option>
+                  <option value="portuguese">Portuguese</option>
+                </select>
+              </div>
+
+              <!-- Reason/Occasion -->
+              <div class="form-group">
+                <label for="reason">Reason/Occasion *</label>
+                <select name="properties[Reason]" id="reason" required>
+                  <option value="">-- Select an occasion --</option>
+                  <option value="myself">For myself</option>
+                  <option value="love">For my love</option>
+                  <option value="friend">For my friend</option>
+                  <option value="mom">For Mom</option>
+                  <option value="dad">For my dad</option>
+                  <option value="sibling">For my Brother or Sister</option>
+                  <option value="other">Other</option>
+                </select>
+                <input type="text" name="properties[Other Reason]" id="other-reason" placeholder="Please specify" style="margin-top: 10px; display: none;">
+              </div>
+
+              <!-- Favorite Artists -->
+              <div class="form-group">
+                <label>Favorite Artists (Optional):</label>
+                <input type="text" name="properties[Artist 1]" placeholder="Artist 1" style="margin-bottom: 10px;">
+                <input type="text" name="properties[Artist 2]" placeholder="Artist 2" style="margin-bottom: 10px;">
+                <input type="text" name="properties[Artist 3]" placeholder="Artist 3">
+              </div>
+
+              <!-- Keywords/Names - Dynamic based on package type -->
+              <div class="form-group">
+                <label>Keywords or Names to Include:</label>
+                {% if package_type == 'ep' %}
+                  <!-- EP: 4 songs with words each -->
+                  <div class="songs-words-container">
+                    {% for i in (1..4) %}
+                      <div class="song-words-group">
+                        <h4>Song {{ i }} Words:</h4>
+                        <div class="words-row">
+                          <input type="text" name="properties[Song {{ i }} Word 1]" placeholder="Word/Name 1">
+                          <input type="text" name="properties[Song {{ i }} Word 2]" placeholder="Word/Name 2">
+                          <input type="text" name="properties[Song {{ i }} Word 3]" placeholder="Word/Name 3">
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <!-- Single song: 3 words -->
+                  <div class="words-row">
+                    <input type="text" name="properties[Word 1]" placeholder="Word/Name 1">
+                    <input type="text" name="properties[Word 2]" placeholder="Word/Name 2">
+                    <input type="text" name="properties[Word 3]" placeholder="Word/Name 3">
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Song Titles - Dynamic based on package type -->
+              {% if package_type == 'ep' %}
+                <div class="form-group">
+                  <label>Song Titles (Optional - leave blank for us to choose):</label>
+                  {% for i in (1..4) %}
+                    <input type="text" name="properties[Song {{ i }} Title]" placeholder="Song {{ i }} Title" style="margin-bottom: 10px;">
+                  {% endfor %}
+                </div>
+              {% elsif package_type == 'one' %}
+                <div class="form-group">
+                  <label for="song-title">Song Title (Optional - leave blank for us to choose):</label>
+                  <input type="text" name="properties[Song Title]" id="song-title" placeholder="Enter song title">
+                </div>
+              {% endif %}
+
+              <!-- Custom Lyrics -->
+              <div class="form-group">
+                <label for="lyrics">Custom Lyrics (Optional):</label>
+                <textarea name="properties[Custom Lyrics]" id="lyrics" rows="5" placeholder="Enter your custom lyrics here..."></textarea>
+              </div>
+
+              <!-- Special Instructions -->
+              <div class="form-group">
+                <label for="instructions">Special Instructions (Optional):</label>
+                <textarea name="properties[Special Instructions]" id="instructions" rows="3" placeholder="Any special requests or instructions..."></textarea>
+              </div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="form-group">
+              <label for="quantity">Quantity:</label>
+              <quantity-input class="quantity">
+                <button class="quantity__button no-js-hidden" name="minus" type="button">
+                  <span class="visually-hidden">{{ 'products.product.quantity.decrease' | t: product: product.title | escape }}</span>
+                  -
+                </button>
+                <input class="quantity__input" type="number" name="quantity" id="quantity" min="1" value="1">
+                <button class="quantity__button no-js-hidden" name="plus" type="button">
+                  <span class="visually-hidden">{{ 'products.product.quantity.increase' | t: product: product.title | escape }}</span>
+                  +
+                </button>
+              </quantity-input>
+            </div>
+
+            <!-- Add to Cart Button -->
+            <div class="product-form__buttons">
+              <button type="submit" name="add" class="btn product-form__cart-submit" 
+                {% if product.selected_or_first_available_variant.available == false %}disabled{% endif %}>
+                <span>
+                  {%- if product.selected_or_first_available_variant.available -%}
+                    {{ 'products.product.add_to_cart' | t }}
+                  {%- else -%}
+                    {{ 'products.product.sold_out' | t }}
+                  {%- endif -%}
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Package Features -->
+        <div class="product-features">
+          <h3>What's Included:</h3>
+          <ul class="features-list">
+            {% if package_type == 'one' %}
+              <li>1 Custom Song (3-4 minutes)</li>
+              <li>Professional AI Production</li>
+              <li>Choice of Male/Female Voice</li>
+              <li>Digital Download (MP3/WAV)</li>
+              <li>Personal Use License</li>
+            {% elsif package_type == 'ep' %}
+              <li>4 Custom Songs (3-4 minutes each)</li>
+              <li>Professional AI Production</li>
+              <li>Choice of Male/Female Voice</li>
+              <li>Digital Download (MP3/WAV)</li>
+              <li>Personal Use License</li>
+              <li>Cohesive EP Theme</li>
+            {% else %}
+              <li>Full Album Creation</li>
+              <li>Professional Mixing & Mastering</li>
+              <li>Album Art Design</li>
+              <li>Spotify Distribution Available</li>
+              <li>Commercial License Options</li>
+              <li>Dedicated Support</li>
+            {% endif %}
+          </ul>
+        </div>
+
+        <!-- Delivery Information -->
+        <div class="delivery-info-section">
+          <div class="delivery-info-box">
+            <h4>📧 Digital Delivery</h4>
+            <p>We will send you a personalized link via email to download your custom music within 
+            {% if package_type == 'one' %}24-48 hours{% elsif package_type == 'ep' %}48-72 hours{% else %}1-2 weeks{% endif %} 
+            after order confirmation.</p>
+          </div>
+        </div>
+
+        <!-- Usage Rights -->
+        <div class="usage-rights-section">
+          <div class="disclaimer-box">
+            <h4>Usage Rights</h4>
+            <ul>
+              <li>All songs created are for personal use only</li>
+              <li>For commercial use, please contact us separately</li>
+              <li>We can publish your song on Spotify upon request</li>
+              <li>You retain rights to any original lyrics you provide</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Examples Section -->
+    {% if settings.show_product_audio_examples %}
+      <div class="card">
+        <h2 class="audio-examples-title">Listen to our examples</h2>
+        <div class="audio-players">
+          <div class="audio-player">
+            <div class="audio-info">
+              <h3>{{ settings.example_audio_1_title | default: 'Example Track 1' }}</h3>
+              <p>{{ settings.example_audio_1_style | default: 'Sample of our music creation quality' }}</p>
+            </div>
+            <audio controls preload="metadata">
+              {% if settings.example_audio_1 %}
+                <source src="https://cdn.shopify.com/s/files/1/0905/1462/0749/files/{{ settings.example_audio_1 }}" type="audio/mpeg">
+              {% endif %}
+              <span>Your browser does not support the audio element.</span>
+            </audio>
+          </div>
+          
+          <div class="audio-player">
+            <div class="audio-info">
+              <h3>{{ settings.example_audio_2_title | default: 'Example Track 2' }}</h3>
+              <p>{{ settings.example_audio_2_style | default: 'Another sample showcasing our range' }}</p>
+            </div>
+            <audio controls preload="metadata">
+              {% if settings.example_audio_2 %}
+                <source src="https://cdn.shopify.com/s/files/1/0905/1462/0749/files/{{ settings.example_audio_2 }}" type="audio/mpeg">
+              {% endif %}
+              <span>Your browser does not support the audio element.</span>
+            </audio>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Customer Reviews -->
+    <div class="card">
+      <h2 class="testimonials-title">Customer Reviews</h2>
+      <div class="rating-summary">
+        <div class="overall-rating">
+          <div class="big-stars">★★★★★</div>
+          <div class="rating-text">
+            <span class="rating-number">4.9/5</span>
+            <span class="rating-label">Based on customer reviews</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Product-specific JavaScript
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle variant selection
+    const variantSelect = document.getElementById('variant-select');
+    if (variantSelect) {
+      variantSelect.addEventListener('change', function() {
+        const selectedVariant = this.options[this.selectedIndex];
+        const addToCartButton = document.querySelector('.product-form__cart-submit');
+        
+        if (selectedVariant.disabled) {
+          addToCartButton.disabled = true;
+          addToCartButton.querySelector('span').textContent = 'Sold Out';
+        } else {
+          addToCartButton.disabled = false;
+          addToCartButton.querySelector('span').textContent = 'Add to Cart';
+        }
+      });
+    }
+
+    // Handle reason selection
+    const reasonSelect = document.getElementById('reason');
+    const otherReasonField = document.getElementById('other-reason');
+    
+    if (reasonSelect && otherReasonField) {
+      reasonSelect.addEventListener('change', function() {
+        if (this.value === 'other') {
+          otherReasonField.style.display = 'block';
+          otherReasonField.required = true;
+        } else {
+          otherReasonField.style.display = 'none';
+          otherReasonField.required = false;
+        }
+      });
+    }
+
+    // Handle radio button selection styling
+    document.querySelectorAll('input[name="properties[Voice Type]"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        document.querySelectorAll('input[name="properties[Voice Type]"]').forEach(r => {
+          r.closest('.radio-option').classList.remove('selected');
+        });
+        this.closest('.radio-option').classList.add('selected');
+      });
+    });
+
+    // Form validation
+    const productForm = document.getElementById('product-form');
+    if (productForm) {
+      productForm.addEventListener('submit', function(e) {
+        const musicStyle1 = document.getElementById('music-style-1').value;
+        const musicStyle2 = document.getElementById('music-style-2').value;
+        const language = document.getElementById('song-language').value;
+        const reason = document.getElementById('reason').value;
+        
+        if (!musicStyle1 || !musicStyle2 || !language || !reason) {
+          e.preventDefault();
+          alert('Please fill in all required fields.');
+          return;
+        }
+
+        if (reason === 'other' && !otherReasonField.value.trim()) {
+          e.preventDefault();
+          alert('Please specify the other reason.');
+          return;
+        }
+
+        // Add customer details prompt
+        const customerEmail = prompt('Please enter your email address:');
+        const customerPhone = prompt('Please enter your phone number:');
+        
+        if (customerEmail) {
+          const hiddenEmail = document.createElement('input');
+          hiddenEmail.type = 'hidden';
+          hiddenEmail.name = 'properties[Customer Email]';
+          hiddenEmail.value = customerEmail;
+          this.appendChild(hiddenEmail);
+        }
+        
+        if (customerPhone) {
+          const hiddenPhone = document.createElement('input');
+          hiddenPhone.type = 'hidden';
+          hiddenPhone.name = 'properties[Customer Phone]';
+          hiddenPhone.value = customerPhone;
+          this.appendChild(hiddenPhone);
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+  /* Product-specific styles */
+  .product-info {
+    text-align: left;
+  }
+
+  .product-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .product-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: #cbd5e1;
+  }
+
+  .product-price {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+
+  .product-price .price {
+    color: #06b6d4;
+  }
+
+  .product-price .compare-price {
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-size: 1.5rem;
+    margin-left: 1rem;
+  }
+
+  .customization-section {
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+
+  .customization-section h3 {
+    color: #06b6d4;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  .songs-words-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .song-words-group {
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .song-words-group h4 {
+    color: #06b6d4;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .words-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .quantity {
+    display: flex;
+    align-items: center;
+    max-width: 150px;
+  }
+
+  .quantity__button {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .quantity__button:hover {
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .quantity__input {
+    width: 60px;
+    text-align: center;
+    border-left: none;
+    border-right: none;
+  }
+
+  .product-form__cart-submit {
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .product-features {
+    margin: 2rem 0;
+  }
+
+  .product-features h3 {
+    color: #06b6d4;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .features-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .features-list li {
+    padding: 0.5rem 0;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .features-list li::before {
+    content: "✓";
+    color: #10b981;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+
+  .delivery-info-section,
+  .usage-rights-section {
+    margin: 2rem 0;
+  }
+
+  .delivery-info-section h4,
+  .usage-rights-section h4 {
+    color: #06b6d4;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .product-title {
+      font-size: 2rem;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+    }
+
+    .customization-section {
+      padding: 1.5rem;
+    }
+
+    .words-row {
+      grid-template-columns: 1fr;
+    }
+
+    .songs-words-container {
+      gap: 1rem;
+    }
+
+    .song-words-group {
+      padding: 0.8rem;
+    }
+  }
+</style>

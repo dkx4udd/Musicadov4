@@ -1,0 +1,60 @@
+<!-- Nieuwsbrief Aanmelding Sectie -->
+<div class="newsletter-section">
+  <div class="container">
+    <div class="newsletter-card">
+      <div class="newsletter-content">
+        <h3>{{ section.settings.newsletter_title | default: 'Meld je aan voor speciale kortingen' }}</h3>
+        <p>{{ section.settings.newsletter_description | default: 'Wees de eerste die hoort over nieuwe muziekstijlen, exclusieve aanbiedingen en speciale promoties!' }}</p>
+        <form id="newsletterForm" class="newsletter-form" action="{{ routes.root_url }}contact" method="post">
+          <input type="hidden" name="form_type" value="customer">
+          <input type="hidden" name="tags" value="newsletter">
+          
+          <div class="newsletter-input-group">
+            <input type="email" id="newsletterEmail" name="contact[email]" placeholder="Voer je e-mailadres in" required>
+            <button type="submit" class="btn newsletter-btn">
+              {{ section.settings.subscribe_button_text | default: 'Aanmelden' }}
+            </button>
+          </div>
+          <p class="newsletter-terms">
+            Geen spam, uitschrijven kan altijd. We respecteren je privacy.
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Nieuwsbrief Aanmelding",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Nieuwsbrief Inhoud"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_title",
+      "label": "Nieuwsbrief Titel",
+      "default": "Meld je aan voor speciale kortingen"
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_description",
+      "label": "Nieuwsbrief Beschrijving",
+      "default": "Wees de eerste die hoort over nieuwe muziekstijlen, exclusieve aanbiedingen en speciale promoties!"
+    },
+    {
+      "type": "text",
+      "id": "subscribe_button_text",
+      "label": "Aanmelden Knop Tekst",
+      "default": "Aanmelden"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Nieuwsbrief Aanmelding"
+    }
+  ]
+}
+{% endschema %}

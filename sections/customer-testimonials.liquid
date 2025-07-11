@@ -1,0 +1,64 @@
+<!-- Customer Testimonials Section -->
+<div class="card">
+  <h2 class="testimonials-title">{{ 'musicado.customer_reviews' | t }}</h2>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">{{ 'musicado.testimonial_1' | t }}</p>
+      <div class="customer-name">- Sarah M.</div>
+    </div>
+    
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">{{ 'musicado.testimonial_2' | t }}</p>
+      <div class="customer-name">- Michael R.</div>
+    </div>
+    
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">{{ 'musicado.testimonial_3' | t }}</p>
+      <div class="customer-name">- Lisa K.</div>
+    </div>
+  </div>
+  
+  <div class="rating-summary">
+    <div class="overall-rating">
+      <div class="big-stars">★★★★★</div>
+      <div class="rating-text">
+        <span class="rating-number">4.9/5</span>
+        <span class="rating-label">{{ 'musicado.based_on_reviews' | t }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Customer Testimonials",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Reviews"
+    },
+    {
+      "type": "text",
+      "id": "overall_rating",
+      "label": "Overall Rating",
+      "default": "4.9",
+      "info": "Overall rating out of 5"
+    },
+    {
+      "type": "text",
+      "id": "review_count",
+      "label": "Number of Reviews",
+      "default": "247",
+      "info": "Total number of reviews"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Customer Testimonials"
+    }
+  ]
+}
+{% endschema %}

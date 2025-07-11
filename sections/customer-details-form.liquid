@@ -1,0 +1,72 @@
+<!-- Customer Details Form -->
+<div class="customer-details-section">
+  <h3>{{ 'musicado.customer_details' | t }}</h3>
+  <form id="customerDetailsForm">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="firstName">{{ 'musicado.first_name' | t }}</label>
+        <input type="text" id="firstName" name="firstName" required>
+      </div>
+      <div class="form-group">
+        <label for="middleName">{{ 'musicado.middle_name' | t }}</label>
+        <input type="text" id="middleName" name="middleName">
+      </div>
+      <div class="form-group">
+        <label for="lastName">{{ 'musicado.last_name' | t }}</label>
+        <input type="text" id="lastName" name="lastName" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="customerEmail">{{ 'musicado.customer_email' | t }}</label>
+        <input type="email" id="customerEmail" name="customerEmail" required>
+      </div>
+      <div class="form-group">
+        <label for="mobilePhone">{{ 'musicado.mobile_phone' | t }}</label>
+        <input type="tel" id="mobilePhone" name="mobilePhone" required placeholder="+31 6 12345678">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>{{ 'musicado.delivery_method' | t }}</label>
+      <div class="delivery-info-box">
+        <p>{{ 'musicado.delivery_info' | t }}</p>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Terms and Conditions Agreement -->
+<div class="terms-agreement-section">
+  <div class="terms-checkbox">
+    <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+    <label for="agreeTerms">
+      {{ 'musicado.agree_terms' | t }}
+    </label>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Customer Details Form",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form Settings"
+    },
+    {
+      "type": "textarea",
+      "id": "delivery_instructions",
+      "label": "Delivery Instructions",
+      "default": "We will send you a link via email to your personal page where you can download your music within 24 hours.",
+      "info": "Instructions shown to customers about delivery"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Customer Details Form"
+    }
+  ]
+}
+{% endschema %}

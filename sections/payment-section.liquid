@@ -1,0 +1,612 @@
+<!-- Betaling Sectie - Bijgewerkt om dubbele winkelwagen toevoegingen te voorkomen -->
+<div class="payment-container">
+  <!-- Kortingscode Sectie -->
+  <div class="discount-code-section">
+    <h3>Kortingscode</h3>
+    <div class="discount-input-container">
+      <input type="text" id="discountCodeInput" name="discountCode" placeholder="Voer kortingscode in (optioneel)">
+      <button type="button" onclick="window.MusicadoApp && window.MusicadoApp.applyDiscountCode()" class="btn discount-apply-btn">
+        Toepassen
+      </button>
+    </div>
+    <div id="discountMessage" class="discount-message" style="display: none;"></div>
+  </div>
+
+  <!-- Betaling Sectie - Verbergen voor contact verzoeken -->
+  <div class="stripe-form" id="paymentSection">
+    <h3>Betalingsinformatie</h3>
+    <p class="payment-notice">{{ section.settings.payment_notice | default: 'Veilige betalingsverwerking mogelijk gemaakt door Shopify' }}</p>
+    
+    <!-- Updated: Removed form action to prevent double submission -->
+    <div class="cart-form-container" id="cartFormContainer">
+      <!-- Hidden fields for Shopify cart properties - will be populated by JavaScript -->
+      <input type="hidden" name="properties[Pakket]" id="packageProperty" value="">
+      <input type="hidden" name="properties[Muziekstijl 1]" id="style1Property" value="">
+      <input type="hidden" name="properties[Muziekstijl 2]" id="style2Property" value="">
+      <input type="hidden" name="properties[Stem Voorkeur]" id="voiceProperty" value="">
+      <input type="hidden" name="properties[Liedje Taal]" id="languageProperty" value="">
+      <input type="hidden" name="properties[Reden]" id="reasonProperty" value="">
+      <input type="hidden" name="properties[Woorden/Namen]" id="wordsProperty" value="">
+      <input type="hidden" name="properties[Klant Details]" id="customerProperty" value="">
+      
+      <!-- Optionele Eigenschappen -->
+      <input type="hidden" name="properties[Artiesten]" id="artistsProperty" value="">
+      <input type="hidden" name="properties[Liedje Titels]" id="titlesProperty" value="">
+      <input type="hidden" name="properties[Eigen Teksten]" id="lyricsProperty" value="">
+      <input type="hidden" name="properties[Korting Toegepast]" id="discountProperty" value="">
+      <input type="hidden" name="properties[Eindprijs]" id="finalPriceProperty" value="">
+      
+      <!-- Betaling Knop - Updated to prevent double submission -->
+      <button type="button" onclick="processPayment()" class="btn payment-btn" id="paymentButton">
+        <span class="button-text">Nu Betalen</span>
+        <span class="button-loading" style="display: none;">
+          <span class="loading-spinner"></span>
+          Verwerken...
+        </span>
+      </button>
+      
+      <!-- Betaling Beveiliging Bericht -->
+      <div class="payment-security">
+        <p>🔒 Uw betalingsinformatie is veilig en versleuteld</p>
+      </div>
+    </div>
+    
+    <!-- Betaling Fout Weergave -->
+    <div id="paymentError" class="payment-error" style="display: none;">
+      <p class="error-message"></p>
+      <button type="button" onclick="retryPayment()" class="btn btn-secondary">
+        Probeer Opnieuw
+      </button>
+    </div>
+  </div>
+
+  <!-- Contact Verzoek Sectie - Tonen voor contact verzoeken -->
+  <div class="contact-request-section" id="contactSection" style="display: none;">
+    <h3>Volledig Album Verzoek</h3>
+    <div class="contact-notice">
+      <p>We nemen binnen 24 uur contact met u op om uw aangepaste volledig album wensen te bespreken en een persoonlijke offerte te verstrekken.</p>
+    </div>
+    
+    <button type="button" onclick="processPayment()" class="btn contact-btn">
+      Volledig Album Verzoek Indienen
+    </button>
+    
+    <div class="contact-info">
+      <p>
+        <strong>Of neem direct contact op:</strong><br>
+        📧 {{ section.settings.contact_email | default: 'contact@musicado.nl' }}<br>
+        📞 {{ section.settings.phone_number | default: '+31 6 12345678' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Bestelling Samenvatting Herinnering -->
+  <div class="order-reminder">
+    <h4>Belangrijke Informatie</h4>
+    <ul>
+      <li>Je ontvangt binnen 24 uur een e-mail link om je muziek te downloaden</li>
+      <li>Liedjes zijn alleen voor persoonlijk gebruik</li>
+      <li>
+        Vragen over uw bestelling? 
+        <a href="mailto:{{ section.settings.contact_email | default: 'contact@musicado.nl' }}" class="contact-link">
+          {{ section.settings.contact_email | default: 'contact@musicado.nl' }}
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- JavaScript Functies - Updated to prevent double submission -->
+<script>
+  // Prevent double submission flag
+  let isProcessingPayment = false;
+
+  // Globale betalingsverwerking functie - Updated with double submission prevention
+  function processPayment() {
+    // Prevent double submission
+    if (isProcessingPayment) {
+      console.log('Payment already in progress, preventing double submission');
+      return;
+    }
+
+    if (window.MusicadoApp && window.MusicadoApp.processPayment) {
+      isProcessingPayment = true;
+      showPaymentLoading();
+      
+      try {
+        window.MusicadoApp.processPayment();
+      } catch (error) {
+        console.error('Payment processing error:', error);
+        showPaymentError('Er is een fout opgetreden. Probeer het opnieuw.');
+        isProcessingPayment = false;
+      }
+    } else {
+      console.error('MusicadoApp niet geladen');
+      alert('Applicatiefout. Ververs de pagina.');
+    }
+  }
+
+  // Probeer betaling opnieuw functie
+  function retryPayment() {
+    const errorDiv = document.getElementById('paymentError');
+    const paymentSection = document.getElementById('paymentSection');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (paymentSection) paymentSection.style.display = 'block';
+    
+    // Reset payment processing flag
+    isProcessingPayment = false;
+    
+    // Reset knop status
+    resetPaymentButton();
+  }
+
+  // Reset betaling knop naar initiële status
+  function resetPaymentButton() {
+    const button = document.getElementById('paymentButton');
+    if (button) {
+      button.disabled = false;
+      button.querySelector('.button-text').style.display = 'inline';
+      button.querySelector('.button-loading').style.display = 'none';
+    }
+    // Reset processing flag
+    isProcessingPayment = false;
+  }
+
+  // Toon betaling laad status
+  function showPaymentLoading() {
+    const button = document.getElementById('paymentButton');
+    if (button) {
+      button.disabled = true;
+      button.querySelector('.button-text').style.display = 'none';
+      button.querySelector('.button-loading').style.display = 'inline-flex';
+    }
+  }
+
+  // Toon betaling fout
+  function showPaymentError(message) {
+    const errorDiv = document.getElementById('paymentError');
+    const paymentSection = document.getElementById('paymentSection');
+    
+    if (errorDiv && paymentSection) {
+      errorDiv.querySelector('.error-message').textContent = message;
+      errorDiv.style.display = 'block';
+      paymentSection.style.display = 'none';
+    }
+    
+    // Reset processing flag
+    isProcessingPayment = false;
+    resetPaymentButton();
+  }
+
+  // Success callback to reset processing flag
+  function onPaymentSuccess() {
+    isProcessingPayment = false;
+  }
+
+  // Error callback to reset processing flag
+  function onPaymentError(error) {
+    console.error('Payment error:', error);
+    isProcessingPayment = false;
+    showPaymentError(error.message || 'Er is een fout opgetreden bij de betaling.');
+  }
+
+  // Maak functies globaal beschikbaar
+  window.showPaymentLoading = showPaymentLoading;
+  window.showPaymentError = showPaymentError;
+  window.resetPaymentButton = resetPaymentButton;
+  window.onPaymentSuccess = onPaymentSuccess;
+  window.onPaymentError = onPaymentError;
+
+  // Stel theme instellingen in voor JavaScript
+  window.themeSettings = {
+    singleSongVariantId: '{{ section.settings.single_song_variant_id }}',
+    epVariantId: '{{ section.settings.ep_variant_id }}',
+    albumVariantId: '{{ section.settings.album_variant_id }}',
+    defaultDiscountCode: '{{ section.settings.default_discount_code | default: "15%MUSIC" }}',
+    discountPercentage: {{ section.settings.discount_percentage | default: 15 }}
+  };
+
+  // Page unload prevention during payment processing
+  window.addEventListener('beforeunload', function(e) {
+    if (isProcessingPayment) {
+      e.preventDefault();
+      e.returnValue = 'Je bestelling wordt verwerkt. Weet je zeker dat je de pagina wilt verlaten?';
+      return e.returnValue;
+    }
+  });
+</script>
+
+<!-- CSS Stijlen - Updated with loading states -->
+<style>
+  .payment-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .discount-code-section {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .discount-code-section h3 {
+    color: #3b82f6;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+
+  .discount-input-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .discount-input-container input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.4);
+    color: #e2e8f0;
+  }
+
+  .discount-apply-btn {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border: none;
+    border-radius: 8px;
+    color: #1e293b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .discount-apply-btn:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    transform: translateY(-2px);
+  }
+
+  .discount-apply-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .discount-message {
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .discount-message.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+  }
+
+  .discount-message.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+  }
+
+  .stripe-form {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .stripe-form h3 {
+    color: #3b82f6;
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+  }
+
+  .payment-notice {
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .cart-form-container {
+    position: relative;
+  }
+
+  .payment-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .payment-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  }
+
+  .payment-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .button-loading {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .payment-security {
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  .payment-security p {
+    color: #94a3b8;
+    font-size: 0.85rem;
+  }
+
+  .payment-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .payment-error .error-message {
+    color: #ef4444;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .contact-request-section {
+    background: rgba(251, 191, 36, 0.05);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .contact-request-section h3 {
+    color: #fbbf24;
+    margin-bottom: 1rem;
+  }
+
+  .contact-notice {
+    margin-bottom: 1.5rem;
+  }
+
+  .contact-notice p {
+    color: #cbd5e1;
+    line-height: 1.6;
+  }
+
+  .contact-btn {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    padding: 16px 24px;
+  }
+
+  .contact-btn:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  }
+
+  .contact-info {
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .contact-info p {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .contact-link {
+    color: #06b6d4;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .contact-link:hover {
+    text-decoration: underline;
+  }
+
+  .order-reminder {
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid rgba(94, 132, 184, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .order-reminder h4 {
+    color: #e2e8f0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .order-reminder ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .order-reminder li {
+    color: #cbd5e1;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .order-reminder li:before {
+    content: "✓";
+    color: #10b981;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+
+  /* Processing state styling */
+  .cart-form-container.processing {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .cart-form-container.processing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+
+  /* Mobiele Responsiviteit */
+  @media (max-width: 768px) {
+    .payment-container {
+      margin: 0;
+    }
+
+    .discount-input-container {
+      flex-direction: column;
+    }
+
+    .discount-apply-btn {
+      width: 100%;
+    }
+
+    .stripe-form,
+    .contact-request-section,
+    .order-reminder {
+      padding: 1.5rem;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Betaling Sectie",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product Configuratie"
+    },
+    {
+      "type": "paragraph",
+      "content": "U moet eerst producten aanmaken in uw Shopify admin, voer dan de variant ID's hier in. Ga naar Producten → [Uw Product] → Varianten om deze ID's te vinden."
+    },
+    {
+      "type": "text",
+      "id": "single_song_variant_id",
+      "label": "Enkel Liedje Variant ID",
+      "info": "De Shopify variant ID voor uw enkel liedje product"
+    },
+    {
+      "type": "text",
+      "id": "ep_variant_id",
+      "label": "EP Variant ID",
+      "info": "De Shopify variant ID voor uw EP (4 liedjes) product"
+    },
+    {
+      "type": "text",
+      "id": "album_variant_id",
+      "label": "Volledig Album Variant ID",
+      "info": "De Shopify variant ID voor uw volledig album product"
+    },
+    {
+      "type": "header",
+      "content": "Betaling Instellingen"
+    },
+    {
+      "type": "text",
+      "id": "payment_notice",
+      "label": "Betaling Bericht",
+      "default": "Veilige betalingsverwerking mogelijk gemaakt door Shopify",
+      "info": "Tekst getoond boven het betaling formulier"
+    },
+    {
+      "type": "header",
+      "content": "Korting Instellingen"
+    },
+    {
+      "type": "text",
+      "id": "default_discount_code",
+      "label": "Standaard Kortingscode",
+      "default": "15%MUSIC",
+      "info": "De kortingscode die klanten kunnen gebruiken"
+    },
+    {
+      "type": "range",
+      "id": "discount_percentage",
+      "min": 5,
+      "max": 50,
+      "step": 5,
+      "unit": "%",
+      "label": "Korting Percentage",
+      "default": 15,
+      "info": "Percentage korting om toe te passen met de code"
+    },
+    {
+      "type": "header",
+      "content": "Contact Informatie"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Contact E-mail",
+      "default": "contact@musicado.nl",
+      "info": "E-mailadres voor klant vragen"
+    },
+    {
+      "type": "text",
+      "id": "phone_number",
+      "label": "Telefoonnummer",
+      "default": "+31 6 12345678",
+      "info": "Telefoonnummer voor klant ondersteuning"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Betaling Sectie"
+    }
+  ]
+}
+{% endschema %}

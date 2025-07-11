@@ -1,0 +1,82 @@
+<!-- Uitgelichte Testimonials Sectie -->
+<div class="card">
+  <div class="featured-testimonials-container">
+    <div class="featured-testimonials" id="featuredTestimonials">
+      <div class="testimonial featured">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"De kwaliteit was overweldigend! Na het horen van hun voorbeelden wist ik dat ik moest bestellen. Het uiteindelijke liedje was nog beter dan ik me had voorgesteld - echt professioneel werk!"</p>
+        <div class="customer-name">- Jennifer B.</div>
+      </div>
+      
+      <div class="testimonial featured">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Ik luisterde naar hun voorbeelden en plaatste meteen een bestelling voor onze bruiloft. Het liedje dat ze creëerden werd het hoogtepunt van onze ceremonie. Absoluut perfect!"</p>
+        <div class="customer-name">- Mark & Anna</div>
+      </div>
+
+      <div class="testimonial featured">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Perfect voor mama's verjaardag! Het liedje vatte al onze familie herinneringen prachtig samen. Ze huilde tranen van geluk toen ze het hoorde. Zo'n persoonlijk en betekenisvol cadeau!"</p>
+        <div class="customer-name">- David L.</div>
+      </div>
+
+      <div class="testimonial featured">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Geweldige kwaliteit en super snelle levering! Ik bestelde een verrassingsliedje voor mijn vriendin en het werd ongelooflijk. De teksten waren precies wat ik wilde zeggen."</p>
+        <div class="customer-name">- Thomas K.</div>
+      </div>
+    </div>
+    
+    <!-- Mobiele Navigatie -->
+    <div class="testimonials-nav mobile-only">
+      <div class="nav-dots" id="testimonialDots">
+        <span class="dot active" data-slide="0"></span>
+        <span class="dot" data-slide="1"></span>
+        <span class="dot" data-slide="2"></span>
+        <span class="dot" data-slide="3"></span>
+      </div>
+      <div class="swipe-hint">← Veeg voor meer reviews →</div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Uitgelichte Testimonials",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Testimonials"
+    },
+    {
+      "type": "text",
+      "id": "testimonial_1_text",
+      "label": "Testimonial 1 Tekst",
+      "default": "De kwaliteit was overweldigend! Echt professioneel werk!"
+    },
+    {
+      "type": "text",
+      "id": "testimonial_1_author",
+      "label": "Testimonial 1 Auteur",
+      "default": "Jennifer B."
+    },
+    {
+      "type": "text",
+      "id": "testimonial_2_text",
+      "label": "Testimonial 2 Tekst",
+      "default": "Perfect voor onze bruiloft ceremonie!"
+    },
+    {
+      "type": "text",
+      "id": "testimonial_2_author",
+      "label": "Testimonial 2 Auteur",
+      "default": "Mark & Anna"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Uitgelichte Testimonials"
+    }
+  ]
+}
+{% endschema %}

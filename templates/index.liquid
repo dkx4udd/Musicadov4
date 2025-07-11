@@ -1,0 +1,502 @@
+<!-- Customer Page 1: Selection -->
+<div class="page active" id="page1">
+  <div class="container">
+    <div class="banner">
+      {% if settings.banner_image %}
+        <img src="{{ settings.banner_image | image_url: width: 1200 }}" alt="{{ settings.banner_title | escape }}">
+      {% endif %}
+      <div class="banner-content">
+        {{ settings.banner_title | default: shop.name }}
+      </div>
+    </div>
+    
+    <!-- Intro Description Box -->
+    <div class="card">
+      <div class="intro-description">
+        <p data-translate="mainIntro">
+          {{ settings.intro_text | default: "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones." }}
+        </p>
+      </div>
+    </div>
+    
+    <!-- Audio Examples Section -->
+    <div class="card">
+      <h2 class="audio-examples-title" data-translate="listenExamples">Listen to our examples</h2>
+      <div class="audio-players">
+        <div class="audio-player">
+          <div class="audio-info">
+            <h3 id="audioTitle1" data-translate="example1Title">Loading...</h3>
+            <p id="audioDesc1" data-translate="example1Description">Random example from our collection</p>
+          </div>
+          <audio id="audioPlayer1" controls preload="metadata">
+            <span data-translate="audioNotSupported">Your browser does not support the audio element.</span>
+          </audio>
+          <button onclick="loadRandomAudio(1)" class="btn audio-refresh-btn" data-translate="playAnother">🔄 Play Another Example</button>
+        </div>
+        
+        <div class="audio-player">
+          <div class="audio-info">
+            <h3 id="audioTitle2" data-translate="example2Title">Loading...</h3>
+            <p id="audioDesc2" data-translate="example2Description">Random example from our collection</p>
+          </div>
+          <audio id="audioPlayer2" controls preload="metadata">
+            <span data-translate="audioNotSupported">Your browser does not support the audio element.</span>
+          </audio>
+          <button onclick="loadRandomAudio(2)" class="btn audio-refresh-btn" data-translate="playAnother">🔄 Play Another Example</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Subheadline Section -->
+    <div class="card">
+      <div class="dynamic-subheadline-section">
+        <h2 class="random-subheadline" id="randomSubheadline"></h2>
+        
+        <div class="price-comparison">
+          <div class="comparison-container">
+            <div class="expensive-option">
+              <h3 data-translate="traditionalWay">The Traditional Way</h3>
+              <ul class="expensive-list">
+                <li data-translate="instrument">Instrument: €2000,-</li>
+                <li data-translate="studioSession">Studio session: €3000,-</li>
+                <li data-translate="timeRequired">Time: 20-40 hours</li>
+              </ul>
+              <div class="total-expensive" data-translate="traditionalTotal">Total: €5000+ & weeks of work</div>
+            </div>
+            
+            <div class="vs-divider">
+              <span data-translate="versus">VS</span>
+            </div>
+            
+            <div class="our-option">
+              <h3 data-translate="ourWay">Our Way</h3>
+              <ul class="our-list">
+                <li data-translate="fewClicks">A few clicks</li>
+                <li data-translate="lovingMessage">A loving message</li>
+                <li data-translate="professionalQuality">Professional quality</li>
+              </ul>
+              <div class="total-ours" data-translate="ourTotal">Starting at just €49 (Full Albums: Custom pricing)</div>
+            </div>
+          </div>
+          
+          <div class="comparison-conclusion">
+            <p data-translate="comparisonConclusion">Why spend thousands when you can create something equally beautiful and personal for a fraction of the cost?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Featured Testimonials Section -->
+    <div class="card">
+      <div class="featured-testimonials-container">
+        <div class="featured-testimonials" id="featuredTestimonials">
+          <div class="testimonial featured">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text" data-translate="featuredTestimonial1">"The quality blew me away! After hearing their examples, I knew I had to order. The final song was even better than I imagined - truly professional work!"</p>
+            <div class="customer-name">- Jennifer B.</div>
+          </div>
+          
+          <div class="testimonial featured">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text" data-translate="featuredTestimonial2">"I listened to their examples and immediately placed an order for my wedding. The song they created became the highlight of our ceremony. Absolutely perfect!"</p>
+            <div class="customer-name">- Mark & Anna</div>
+          </div>
+
+          <div class="testimonial featured">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text" data-translate="featuredTestimonial3">"Perfect for my mom's birthday! The song captured all our family memories beautifully. She cried happy tears when she heard it. Such a personal and meaningful gift!"</p>
+            <div class="customer-name">- David L.</div>
+          </div>
+
+          <div class="testimonial featured">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text" data-translate="featuredTestimonial4">"Amazing quality and super fast delivery! I ordered a surprise song for my girlfriend and it turned out incredible. The lyrics were exactly what I wanted to say."</p>
+            <div class="customer-name">- Thomas K.</div>
+          </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div class="testimonials-nav mobile-only">
+          <div class="nav-dots" id="testimonialDots">
+            <span class="dot active" data-slide="0"></span>
+            <span class="dot" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+            <span class="dot" data-slide="3"></span>
+          </div>
+          <div class="swipe-hint" data-translate="swipeHint">← Swipe for more reviews →</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="intro-text" data-translate="intro">
+        Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.
+      </div>
+
+      <form id="selectionForm">
+        <!-- Package Selection - Fixed with hardcoded packages -->
+        <div class="form-group">
+          <label data-translate="selectPackage">Select your package:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" name="package" value="one" id="pkg1" data-price="49">
+              <label for="pkg1">
+                <span data-translate="oneSong">One Song</span> - 
+                <span class="price">€49</span>
+              </label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="package" value="ep" id="pkg2" data-price="99">
+              <label for="pkg2">
+                <span data-translate="ep">EP (4 songs)</span> - 
+                <span class="price">€99</span>
+              </label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="package" value="contact" id="pkgContact" data-price="contact">
+              <label for="pkgContact">
+                <span data-translate="fullAlbum">Full Album:</span> 
+                <span data-translate="contactForPricing">Contact us for custom pricing</span>
+              </label>
+            </div>
+          </div>
+          <div class="package-disclaimer">
+            <p data-translate="usageDisclaimer">All songs created can be used for personal use only, for commercial use, please contact us. We can publish your song on Spotify on your demand.</p>
+          </div>
+        </div>
+
+        <!-- Music Style -->
+        <div class="form-group">
+          <label data-translate="musicStyles">Select your two favorite music styles:</label>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="musicStyle1" data-translate="firstMusicStyle">First Music Style *</label>
+              <select id="musicStyle1" name="musicStyle1" required>
+                <option value="" data-translate="selectOption">-- Select an option --</option>
+                <option value="POP">POP</option>
+                <option value="ROCK">ROCK</option>
+                <option value="HIP_HOP_RAP">HIP/HOP RAP</option>
+                <option value="ELECTRONIC">Electronic</option>
+                <option value="LATIN">LATIN</option>
+                <option value="CLASSICAL">CLASSICAL</option>
+                <option value="COUNTRY">COUNTRY</option>
+                <option value="JAZZ_BLUES">JAZZ/BLUES</option>
+                <option value="METAL">METAL</option>
+                <option value="REGGAE">REGGAE</option>
+                <option value="LOCAL">LOCAL</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="musicStyle2" data-translate="secondMusicStyle">Second Music Style *</label>
+              <select id="musicStyle2" name="musicStyle2" required>
+                <option value="" data-translate="selectOption">-- Select an option --</option>
+                <option value="POP">POP</option>
+                <option value="ROCK">ROCK</option>
+                <option value="HIP_HOP_RAP">HIP/HOP RAP</option>
+                <option value="ELECTRONIC">Electronic</option>
+                <option value="LATIN">LATIN</option>
+                <option value="CLASSICAL">CLASSICAL</option>
+                <option value="COUNTRY">COUNTRY</option>
+                <option value="JAZZ_BLUES">JAZZ/BLUES</option>
+                <option value="METAL">METAL</option>
+                <option value="REGGAE">REGGAE</option>
+                <option value="LOCAL">LOCAL</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Favorite Artists -->
+        <div class="form-group">
+          <label data-translate="favoriteArtists">Enter your favorite Artists:</label>
+          <input type="text" name="artist1" placeholder="Artist 1" style="margin-bottom: 10px;">
+          <input type="text" name="artist2" placeholder="Artist 2" style="margin-bottom: 10px;">
+          <input type="text" name="artist3" placeholder="Artist 3">
+        </div>
+
+        <!-- Voice Selection -->
+        <div class="form-group">
+          <label data-translate="voiceSelection">Select voice preference:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" name="voiceType" value="male" id="voiceMale">
+              <label for="voiceMale">
+                <span data-translate="maleVoice">Male Voice</span>
+              </label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="voiceType" value="female" id="voiceFemale">
+              <label for="voiceFemale">
+                <span data-translate="femaleVoice">Female Voice</span>
+              </label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="voiceType" value="no_preference" id="voiceNoPreference">
+              <label for="voiceNoPreference">
+                <span data-translate="noVoicePreference">No Preference</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div class="form-group">
+          <label for="reason" data-translate="reason">Reason for this song:</label>
+          <select id="reason" name="reason" required>
+            <option value="" data-translate="selectOption">-- Select an option --</option>
+            <option value="myself" data-translate="myself">For myself</option>
+            <option value="love" data-translate="love">For my love</option>
+            <option value="friend" data-translate="friend">For my friend</option>
+            <option value="mom" data-translate="mom">For Mom</option>
+            <option value="dad" data-translate="dad">For my dad</option>
+            <option value="sibling" data-translate="sibling">For my Brother or Sister</option>
+            <option value="other" data-translate="other">Other</option>
+          </select>
+          <input type="text" id="otherReason" name="otherReason" placeholder="Please specify" style="margin-top: 10px; display: none;">
+        </div>
+
+        <!-- Words/Names -->
+        <div class="form-group" id="wordsSection">
+          <label data-translate="wordsNames">What words or names would you like to have back in the songs:</label>
+          <div id="wordsContainer">
+            <!-- Words will be populated based on package selection -->
+          </div>
+        </div>
+
+        <!-- Language -->
+        <div class="form-group">
+          <label for="songLanguage" data-translate="songLanguage">What language do you want the songs to be:</label>
+          <select id="songLanguage" name="songLanguage" required>
+            <option value="" data-translate="selectOption">-- Select an option --</option>
+            <option value="dutch" data-translate="dutch">Dutch</option>
+            <option value="english" data-translate="english">English</option>
+            <option value="french" data-translate="french">French</option>
+            <option value="german" data-translate="german">German</option>
+            <option value="spanish" data-translate="spanish">Spanish</option>
+            <option value="portuguese" data-translate="portuguese">Portuguese</option>
+          </select>
+        </div>
+
+        <!-- Song Titles -->
+        <div class="form-group song-titles" id="songTitles">
+          <label data-translate="songTitles">Give the songs a title (leave blank for us to choose):</label>
+          <div id="titleFields"></div>
+        </div>
+
+        <!-- Own Lyrics -->
+        <div class="form-group">
+          <label for="ownLyrics" data-translate="ownLyrics">Do you have your own lyrics? Enter here:</label>
+          <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Enter your lyrics here..."></textarea>
+        </div>
+
+        <button type="submit" class="btn" data-translate="continue">Continue to Summary</button>
+      </form>
+    </div>
+
+    <!-- Customer Testimonials Section -->
+    <div class="card">
+      <h2 class="testimonials-title" data-translate="customerReviews">What our customers say</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text" data-translate="testimonial1">"Amazing! They created the perfect love song for my anniversary. My partner was in tears - it was exactly what we dreamed of. Highly recommended!"</p>
+          <div class="customer-name">- Sarah M.</div>
+        </div>
+        
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text" data-translate="testimonial2">"I ordered an EP for my mom's 60th birthday with family memories in the lyrics. The quality was outstanding and she plays it every day!"</p>
+          <div class="customer-name">- Michael R.</div>
+        </div>
+        
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text" data-translate="testimonial3">"Professional service from start to finish. The rock album they made for our band sounds like it was produced in a major studio. Worth every euro!"</p>
+          <div class="customer-name">- Lisa K.</div>
+        </div>
+      </div>
+      
+      <div class="rating-summary">
+        <div class="overall-rating">
+          <div class="big-stars">★★★★★</div>
+          <div class="rating-text">
+            <span class="rating-number">4.9/5</span>
+            <span class="rating-label" data-translate="basedOnReviews">Based on 247+ reviews</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Page 2: Summary & Payment -->
+<div class="page" id="page2">
+  <div class="container">
+    <div class="card">
+      <h2 data-translate="orderSummary">Order Summary</h2>
+      <div id="summaryContent"></div>
+      <div class="total" id="totalPrice"></div>
+
+      <!-- Customer Details Form -->
+      <div class="customer-details-section">
+        <h3 data-translate="customerDetails">Customer Details</h3>
+        <form id="customerDetailsForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName" data-translate="firstName">First Name *</label>
+              <input type="text" id="firstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+              <label for="middleName" data-translate="middleName">Middle Name</label>
+              <input type="text" id="middleName" name="middleName">
+            </div>
+            <div class="form-group">
+              <label for="lastName" data-translate="lastName">Last Name *</label>
+              <input type="text" id="lastName" name="lastName" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customerEmail" data-translate="customerEmailField">Email Address *</label>
+              <input type="email" id="customerEmail" name="customerEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="mobilePhone" data-translate="mobilePhone">Mobile Phone *</label>
+              <input type="tel" id="mobilePhone" name="mobilePhone" required placeholder="+31 6 12345678">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label data-translate="deliveryMethod">Music Delivery Information</label>
+            <div class="delivery-info-box">
+              <p data-translate="deliveryInfo">
+                📧 We will send you a link via email to your personal page where you can download your music within 24 hours.
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Terms and Conditions Agreement -->
+      <div class="terms-agreement-section">
+        <div class="terms-checkbox">
+          <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+          <label for="agreeTerms" data-translate="agreeTerms">
+            I agree with the terms and conditions and privacy policy
+          </label>
+        </div>
+      </div>
+
+      <!-- Discount Code Section -->
+      <div class="discount-code-section">
+        <h3 data-translate="discountCodeTitle">Discount Code</h3>
+        <div class="discount-input-container">
+          <input type="text" id="discountCodeInput" name="discountCode" placeholder="Enter discount code (optional)" data-translate-placeholder="discountCodePlaceholder">
+          <button type="button" onclick="applyDiscountCode()" class="btn discount-apply-btn" data-translate="applyDiscount">Apply</button>
+        </div>
+        <div id="discountMessage" class="discount-message"></div>
+      </div>
+
+      <!-- Disclaimer Section -->
+      <div class="disclaimer-section">
+        <div class="disclaimer-box">
+          <h4 data-translate="importantInfo">Important Information</h4>
+          <ul>
+            <li data-translate="deliveryTime">We will deliver the music within 3 days to the chosen receipt option.</li>
+            <li>
+              <span data-translate="questionsContact">Any questions about your order:</span> 
+              <a href="mailto:contact@{{ shop.domain }}" class="contact-link">contact@{{ shop.domain }}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Payment Section - Hide for contact requests -->
+      <div class="stripe-form" id="paymentSection">
+        <h3 data-translate="paymentInfo">Payment Information</h3>
+        <p data-translate="stripeNotice">Secure payment processing powered by Shopify</p>
+        <button class="btn" onclick="processPayment()" data-translate="payNow">Add to Cart & Checkout</button>
+      </div>
+
+      <!-- Contact Request Section - Show for contact requests -->
+      <div class="contact-request-section" id="contactSection" style="display: none;">
+        <h3 data-translate="contactRequest">Contact Request</h3>
+        <p data-translate="contactNotice">We will contact you within 24 hours to discuss your custom music needs and provide a personalized quote.</p>
+        <button class="btn" onclick="processPayment()" data-translate="submitRequest">Submit Contact Request</button>
+      </div>
+
+      <button class="btn" onclick="goBack()" style="background: #6c757d; margin-top: 1rem;" data-translate="goBack">Go Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Page -->
+<div class="page" id="adminPage">
+  <div class="container">
+    <div class="card">
+      <h2 data-translate="adminPanel">Admin Panel</h2>
+      
+      <div class="admin-controls">
+        <button class="btn" onclick="showPage('page1')" data-translate="backToCustomer">Back to Customer</button>
+        <button class="btn" onclick="exportToRTF()" data-translate="exportRTF">Export to RTF</button>
+        <select id="orderFilter">
+          <option value="all" data-translate="allOrders">All Orders</option>
+          <option value="pending" data-translate="pending">Pending</option>
+          <option value="completed" data-translate="completed">Completed</option>
+        </select>
+      </div>
+
+      <div class="admin-panel">
+        <h3 data-translate="addNewOrder">Add New Order Data</h3>
+        <form id="adminForm">
+          <div class="form-group">
+            <label for="customerName" data-translate="customerName">Customer Name:</label>
+            <input type="text" id="customerName" name="customerName" required>
+          </div>
+          <div class="form-group">
+            <label for="customerEmail" data-translate="customerEmail">Customer Email:</label>
+            <input type="email" id="customerEmail" name="customerEmail" required>
+          </div>
+          <div class="form-group">
+            <label for="orderStatus" data-translate="orderStatus">Order Status:</label>
+            <select id="orderStatus" name="orderStatus">
+              <option value="pending" data-translate="pending">Pending</option>
+              <option value="in_progress" data-translate="inProgress">In Progress</option>
+              <option value="completed" data-translate="completed">Completed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="notes" data-translate="notes">Notes:</label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn" data-translate="addOrder">Add Order</button>
+        </form>
+      </div>
+
+      <div class="data-table">
+        <h3 data-translate="orderHistory">Order History</h3>
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th data-translate="date">Date</th>
+              <th data-translate="customer">Customer</th>
+              <th data-translate="package">Package</th>
+              <th data-translate="price">Price</th>
+              <th data-translate="status">Status</th>
+              <th data-translate="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <!-- Orders will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Homepage JavaScript will be handled by musicado.js
+  // No schema allowed in template files - only in sections
+</script>

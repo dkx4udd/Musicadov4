@@ -1,0 +1,64 @@
+<!-- Audio Voorbeelden Sectie -->
+<div class="card">
+  <h2 class="audio-examples-title">Luister naar onze voorbeelden</h2>
+  <div class="audio-players">
+    <div class="audio-player">
+      <div class="audio-info">
+        <h3 id="audioTitle1">Laden...</h3>
+        <p id="audioDesc1">Willekeurig voorbeeld uit onze collectie</p>
+      </div>
+      <audio id="audioPlayer1" controls preload="metadata">
+        <span>Uw browser ondersteunt het audio element niet.</span>
+      </audio>
+      <button onclick="MusicadoApp.loadRandomAudio(1)" class="btn audio-refresh-btn">
+        🔄 Speel Ander Voorbeeld
+      </button>
+    </div>
+    
+    <div class="audio-player">
+      <div class="audio-info">
+        <h3 id="audioTitle2">Laden...</h3>
+        <p id="audioDesc2">Willekeurig voorbeeld uit onze collectie</p>
+      </div>
+      <audio id="audioPlayer2" controls preload="metadata">
+        <span>Uw browser ondersteunt het audio element niet.</span>
+      </audio>
+      <button onclick="MusicadoApp.loadRandomAudio(2)" class="btn audio-refresh-btn">
+        🔄 Speel Ander Voorbeeld
+      </button>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Audio Voorbeelden",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Audio Bestanden"
+    },
+    {
+      "type": "paragraph",
+      "content": "Upload uw MP3 bestanden naar Instellingen > Bestanden in Shopify admin, werk vervolgens de JavaScript bij om naar ze te verwijzen."
+    },
+    {
+      "type": "text",
+      "id": "audio_file_1",
+      "label": "Audio Bestand 1",
+      "info": "Bestandsnaam van eerste MP3 (bijv. 'liedje1.mp3')"
+    },
+    {
+      "type": "text",
+      "id": "audio_file_2", 
+      "label": "Audio Bestand 2",
+      "info": "Bestandsnaam van tweede MP3 (bijv. 'liedje2.mp3')"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Audio Voorbeelden"
+    }
+  ]
+}
+{% endschema %}

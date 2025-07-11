@@ -1,0 +1,71 @@
+<!-- Price Comparison Section -->
+<div class="card">
+  <div class="dynamic-subheadline-section">
+    <h2 class="random-subheadline" id="randomSubheadline">{{ 'musicado.default_subheadline' | t }}</h2>
+    
+    <div class="price-comparison">
+      <div class="comparison-container">
+        <div class="expensive-option">
+          <h3>{{ 'musicado.traditional_way' | t }}</h3>
+          <ul class="expensive-list">
+            <li>{{ 'musicado.instrument_cost' | t }}</li>
+            <li>{{ 'musicado.studio_session' | t }}</li>
+            <li>{{ 'musicado.time_required' | t }}</li>
+          </ul>
+          <div class="total-expensive">{{ 'musicado.traditional_total' | t }}</div>
+        </div>
+        
+        <div class="vs-divider">
+          <span>{{ 'musicado.versus' | t }}</span>
+        </div>
+        
+        <div class="our-option">
+          <h3>{{ 'musicado.our_way' | t }}</h3>
+          <ul class="our-list">
+            <li>{{ 'musicado.few_clicks' | t }}</li>
+            <li>{{ 'musicado.loving_message' | t }}</li>
+            <li>{{ 'musicado.professional_quality' | t }}</li>
+          </ul>
+          <div class="total-ours">
+            {{ 'musicado.our_total' | t: price: '€49' }}
+          </div>
+        </div>
+      </div>
+      
+      <div class="comparison-conclusion">
+        <p>{{ 'musicado.comparison_conclusion' | t }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Price Comparison",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Pricing Display"
+    },
+    {
+      "type": "text",
+      "id": "single_song_price",
+      "label": "Single Song Price",
+      "default": "49",
+      "info": "Price for one song (without currency symbol)"
+    },
+    {
+      "type": "text",
+      "id": "ep_price",
+      "label": "EP Price",
+      "default": "99",
+      "info": "Price for EP package (without currency symbol)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Price Comparison"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,111 @@
+<div class="banner-container">
+  <div class="banner" 
+       {% if section.settings.banner_image %}
+         style="background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 1200 }}');"
+       {% endif %}>
+    <h1>{{ section.settings.banner_text | default: shop.name }}</h1>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Hero Banner",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner Afbeelding",
+      "info": "Aanbevolen afmeting: 1200x300px. Als geen afbeelding is geselecteerd, wordt een standaard gradiënt achtergrond gebruikt."
+    },
+    {
+      "type": "text",
+      "id": "banner_text",
+      "label": "Banner Tekst",
+      "default": "🎵 musicado",
+      "info": "De hoofdkop tekst weergegeven op de banner"
+    },
+    {
+      "type": "range",
+      "id": "banner_height",
+      "min": 200,
+      "max": 500,
+      "step": 50,
+      "unit": "px",
+      "label": "Banner Hoogte",
+      "default": 300,
+      "info": "Hoogte van de banner sectie"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Tekst Uitlijning",
+      "options": [
+        {
+          "value": "left",
+          "label": "Links"
+        },
+        {
+          "value": "center",
+          "label": "Midden"
+        },
+        {
+          "value": "right",
+          "label": "Rechts"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Tekst Kleur",
+      "default": "#ffffff",
+      "info": "Kleur van de banner tekst"
+    },
+    {
+      "type": "header",
+      "content": "Overlay Instellingen"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "label": "Overlay Doorzichtigheid",
+      "default": 60,
+      "info": "Donkerheid van de overlay op de achtergrond afbeelding"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner",
+      "settings": {
+        "banner_text": "🎵 musicado",
+        "text_alignment": "center",
+        "text_color": "#ffffff",
+        "banner_height": 300,
+        "overlay_opacity": 60
+      }
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .banner-container .banner {
+    height: {{ section.settings.banner_height }}px;
+    text-align: {{ section.settings.text_alignment }};
+  }
+  
+  .banner-container .banner h1 {
+    color: {{ section.settings.text_color }};
+  }
+  
+  {% if section.settings.banner_image %}
+    .banner-container .banner::before {
+      background: rgba(15, 23, 42, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+    }
+  {% endif %}
+</style>

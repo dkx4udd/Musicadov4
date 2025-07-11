@@ -1,0 +1,97 @@
+{% comment %}
+This section is for demonstration purposes only.
+In a real Shopify store, admin functionality would be handled through the Shopify admin interface.
+{% endcomment %}
+
+<div class="card">
+  <h2>{{ 'musicado.admin_panel' | t }}</h2>
+  
+  <div class="admin-controls">
+    <button class="btn" onclick="MusicadoApp.showPage('page1')">{{ 'musicado.back_to_customer' | t }}</button>
+    <button class="btn" onclick="exportToRTF()">{{ 'musicado.export_rtf' | t }}</button>
+    <select id="orderFilter">
+      <option value="all">{{ 'musicado.all_orders' | t }}</option>
+      <option value="pending">{{ 'musicado.pending' | t }}</option>
+      <option value="completed">{{ 'musicado.completed' | t }}</option>
+    </select>
+  </div>
+
+  <div class="admin-panel">
+    <h3>{{ 'musicado.add_new_order' | t }}</h3>
+    <form id="adminForm">
+      <div class="form-group">
+        <label for="customerName">{{ 'musicado.customer_name' | t }}</label>
+        <input type="text" id="customerName" name="customerName" required>
+      </div>
+      <div class="form-group">
+        <label for="customerEmail">{{ 'musicado.customer_email' | t }}</label>
+        <input type="email" id="customerEmail" name="customerEmail" required>
+      </div>
+      <div class="form-group">
+        <label for="orderStatus">{{ 'musicado.order_status' | t }}</label>
+        <select id="orderStatus" name="orderStatus">
+          <option value="pending">{{ 'musicado.pending' | t }}</option>
+          <option value="in_progress">{{ 'musicado.in_progress' | t }}</option>
+          <option value="completed">{{ 'musicado.completed' | t }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="notes">{{ 'musicado.notes' | t }}</label>
+        <textarea id="notes" name="notes" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn">{{ 'musicado.add_order' | t }}</button>
+    </form>
+  </div>
+
+  <div class="data-table">
+    <h3>{{ 'musicado.order_history' | t }}</h3>
+    <table id="ordersTable">
+      <thead>
+        <tr>
+          <th>{{ 'musicado.date' | t }}</th>
+          <th>{{ 'musicado.customer' | t }}</th>
+          <th>{{ 'musicado.package' | t }}</th>
+          <th>{{ 'musicado.price' | t }}</th>
+          <th>{{ 'musicado.status' | t }}</th>
+          <th>{{ 'musicado.actions' | t }}</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody">
+        <!-- Orders will be populated here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% comment %}
+Note: This admin panel is for demo purposes only.
+In a production Shopify store, order management would be done through:
+1. Shopify Admin Dashboard
+2. Shopify Flow for automation
+3. Third-party apps for advanced order management
+4. Custom apps using Shopify Admin API
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Admin Panel",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "This section is for demonstration purposes only. In a real Shopify store, use the Shopify admin interface for order management."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_admin_panel",
+      "label": "Show Admin Panel",
+      "default": false,
+      "info": "Enable this only for demo purposes"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Admin Panel"
+    }
+  ]
+}
+{% endschema %}

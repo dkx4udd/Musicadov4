@@ -1,0 +1,650 @@
+<!-- Collection Template for Music Packages -->
+<div class="page active">
+  <div class="container">
+    
+    <!-- Collection Banner -->
+    <div class="banner">
+      {% if collection.featured_image %}
+        <img src="{{ collection.featured_image | image_url: width: 1200 }}" alt="{{ collection.title | escape }}">
+      {% endif %}
+      <div class="banner-content">
+        {{ collection.title }}
+      </div>
+    </div>
+
+    <!-- Collection Description -->
+    {% if collection.description != blank %}
+      <div class="card">
+        <div class="intro-description">
+          <p>{{ collection.description }}</p>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Package Comparison Section -->
+    <div class="card">
+      <div class="dynamic-subheadline-section">
+        <h2 class="random-subheadline">Choose Your Perfect Music Package</h2>
+        
+        <div class="packages-grid">
+          {% for product in collection.products %}
+            <div class="package-card" data-product-id="{{ product.id }}">
+              {% if product.featured_image %}
+                <div class="package-image">
+                  <img src="{{ product.featured_image | image_url: width: 400 }}" 
+                       alt="{{ product.title | escape }}" 
+                       loading="lazy">
+                </div>
+              {% endif %}
+              
+              <div class="package-content">
+                <h3 class="package-title">{{ product.title }}</h3>
+                
+                <div class="package-price">
+                  <span class="price">{{ product.price | money }}</span>
+                  {% if product.compare_at_price > product.price %}
+                    <span class="compare-price">{{ product.compare_at_price | money }}</span>
+                  {% endif %}
+                </div>
+
+                {% if product.description != blank %}
+                  <div class="package-description">
+                    {{ product.description | truncate: 150 }}
+                  </div>
+                {% endif %}
+
+                <!-- Package Features -->
+                {% if product.metafields.custom.features %}
+                  <ul class="package-features">
+                    {% assign features = product.metafields.custom.features | split: ',' %}
+                    {% for feature in features limit: 4 %}
+                      <li>{{ feature | strip }}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+
+                <!-- Package Stats -->
+                <div class="package-stats">
+                  {% if product.metafields.custom.song_count %}
+                    <div class="stat">
+                      <span class="stat-number">{{ product.metafields.custom.song_count }}</span>
+                      <span class="stat-label">Songs</span>
+                    </div>
+                  {% endif %}
+                  
+                  {% if product.metafields.custom.delivery_time %}
+                    <div class="stat">
+                      <span class="stat-number">{{ product.metafields.custom.delivery_time }}</span>
+                      <span class="stat-label">Days</span>
+                    </div>
+                  {% endif %}
+                  
+                  {% if product.metafields.reviews.rating %}
+                    <div class="stat">
+                      <span class="stat-number">{{ product.metafields.reviews.rating }}</span>
+                      <span class="stat-label">Rating</span>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="package-actions">
+                  <a href="{{ product.url }}" class="btn btn-primary">
+                    Choose This Package
+                  </a>
+                  
+                  {% if product.metafields.custom.demo_url %}
+                    <a href="{{ product.metafields.custom.demo_url }}" class="btn btn-secondary">
+                      Listen to Sample
+                    </a>
+                  {% endif %}
+                </div>
+
+                <!-- Popular Badge -->
+                {% if product.metafields.custom.is_popular %}
+                  <div class="popular-badge">
+                    Most Popular
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- Custom Album Card -->
+          <div class="package-card custom-album-card">
+            <div class="package-content">
+              <h3 class="package-title">🎵 Full Album</h3>
+              
+              <div class="package-price">
+                <span class="price">Custom Pricing</span>
+              </div>
+
+              <div class="package-description">
+                Need more than an EP? Let's create a full album together with completely custom arrangements and professional production.
+              </div>
+
+              <ul class="package-features">
+                <li>10+ Custom Songs</li>
+                <li>Professional Mixing</li>
+                <li>Album Art Design</li>
+                <li>Spotify Distribution</li>
+                <li>Dedicated Producer</li>
+              </ul>
+
+              <div class="package-stats">
+                <div class="stat">
+                  <span class="stat-number">10+</span>
+                  <span class="stat-label">Songs</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">14-21</span>
+                  <span class="stat-label">Days</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">1:1</span>
+                  <span class="stat-label">Support</span>
+                </div>
+              </div>
+
+              <div class="package-actions">
+                <button onclick="showFullAlbumModal()" class="btn btn-primary">
+                  Get Custom Quote
+                </button>
+              </div>
+
+              <div class="premium-badge">
+                Premium
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Process Section -->
+    <div class="card">
+      <h2 class="section-title">How It Works</h2>
+      <div class="process-steps">
+        <div class="process-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Choose Your Package</h3>
+            <p>Select the perfect music package that fits your needs and budget.</p>
+          </div>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Customize Your Music</h3>
+            <p>Tell us about your style preferences, lyrics, and special requirements.</p>
+          </div>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>We Create Magic</h3>
+            <p>Our AI and human producers work together to create your perfect song.</p>
+          </div>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Receive & Enjoy</h3>
+            <p>Get your personalized music delivered digitally within 24-72 hours.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="card">
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div class="faq-container">
+        <details class="faq-item">
+          <summary>How long does it take to create my music?</summary>
+          <div class="faq-answer">
+            <p>Most single songs and EPs are delivered within 24-72 hours. Full albums typically take 2-3 weeks depending on complexity and revisions needed.</p>
+          </div>
+        </details>
+        
+        <details class="faq-item">
+          <summary>Can I use the music commercially?</summary>
+          <div class="faq-answer">
+            <p>All standard packages include personal use rights. For commercial use, please contact us for licensing options. We offer commercial licenses at competitive rates.</p>
+          </div>
+        </details>
+        
+        <details class="faq-item">
+          <summary>What if I'm not satisfied with the result?</summary>
+          <div class="faq-answer">
+            <p>We offer one free revision for all packages. If you're still not satisfied, we'll work with you until you love your music or provide a full refund.</p>
+          </div>
+        </details>
+        
+        <details class="faq-item">
+          <summary>Can you publish my song on Spotify?</summary>
+          <div class="faq-answer">
+            <p>Yes! We can help distribute your custom music to Spotify, Apple Music, and other major streaming platforms for an additional fee.</p>
+          </div>
+        </details>
+        
+        <details class="faq-item">
+          <summary>Do I need to provide lyrics?</summary>
+          <div class="faq-answer">
+            <p>Not at all! You can provide your own lyrics, give us keywords/themes to work with, or let our creative team write original lyrics for you.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="card">
+      <h2 class="testimonials-title">What our customers say</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"Incredible quality and super fast delivery! The song perfectly captured the emotions I wanted to convey. Highly recommended!"</p>
+          <div class="customer-name">- Emma K.</div>
+        </div>
+        
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"The EP package was perfect for our anniversary. Each song tells part of our story. My partner was in tears - happy ones!"</p>
+          <div class="customer-name">- James & Maria</div>
+        </div>
+        
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-text">"Professional service from start to finish. The full album sounds like it was produced by a major label. Worth every penny!"</p>
+          <div class="customer-name">- The Rodriguez Family</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* Collection-specific styles */
+  .packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .package-card {
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(20px) saturate(150%);
+    border-radius: 24px;
+    padding: 0;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .package-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 
+      0 20px 40px rgba(59, 130, 246, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-color: rgba(59, 130, 246, 0.5);
+  }
+
+  .package-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .package-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .package-card:hover .package-image img {
+    transform: scale(1.05);
+  }
+
+  .package-content {
+    padding: 2rem;
+  }
+
+  .package-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .package-price {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+
+  .package-price .price {
+    color: #06b6d4;
+  }
+
+  .package-price .compare-price {
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+  }
+
+  .package-description {
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .package-features {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+  }
+
+  .package-features li {
+    padding: 0.5rem 0;
+    color: #86efac;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .package-features li::before {
+    content: "✓";
+    color: #10b981;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+
+  .package-stats {
+    display: flex;
+    justify-content: space-between;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #06b6d4;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: #94a3b8;
+  }
+
+  .package-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  }
+
+  .btn-secondary {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: white;
+  }
+
+  .popular-badge,
+  .premium-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e293b;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .premium-badge {
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    color: white;
+  }
+
+  .custom-album-card {
+    border-color: rgba(236, 72, 153, 0.4);
+    background: rgba(236, 72, 153, 0.05);
+  }
+
+  .custom-album-card:hover {
+    border-color: rgba(236, 72, 153, 0.6);
+    box-shadow: 
+      0 20px 40px rgba(236, 72, 153, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Process Steps */
+  .section-title {
+    text-align: center;
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .process-step {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .step-number {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin: 0 auto 1rem auto;
+  }
+
+  .step-content h3 {
+    color: #06b6d4;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .step-content p {
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+
+  /* FAQ Section */
+  .faq-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    overflow: hidden;
+  }
+
+  .faq-item summary {
+    padding: 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: #e2e8f0;
+    background: rgba(59, 130, 246, 0.05);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .faq-item summary:hover {
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  .faq-answer {
+    padding: 1.5rem;
+  }
+
+  .faq-answer p {
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .packages-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .package-content {
+      padding: 1.5rem;
+    }
+
+    .package-stats {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .process-steps {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .process-step {
+      padding: 1.5rem;
+    }
+
+    .step-number {
+      width: 50px;
+      height: 50px;
+      font-size: 1.2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .package-card {
+      margin: 0 -10px;
+    }
+
+    .package-content {
+      padding: 1rem;
+    }
+
+    .package-title {
+      font-size: 1.3rem;
+    }
+
+    .package-price {
+      font-size: 1.5rem;
+    }
+
+    .package-actions {
+      gap: 0.8rem;
+    }
+
+    .popular-badge,
+    .premium-badge {
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.7rem;
+    }
+  }
+</style>
+
+<script>
+  // Collection-specific JavaScript
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add click tracking for packages
+    document.querySelectorAll('.package-card').forEach(card => {
+      card.addEventListener('click', function(e) {
+        // Don't trigger if clicking on buttons
+        if (e.target.classList.contains('btn') || e.target.closest('.btn')) {
+          return;
+        }
+        
+        // Track package interest
+        const productId = this.dataset.productId;
+        if (productId) {
+          console.log('Package viewed:', productId);
+        }
+      });
+    });
+
+    // Smooth scroll for process steps
+    const processSteps = document.querySelectorAll('.process-step');
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+
+    processSteps.forEach(step => {
+      step.style.opacity = '0';
+      step.style.transform = 'translateY(20px)';
+      step.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(step);
+    });
+  });
+</script>

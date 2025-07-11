@@ -1,0 +1,46 @@
+<!-- Volledig Album Contact Modal -->
+<div id="fullAlbumModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🎵 Volledig Album Aanvraag</h2>
+      <span class="close" id="fullAlbumClose">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Geïnteresseerd in een volledig album? We maken graag iets geweldigs voor je! Laat je gegevens achter en we nemen binnen 24 uur contact met je op met een persoonlijke offerte.</p>
+      
+      <form id="fullAlbumContactForm" action="{{ routes.root_url }}contact" method="post">
+        <input type="hidden" name="form_type" value="contact">
+        <input type="hidden" name="contact[subject]" value="Volledig Album Aanvraag">
+        
+        <div class="form-group">
+          <label for="fullAlbumEmail">E-mailadres *</label>
+          <input type="email" id="fullAlbumEmail" name="contact[email]" required 
+                 placeholder="jouw@email.nl">
+        </div>
+        
+        <div class="form-group">
+          <label for="fullAlbumPhone">Mobiele Telefoon *</label>
+          <input type="tel" id="fullAlbumPhone" name="contact[phone]" required 
+                 placeholder="+31 6 12345678">
+        </div>
+        
+        <div class="form-group">
+          <label for="fullAlbumTopic">Onderwerp</label>
+          <textarea id="fullAlbumTopic" name="contact[topic]" readonly rows="2">Geïnteresseerd in een volledig album, neem contact met mij op</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="fullAlbumNotes">Aanvullende Notities (Optioneel)</label>
+          <textarea id="fullAlbumNotes" name="contact[body]" rows="3" 
+                    placeholder="Vertel ons meer over je albumvisie..."></textarea>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1.5rem;">
+          <button type="submit" class="btn">
+            Contact Verzoek Indienen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

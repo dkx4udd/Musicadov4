@@ -1,5 +1,5 @@
 {% comment %}
-  Cart Template for Musicado Shop
+  Clean Cart Template for Musicado Shop - No Discount Popups
   Save this as: templates/cart.liquid
 {% endcomment %}
 
@@ -69,11 +69,77 @@
   </div>
 </div>
 
+<!-- Clean cart-specific JavaScript with no popup triggers -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Simple cart functionality only - no popups
+  
+  // Update cart button states
+  const checkoutBtn = document.querySelector('.checkout-btn');
+  const continueBtn = document.querySelector('.continue-shopping');
+  
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Disable popup triggers during checkout
+      if (window.MusicadoApp) {
+        window.MusicadoApp.discountModalShown = true;
+      }
+      window.location.href = '/checkout';
+    });
+  }
+  
+  // Prevent any inherited popup functionality
+  if (window.MusicadoApp && window.MusicadoApp.setupScrollTrigger) {
+    window.MusicadoApp.discountModalShown = true;
+  }
+  
+  // Block any third-party popup scripts on cart page
+  window.addEventListener('beforeunload', function() {
+    // Clean up any popup timers
+    const timers = Object.keys(window).filter(key => key.includes('timeout') || key.includes('interval'));
+    timers.forEach(timer => {
+      if (window[timer]) {
+        clearTimeout(window[timer]);
+        clearInterval(window[timer]);
+      }
+    });
+  });
+});
+
+// Override any popup functions that might be called
+window.showDiscountModal = function() {
+  console.log('Discount modal disabled on cart page');
+  return false;
+};
+
+window.showDiscountBanner = function() {
+  console.log('Discount banner disabled on cart page');
+  return false;
+};
+</script>
+
 <style>
 .cart-page {
   padding: 40px 0;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   min-height: 70vh;
+  position: relative;
+}
+
+.cart-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .container {
@@ -86,17 +152,24 @@
   text-align: center;
   margin-bottom: 40px;
   font-size: 2.5rem;
-  color: #1e293b;
+  color: #e2e8f0;
+  font-weight: 700;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
 }
 
 .cart-content {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 40px;
-  background: white;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(25px) saturate(180%);
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 50px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .cart-item {
@@ -104,7 +177,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 20px 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .cart-item:last-child {
@@ -112,31 +185,34 @@
 }
 
 .item-info h3 {
-  color: #3b82f6;
+  color: #06b6d4;
   margin-bottom: 8px;
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .variant-title {
-  color: #6b7280;
+  color: #94a3b8;
   font-weight: 500;
   margin-bottom: 12px;
 }
 
 .item-properties {
-  background: #f8fafc;
+  background: rgba(59, 130, 246, 0.1);
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .item-properties p {
   margin-bottom: 4px;
   font-size: 0.9rem;
+  color: #cbd5e1;
 }
 
 .item-properties strong {
-  color: #1e293b;
+  color: #e2e8f0;
 }
 
 .item-price {
@@ -148,14 +224,14 @@
 }
 
 .quantity {
-  color: #6b7280;
+  color: #94a3b8;
   font-size: 0.9rem;
 }
 
 .price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #3b82f6;
+  color: #06b6d4;
 }
 
 .remove-item {
@@ -163,6 +239,7 @@
   font-size: 0.9rem;
   text-decoration: underline;
   margin-top: 8px;
+  transition: color 0.3s ease;
 }
 
 .remove-item:hover {
@@ -170,23 +247,28 @@
 }
 
 .cart-summary {
-  background: #f8fafc;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px) saturate(150%);
   padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
   height: fit-content;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .cart-total {
   text-align: center;
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #3b82f6;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
 }
 
 .cart-total h3 {
   font-size: 1.5rem;
-  color: #3b82f6;
+  color: #06b6d4;
+  font-weight: 700;
 }
 
 .checkout-actions {
@@ -201,63 +283,100 @@
   justify-content: center;
   padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  transition: left 0.4s ease;
+  pointer-events: none;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .checkout-btn {
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   font-size: 18px;
   padding: 16px 24px;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
 }
 
 .checkout-btn:hover {
-  background: #059669;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
 }
 
 .continue-shopping {
-  background: #6b7280;
+  background: rgba(107, 114, 128, 0.8);
   color: white;
+  border: 1px solid rgba(156, 163, 175, 0.3);
 }
 
 .continue-shopping:hover {
-  background: #4b5563;
+  background: rgba(75, 85, 99, 0.9);
+  transform: translateY(-1px);
 }
 
 .empty-cart {
   text-align: center;
-  background: white;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(25px) saturate(180%);
   padding: 60px 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 50px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .empty-cart h2 {
   margin-bottom: 16px;
-  color: #1e293b;
+  color: #e2e8f0;
+  font-size: 2rem;
+  font-weight: 600;
 }
 
 .empty-cart p {
   margin-bottom: 24px;
-  color: #6b7280;
+  color: #cbd5e1;
   font-size: 1.1rem;
+  line-height: 1.6;
 }
 
 .empty-cart .btn {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
   color: white;
+  padding: 16px 32px;
+  font-size: 1.1rem;
 }
 
 .empty-cart .btn:hover {
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+  transform: translateY(-2px);
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
   .cart-content {
     grid-template-columns: 1fr;
@@ -277,5 +396,59 @@
     justify-content: space-between;
     width: 100%;
   }
+  
+  .cart-page h1 {
+    font-size: 2rem;
+  }
+  
+  .empty-cart {
+    padding: 40px 20px;
+  }
+  
+  .empty-cart h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 10px;
+  }
+  
+  .cart-content {
+    padding: 15px;
+  }
+  
+  .cart-summary {
+    padding: 20px;
+  }
+  
+  .cart-page h1 {
+    font-size: 1.75rem;
+    margin-bottom: 30px;
+  }
+  
+  .checkout-btn {
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+}
+
+/* Disable any popup elements that might be inherited */
+.modal,
+.discount-modal,
+.popup,
+.overlay {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide any discount banners */
+.discount-banner,
+.promo-banner,
+.sale-popup {
+  display: none !important;
 }
 </style>

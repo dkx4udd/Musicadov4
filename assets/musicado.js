@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - Updated with Variant IDs
+// Musicado Application JavaScript - Fixed Version with No Cart Duplication
 (function() {
     'use strict';
 
@@ -673,6 +673,8 @@
             return VARIANT_IDS[packageType] || null;
         },
 
+        // PAYMENT PROCESSING - This is where cart addition happens
+        // The discount modal does NOT add to cart - only this function does
         addToShopifyCart: function() {
             const variantId = this.getVariantId(formData.package);
             
@@ -1302,7 +1304,10 @@
             }
         },
 
-        // Discount Modal Functions
+        // IMPORTANT: Discount Modal Functions - DISCOUNT ONLY, NO CART ACTIONS
+        // These functions handle discount application but DO NOT add products to cart
+        // Cart addition is handled separately in processPayment() function
+        
         showDiscountModal: function() {
             const modal = document.getElementById('discountModal');
             if (modal) {
@@ -1380,7 +1385,7 @@
         },
 
         applyDiscountAndClose: function() {
-            // Ensure discount is applied
+            // ONLY apply discount - NO cart functionality
             appliedDiscountCode = '15%MUSIC';
             localStorage.setItem('discountAppliedViaModal', 'true');
             
@@ -1409,10 +1414,10 @@
             // Close the modal
             this.closeDiscountModal();
             
-            // Show a brief confirmation
+            // Show a brief confirmation - DISCOUNT ONLY, no cart action
             const confirmMsg = currentLanguage === 'nl' ? 
-                'Korting toegepast! Je krijgt 15% korting bij het afrekenen.' : 
-                'Discount applied! You\'ll get 15% off at checkout.';
+                '✅ 15% korting toegepast! Vul je bestelling in en klik "Nu Betalen" om af te rekenen.' : 
+                '✅ 15% discount applied! Complete your order and click "Pay Now" to checkout.';
             
             // Create a temporary notification
             const notification = document.createElement('div');
@@ -1420,14 +1425,17 @@
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                color: white;
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                color: #1e293b;
                 padding: 1rem 1.5rem;
                 border-radius: 12px;
-                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
                 z-index: 10000;
                 font-weight: 600;
                 animation: slideInRight 0.3s ease-out;
+                max-width: 300px;
+                text-align: center;
+                line-height: 1.4;
             `;
             notification.textContent = confirmMsg;
             document.body.appendChild(notification);
@@ -1650,7 +1658,7 @@
             });
         },
 
-        // Scroll trigger for discount banner
+        // Scroll trigger for discount popup - DISCOUNT ONLY, does not add to cart
         setupScrollTrigger: function() {
             // Wait a bit for DOM to be fully ready
             setTimeout(() => {

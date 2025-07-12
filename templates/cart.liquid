@@ -1,122 +1,518 @@
 {% comment %}
-  Clean Cart Template for Musicado Shop - No Discount Popups
+  Enhanced Cart Template with Order Summary and Customer Details
   Save this as: templates/cart.liquid
 {% endcomment %}
 
 <div class="cart-page">
   <div class="container">
-    <h1>Winkelwagen</h1>
+    <h1>Your Order</h1>
     
     {% if cart.item_count > 0 %}
-      <div class="cart-content">
-        <div class="cart-items">
-          {% for item in cart.items %}
-            <div class="cart-item">
-              <div class="item-info">
-                <h3>{{ item.product.title }}</h3>
-                {% if item.variant.title != 'Default Title' %}
-                  <p class="variant-title">{{ item.variant.title }}</p>
-                {% endif %}
+      <div class="cart-layout">
+        <!-- Order Summary Section -->
+        <div class="order-summary-section">
+          <div class="card">
+            <h2>Order Summary</h2>
+            
+            {% for item in cart.items %}
+              <div class="order-item">
+                <div class="item-header">
+                  <h3>{{ item.product.title }}</h3>
+                  {% if item.variant.title != 'Default Title' %}
+                    <span class="variant-title">{{ item.variant.title }}</span>
+                  {% endif %}
+                  <div class="item-price">
+                    <span class="quantity">{{ item.quantity }}x</span>
+                    <span class="price">{{ item.final_line_price | money }}</span>
+                  </div>
+                </div>
                 
-                <!-- Display custom properties (your music order details) -->
+                <!-- Display custom properties (music order details) -->
                 {% if item.properties %}
-                  <div class="item-properties">
+                  <div class="order-details">
                     {% for property in item.properties %}
                       {% unless property.first contains '_' %}
-                        <p><strong>{{ property.first }}:</strong> {{ property.last }}</p>
+                        {% assign property_name = property.first %}
+                        {% assign property_value = property.last %}
+                        
+                        <!-- Special formatting for different property types -->
+                        {% if property_name contains 'Song' and property_name contains 'Words' %}
+                          <div class="detail-item words-detail">
+                            <strong>{{ property_name }}:</strong>
+                            <span class="words-list">{{ property_value }}</span>
+                          </div>
+                        {% elsif property_name == 'Custom Lyrics/Story' %}
+                          <div class="detail-item lyrics-detail">
+                            <strong>{{ property_name }}:</strong>
+                            <div class="lyrics-preview">{{ property_value | truncate: 200 }}</div>
+                          </div>
+                        {% else %}
+                          <div class="detail-item">
+                            <strong>{{ property_name }}:</strong> {{ property_value }}
+                          </div>
+                        {% endif %}
                       {% endunless %}
                     {% endfor %}
                   </div>
                 {% endif %}
+                
+                <!-- Remove item link -->
+                <div class="item-actions">
+                  <a href="{{ item.url_to_remove }}" class="remove-item">Remove Item</a>
+                </div>
+              </div>
+            {% endfor %}
+            
+            <!-- Cart Total -->
+            <div class="cart-totals">
+              <div class="subtotal-row">
+                <span>Subtotal:</span>
+                <span>{{ cart.total_price | money }}</span>
               </div>
               
-              <div class="item-price">
-                <span class="quantity">{{ item.quantity }}x</span>
-                <span class="price">{{ item.final_line_price | money }}</span>
-              </div>
+              {% if cart.total_discount > 0 %}
+                <div class="discount-row">
+                  <span>Discount:</span>
+                  <span>-{{ cart.total_discount | money }}</span>
+                </div>
+              {% endif %}
               
-              <!-- Remove item link -->
-              <a href="{{ item.url_to_remove }}" class="remove-item">Verwijderen</a>
+              <div class="total-row">
+                <span>Total:</span>
+                <span>{{ cart.total_price | money }}</span>
+              </div>
             </div>
-          {% endfor %}
-        </div>
-        
-        <div class="cart-summary">
-          <div class="cart-total">
-            <h3>Totaal: {{ cart.total_price | money }}</h3>
           </div>
-          
-          <!-- Checkout Button -->
+        </div>
+
+        <!-- Customer Details and Payment Section -->
+        <div class="checkout-section">
+          <!-- Customer Details Form -->
+          <div class="card">
+            <h3>Customer Details</h3>
+            <form id="customerDetailsForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="firstName">First Name *</label>
+                  <input type="text" id="firstName" name="firstName" required>
+                </div>
+                <div class="form-group">
+                  <label for="middleName">Middle Name</label>
+                  <input type="text" id="middleName" name="middleName">
+                </div>
+                <div class="form-group">
+                  <label for="lastName">Last Name *</label>
+                  <input type="text" id="lastName" name="lastName" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="customerEmail">Email Address *</label>
+                  <input type="email" id="customerEmail" name="customerEmail" required>
+                </div>
+                <div class="form-group">
+                  <label for="mobilePhone">Mobile Phone *</label>
+                  <input type="tel" id="mobilePhone" name="mobilePhone" required placeholder="+31 6 12345678">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="delivery-info-box">
+                  <h4>📧 Music Delivery Information</h4>
+                  <p>We will send you a link via email to your personal page where you can download your music within 24 hours.</p>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Discount Code Section -->
+          <div class="card">
+            <h3>Discount Code</h3>
+            <div class="discount-input-container">
+              <input type="text" id="discountCodeInput" name="discountCode" placeholder="Enter discount code (optional)">
+              <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn">
+                Apply
+              </button>
+            </div>
+            <div id="discountMessage" class="discount-message" style="display: none;"></div>
+          </div>
+
+          <!-- Terms and Conditions -->
+          <div class="card">
+            <div class="terms-agreement">
+              <div class="terms-checkbox">
+                <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                <label for="agreeTerms">
+                  I agree with the terms and conditions and privacy policy
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Important Information -->
+          <div class="card">
+            <div class="disclaimer-box">
+              <h4>Important Information</h4>
+              <ul>
+                <li>You will receive an email link to download your music within 24 hours</li>
+                <li>Songs are for personal use only (contact us for commercial use)</li>
+                <li>We can publish your song on Spotify upon request</li>
+                <li>Any questions? Contact us at: <a href="mailto:contact@{{ shop.domain }}" class="contact-link">contact@{{ shop.domain }}</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Checkout Actions -->
           <div class="checkout-actions">
-            <button type="submit" onclick="window.location.href='/checkout'" class="btn checkout-btn">
-              Bestelling Afronden
+            <button type="button" id="checkoutBtn" class="btn checkout-btn" data-processing="false">
+              <span class="button-text">Complete Order & Pay</span>
+              <span class="button-loading" style="display: none;">
+                <span class="loading-spinner"></span>
+                Processing...
+              </span>
             </button>
             
             <a href="/" class="btn continue-shopping">
-              Verder Winkelen
+              Continue Shopping
             </a>
+          </div>
+
+          <!-- Payment Error Display -->
+          <div id="paymentError" class="payment-error" style="display: none;">
+            <p class="error-message"></p>
+            <button type="button" id="retryPaymentBtn" class="btn btn-secondary">
+              Try Again
+            </button>
           </div>
         </div>
       </div>
       
     {% else %}
       <div class="empty-cart">
-        <h2>Uw winkelwagen is leeg</h2>
-        <p>U heeft nog geen items toegevoegd aan uw winkelwagen.</p>
-        <a href="/" class="btn">Start met Winkelen</a>
+        <h2>Your cart is empty</h2>
+        <p>You haven't added any items to your cart yet.</p>
+        <a href="/" class="btn">Start Shopping</a>
       </div>
     {% endif %}
   </div>
 </div>
 
-<!-- Clean cart-specific JavaScript with no popup triggers -->
+<!-- Enhanced cart JavaScript with customer details and payment -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Simple cart functionality only - no popups
+  // Enhanced cart functionality with customer details and payment
   
-  // Update cart button states
-  const checkoutBtn = document.querySelector('.checkout-btn');
-  const continueBtn = document.querySelector('.continue-shopping');
-  
+  // Payment processing state
+  let paymentProcessingState = {
+    isProcessing: false,
+    submissionToken: null,
+    timeoutId: null
+  };
+
+  // Generate unique submission token
+  function generateSubmissionToken() {
+    return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Reset payment processing state
+  function resetPaymentState() {
+    paymentProcessingState.isProcessing = false;
+    paymentProcessingState.submissionToken = null;
+    if (paymentProcessingState.timeoutId) {
+      clearTimeout(paymentProcessingState.timeoutId);
+      paymentProcessingState.timeoutId = null;
+    }
+    resetButtonState();
+  }
+
+  // Reset button state
+  function resetButtonState() {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+      checkoutBtn.disabled = false;
+      checkoutBtn.setAttribute('data-processing', 'false');
+      const textSpan = checkoutBtn.querySelector('.button-text');
+      const loadingSpan = checkoutBtn.querySelector('.button-loading');
+      if (textSpan) textSpan.style.display = 'inline';
+      if (loadingSpan) loadingSpan.style.display = 'none';
+    }
+  }
+
+  // Set button loading state
+  function setButtonLoading(isLoading) {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (!checkoutBtn) return;
+
+    if (isLoading) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.setAttribute('data-processing', 'true');
+      const textSpan = checkoutBtn.querySelector('.button-text');
+      const loadingSpan = checkoutBtn.querySelector('.button-loading');
+      if (textSpan) textSpan.style.display = 'none';
+      if (loadingSpan) loadingSpan.style.display = 'inline-flex';
+    } else {
+      resetButtonState();
+    }
+  }
+
+  // Validate customer details
+  function validateCustomerDetails() {
+    const requiredFields = ['firstName', 'lastName', 'customerEmail', 'mobilePhone'];
+    let isValid = true;
+    let missingFields = [];
+
+    requiredFields.forEach(fieldName => {
+      const field = document.getElementById(fieldName);
+      if (!field || !field.value.trim()) {
+        isValid = false;
+        const label = field ? field.previousElementSibling.textContent : fieldName;
+        missingFields.push(label);
+        if (field) {
+          field.style.borderColor = '#ef4444';
+        }
+      } else {
+        if (field) {
+          field.style.borderColor = '';
+        }
+      }
+    });
+
+    // Check terms agreement
+    const termsCheckbox = document.getElementById('agreeTerms');
+    if (!termsCheckbox || !termsCheckbox.checked) {
+      isValid = false;
+      missingFields.push('Agreement with terms and conditions');
+      if (termsCheckbox) {
+        termsCheckbox.closest('.terms-agreement').style.borderColor = '#ef4444';
+      }
+    } else {
+      if (termsCheckbox) {
+        termsCheckbox.closest('.terms-agreement').style.borderColor = '';
+      }
+    }
+
+    // Validate email format
+    const emailField = document.getElementById('customerEmail');
+    if (emailField && emailField.value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailField.value)) {
+        isValid = false;
+        missingFields.push('Valid email address');
+        emailField.style.borderColor = '#ef4444';
+      }
+    }
+
+    if (!isValid) {
+      const message = 'Please fill in the following required fields correctly:\n• ' + missingFields.join('\n• ');
+      alert(message);
+    }
+
+    return isValid;
+  }
+
+  // Show payment error
+  function showPaymentError(message) {
+    const errorDiv = document.getElementById('paymentError');
+    const checkoutActions = document.querySelector('.checkout-actions');
+    
+    if (errorDiv && checkoutActions) {
+      errorDiv.querySelector('.error-message').textContent = message;
+      errorDiv.style.display = 'block';
+      checkoutActions.style.display = 'none';
+    }
+    
+    resetPaymentState();
+  }
+
+  // Hide payment error
+  function hidePaymentError() {
+    const errorDiv = document.getElementById('paymentError');
+    const checkoutActions = document.querySelector('.checkout-actions');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (checkoutActions) checkoutActions.style.display = 'block';
+    
+    resetPaymentState();
+  }
+
+  // Process checkout
+  function processCheckout() {
+    // Strict duplicate prevention
+    if (paymentProcessingState.isProcessing) {
+      console.log('Checkout already in progress, preventing duplicate submission');
+      return false;
+    }
+
+    // Validate customer details
+    if (!validateCustomerDetails()) {
+      return false;
+    }
+
+    // Set processing state
+    paymentProcessingState.isProcessing = true;
+    paymentProcessingState.submissionToken = generateSubmissionToken();
+    
+    // Set safety timeout
+    paymentProcessingState.timeoutId = setTimeout(() => {
+      console.warn('Checkout processing timeout - resetting state');
+      resetPaymentState();
+    }, 30000);
+
+    // Set button loading state
+    setButtonLoading(true);
+
+    try {
+      // Collect customer details and add as cart note
+      const customerForm = document.getElementById('customerDetailsForm');
+      const customerData = new FormData(customerForm);
+      const customerDetails = {};
+      for (let [key, value] of customerData.entries()) {
+        customerDetails[key] = value;
+      }
+
+      // Update cart with customer details
+      updateCartWithCustomerDetails(customerDetails);
+
+    } catch (error) {
+      console.error('Checkout processing error:', error);
+      showPaymentError('An error occurred. Please try again.');
+      return false;
+    }
+  }
+
+  // Update cart with customer details
+  function updateCartWithCustomerDetails(customerDetails) {
+    const customerNote = `Customer Details:
+Name: ${customerDetails.firstName} ${customerDetails.middleName || ''} ${customerDetails.lastName}
+Email: ${customerDetails.customerEmail}
+Phone: ${customerDetails.mobilePhone}
+Order Date: ${new Date().toLocaleString()}`;
+
+    fetch('/cart/update.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        note: customerNote
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Cart updated with customer details:', data);
+      // Proceed to checkout
+      window.location.href = '/checkout';
+    })
+    .catch(error => {
+      console.error('Error updating cart:', error);
+      showPaymentError('Failed to update order. Please try again.');
+    });
+  }
+
+  // Apply discount code
+  function applyDiscountCode() {
+    const codeInput = document.getElementById('discountCodeInput');
+    const messageDiv = document.getElementById('discountMessage');
+    
+    if (!codeInput || !messageDiv) return;
+    
+    const code = codeInput.value.trim().toUpperCase();
+    
+    // Reset previous messages
+    messageDiv.className = 'discount-message';
+    messageDiv.style.display = 'none';
+    
+    if (!code) {
+      showDiscountMessage('error', 'Please enter a valid code.');
+      return;
+    }
+    
+    if (code === '15%MUSIC') {
+      // Apply discount via Shopify discount API
+      fetch('/discount/' + code, {
+        method: 'POST'
+      })
+      .then(response => {
+        if (response.ok) {
+          showDiscountMessage('success', 'Discount applied successfully!');
+          // Reload page to reflect discount
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showDiscountMessage('error', 'Invalid discount code.');
+        }
+      })
+      .catch(error => {
+        console.error('Discount error:', error);
+        showDiscountMessage('error', 'Failed to apply discount. Please try again.');
+      });
+    } else {
+      showDiscountMessage('error', 'Invalid discount code.');
+    }
+  }
+
+  // Show discount message
+  function showDiscountMessage(type, message) {
+    const messageDiv = document.getElementById('discountMessage');
+    if (messageDiv) {
+      messageDiv.className = `discount-message ${type}`;
+      messageDiv.textContent = message;
+      messageDiv.style.display = 'block';
+    }
+  }
+
+  // Event listeners
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  const applyDiscountBtn = document.getElementById('applyDiscountBtn');
+  const retryPaymentBtn = document.getElementById('retryPaymentBtn');
+
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      // Disable popup triggers during checkout
-      if (window.MusicadoApp) {
-        window.MusicadoApp.discountModalShown = true;
-      }
-      window.location.href = '/checkout';
+      e.stopPropagation();
+      processCheckout();
     });
   }
-  
-  // Prevent any inherited popup functionality
-  if (window.MusicadoApp && window.MusicadoApp.setupScrollTrigger) {
-    window.MusicadoApp.discountModalShown = true;
-  }
-  
-  // Block any third-party popup scripts on cart page
-  window.addEventListener('beforeunload', function() {
-    // Clean up any popup timers
-    const timers = Object.keys(window).filter(key => key.includes('timeout') || key.includes('interval'));
-    timers.forEach(timer => {
-      if (window[timer]) {
-        clearTimeout(window[timer]);
-        clearInterval(window[timer]);
-      }
+
+  if (applyDiscountBtn) {
+    applyDiscountBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      applyDiscountCode();
     });
+  }
+
+  if (retryPaymentBtn) {
+    retryPaymentBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePaymentError();
+    });
+  }
+
+  // Page unload prevention during processing
+  window.addEventListener('beforeunload', function(e) {
+    if (paymentProcessingState.isProcessing) {
+      e.preventDefault();
+      e.returnValue = 'Your order is being processed. Are you sure you want to leave?';
+      return e.returnValue;
+    }
   });
+
+  // Auto-fill customer details if available from local storage
+  const savedOrderData = localStorage.getItem('musicOrderData');
+  if (savedOrderData) {
+    try {
+      const orderData = JSON.parse(savedOrderData);
+      // You can auto-fill some fields here if needed
+      console.log('Found saved order data:', orderData);
+    } catch (e) {
+      console.log('No saved order data found');
+    }
+  }
 });
-
-// Override any popup functions that might be called
-window.showDiscountModal = function() {
-  console.log('Discount modal disabled on cart page');
-  return false;
-};
-
-window.showDiscountBanner = function() {
-  console.log('Discount banner disabled on cart page');
-  return false;
-};
 </script>
 
 <style>
@@ -143,7 +539,7 @@ window.showDiscountBanner = function() {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -157,62 +553,60 @@ window.showDiscountBanner = function() {
   text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
 }
 
-.cart-content {
+.cart-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 400px;
   gap: 40px;
+}
+
+.card {
   background: rgba(30, 41, 59, 0.4);
   backdrop-filter: blur(25px) saturate(180%);
-  padding: 30px;
   border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 2rem;
   box-shadow: 
     0 20px 50px rgba(0,0,0,0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #e2e8f0;
 }
 
-.cart-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+.card h2, .card h3 {
+  color: #06b6d4;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.order-item {
   padding: 20px 0;
   border-bottom: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.cart-item:last-child {
+.order-item:last-child {
   border-bottom: none;
 }
 
-.item-info h3 {
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.item-header h3 {
   color: #06b6d4;
-  margin-bottom: 8px;
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
+  flex: 1;
 }
 
 .variant-title {
   color: #94a3b8;
   font-weight: 500;
-  margin-bottom: 12px;
-}
-
-.item-properties {
-  background: rgba(59, 130, 246, 0.1);
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.item-properties p {
-  margin-bottom: 4px;
-  font-size: 0.9rem;
-  color: #cbd5e1;
-}
-
-.item-properties strong {
-  color: #e2e8f0;
+  margin-left: 10px;
 }
 
 .item-price {
@@ -220,7 +614,7 @@ window.showDiscountBanner = function() {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 4px;
 }
 
 .quantity {
@@ -234,11 +628,68 @@ window.showDiscountBanner = function() {
   color: #06b6d4;
 }
 
+.order-details {
+  background: rgba(59, 130, 246, 0.1);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  margin-bottom: 15px;
+}
+
+.detail-item {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-item strong {
+  color: #e2e8f0;
+}
+
+.words-detail {
+  background: rgba(6, 182, 212, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.words-list {
+  background: rgba(6, 182, 212, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-style: italic;
+}
+
+.lyrics-detail {
+  background: rgba(251, 191, 36, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.lyrics-preview {
+  background: rgba(15, 23, 42, 0.6);
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid #fbbf24;
+  font-style: italic;
+  line-height: 1.5;
+  margin-top: 8px;
+  color: #f1f5f9;
+}
+
+.item-actions {
+  text-align: right;
+}
+
 .remove-item {
   color: #ef4444;
   font-size: 0.9rem;
   text-decoration: underline;
-  margin-top: 8px;
   transition: color 0.3s ease;
 }
 
@@ -246,29 +697,217 @@ window.showDiscountBanner = function() {
   color: #dc2626;
 }
 
-.cart-summary {
+.cart-totals {
   background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(20px) saturate(150%);
-  padding: 24px;
-  border-radius: 20px;
+  padding: 20px;
+  border-radius: 16px;
   border: 1px solid rgba(59, 130, 246, 0.3);
-  height: fit-content;
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  margin-top: 20px;
 }
 
-.cart-total {
-  text-align: center;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+.subtotal-row, .discount-row, .total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
 }
 
-.cart-total h3 {
-  font-size: 1.5rem;
-  color: #06b6d4;
+.discount-row {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.total-row {
+  border-top: 2px solid rgba(59, 130, 246, 0.3);
+  font-size: 1.2rem;
   font-weight: 700;
+  color: #06b6d4;
+  margin-top: 10px;
+  padding-top: 15px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
+  color: #e2e8f0;
+  box-shadow: 
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(59, 130, 246, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.delivery-info-box {
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.delivery-info-box h4 {
+  color: #06b6d4;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.delivery-info-box p {
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.discount-input-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.discount-input-container input {
+  flex: 1;
+}
+
+.discount-apply-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border: none;
+  border-radius: 8px;
+  color: #1e293b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.discount-apply-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-2px);
+}
+
+.discount-message {
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.discount-message.success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.discount-message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.terms-agreement {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.terms-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.terms-checkbox input[type="checkbox"] {
+  width: auto;
+  min-width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.terms-checkbox label {
+  margin: 0;
+  color: #e2e8f0;
+  line-height: 1.5;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.disclaimer-box {
+  background: rgba(6, 182, 212, 0.1);
+  border: 2px solid rgba(6, 182, 212, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.disclaimer-box h4 {
+  color: #06b6d4;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.disclaimer-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.disclaimer-box li {
+  padding: 0.5rem 0;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.disclaimer-box li::before {
+  content: "✓";
+  color: #10b981;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.contact-link {
+  color: #06b6d4;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.contact-link:hover {
+  text-decoration: underline;
+  color: #0284c7;
 }
 
 .checkout-actions {
@@ -281,7 +920,7 @@ window.showDiscountBanner = function() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  padding: 16px 24px;
   border: none;
   border-radius: 12px;
   font-size: 16px;
@@ -317,14 +956,42 @@ window.showDiscountBanner = function() {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   font-size: 18px;
-  padding: 16px 24px;
+  padding: 18px 24px;
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
 }
 
-.checkout-btn:hover {
+.checkout-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-2px);
   box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+}
+
+.checkout-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.button-loading {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .continue-shopping {
@@ -336,6 +1003,20 @@ window.showDiscountBanner = function() {
 .continue-shopping:hover {
   background: rgba(75, 85, 99, 0.9);
   transform: translateY(-1px);
+}
+
+.payment-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.payment-error .error-message {
+  color: #ef4444;
+  margin-bottom: 1rem;
+  font-weight: 500;
 }
 
 .empty-cart {
@@ -376,18 +1057,48 @@ window.showDiscountBanner = function() {
   transform: translateY(-2px);
 }
 
+.btn-secondary {
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(75, 85, 99, 0.9);
+  transform: translateY(-1px);
+}
+
 /* Responsive Design */
-@media (max-width: 768px) {
-  .cart-content {
+@media (max-width: 1024px) {
+  .cart-layout {
     grid-template-columns: 1fr;
-    gap: 24px;
-    padding: 20px;
+    gap: 20px;
   }
   
-  .cart-item {
+  .checkout-section {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-page h1 {
+    font-size: 2rem;
+  }
+  
+  .card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .item-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
   }
   
   .item-price {
@@ -397,16 +1108,16 @@ window.showDiscountBanner = function() {
     width: 100%;
   }
   
-  .cart-page h1 {
-    font-size: 2rem;
-  }
-  
   .empty-cart {
     padding: 40px 20px;
   }
   
   .empty-cart h2 {
     font-size: 1.5rem;
+  }
+  
+  .discount-input-container {
+    flex-direction: column;
   }
 }
 
@@ -415,12 +1126,8 @@ window.showDiscountBanner = function() {
     padding: 0 10px;
   }
   
-  .cart-content {
-    padding: 15px;
-  }
-  
-  .cart-summary {
-    padding: 20px;
+  .card {
+    padding: 1rem;
   }
   
   .cart-page h1 {
@@ -430,25 +1137,7 @@ window.showDiscountBanner = function() {
   
   .checkout-btn {
     font-size: 16px;
-    padding: 14px 20px;
+    padding: 16px 20px;
   }
-}
-
-/* Disable any popup elements that might be inherited */
-.modal,
-.discount-modal,
-.popup,
-.overlay {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Hide any discount banners */
-.discount-banner,
-.promo-banner,
-.sale-popup {
-  display: none !important;
 }
 </style>

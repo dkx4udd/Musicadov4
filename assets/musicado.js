@@ -1710,11 +1710,32 @@
     window.MusicadoApp = MusicadoApp;
     window.StateManager = StateManager;
 
-    // Export helper functions for backward compatibility
+// Export helper functions for backward compatibility
     window.loadRandomAudio = (playerNumber) => MusicadoApp.loadRandomAudio(playerNumber);
     window.showPage = (pageId) => MusicadoApp.showPage(pageId);
     window.deleteOrder = (id) => MusicadoApp.deleteOrder(id);
     window.exportToRTF = () => MusicadoApp.exportToRTF();
+    
+    // Export discount modal functions
+    window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
+    window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
+    window.applyDiscountCode = (code) => {
+        const result = StateManager.applyDiscount(code || '15%MUSIC', 'manual');
+        if (result.success) {
+            alert(result.message);
+        } else {
+            alert(result.message);
+        }
+    };
+    
+    // Debug function to test if functions are working
+    window.testDiscountFunctions = () => {
+        console.log('Testing discount functions...');
+        console.log('submitDiscountEmail:', typeof window.submitDiscountEmail);
+        console.log('copyDiscountCode:', typeof window.copyDiscountCode);
+        console.log('applyDiscountAndClose:', typeof window.applyDiscountAndClose);
+        console.log('continueToCheckout:', typeof window.continueToCheckout);
+    };
 
     // Auto-initialize if DOM is already loaded
     if (document.readyState === 'loading') {

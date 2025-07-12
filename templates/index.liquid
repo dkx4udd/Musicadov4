@@ -1,4 +1,4 @@
-<!-- Customer Page 1: Selection -->
+<!-- Single Page Order Form - No Summary Page -->
 <div class="page active" id="page1">
   <div class="container">
     <div class="banner">
@@ -289,7 +289,7 @@
           <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Enter your lyrics or story about the song here..." data-translate-placeholder="enterLyricsPlaceholder"></textarea>
         </div>
 
-        <button type="submit" class="btn" data-translate="continue">Continue to Summary</button>
+        <button type="submit" class="btn add-to-cart-btn" data-translate="addToCart">Add to Cart</button>
       </form>
     </div>
 
@@ -325,110 +325,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- Customer Page 2: Summary & Payment -->
-<div class="page" id="page2">
-  <div class="container">
-    <div class="card">
-      <h2 data-translate="orderSummary">Order Summary</h2>
-      <div id="summaryContent"></div>
-      <div class="total" id="totalPrice"></div>
-
-      <!-- Customer Details Form -->
-      <div class="customer-details-section">
-        <h3 data-translate="customerDetails">Customer Details</h3>
-        <form id="customerDetailsForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="firstName" data-translate="firstName">First Name *</label>
-              <input type="text" id="firstName" name="firstName" required>
-            </div>
-            <div class="form-group">
-              <label for="middleName" data-translate="middleName">Middle Name</label>
-              <input type="text" id="middleName" name="middleName">
-            </div>
-            <div class="form-group">
-              <label for="lastName" data-translate="lastName">Last Name *</label>
-              <input type="text" id="lastName" name="lastName" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="customerEmail" data-translate="customerEmailField">Email Address *</label>
-              <input type="email" id="customerEmail" name="customerEmail" required>
-            </div>
-            <div class="form-group">
-              <label for="mobilePhone" data-translate="mobilePhone">Mobile Phone *</label>
-              <input type="tel" id="mobilePhone" name="mobilePhone" required placeholder="+31 6 12345678">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label data-translate="deliveryMethod">Music Delivery Information</label>
-            <div class="delivery-info-box">
-              <p data-translate="deliveryInfo">
-                📧 We will send you a link via email to your personal page where you can download your music within 24 hours.
-              </p>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!-- Terms and Conditions Agreement -->
-      <div class="terms-agreement-section">
-        <div class="terms-checkbox">
-          <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-          <label for="agreeTerms" data-translate="agreeTerms">
-            I agree with the terms and conditions and privacy policy
-          </label>
-        </div>
-      </div>
-
-      <!-- Discount Code Section -->
-      <div class="discount-code-section">
-        <h3 data-translate="discountCodeTitle">Discount Code</h3>
-        <div class="discount-input-container">
-          <input type="text" id="discountCodeInput" name="discountCode" placeholder="Enter discount code (optional)" data-translate-placeholder="discountCodePlaceholder">
-          <button type="button" onclick="MusicadoApp.applyDiscountCode()" class="btn discount-apply-btn" data-translate="applyDiscount">Apply</button>
-        </div>
-        <div id="discountMessage" class="discount-message"></div>
-      </div>
-
-      <!-- Disclaimer Section -->
-      <div class="disclaimer-section">
-        <div class="disclaimer-box">
-          <h4 data-translate="importantInfo">Important Information</h4>
-          <ul>
-            <li data-translate="deliveryTime">We will deliver the music within 3 days to the chosen receipt option.</li>
-            <li>
-              <span data-translate="questionsContact">Any questions about your order:</span> 
-              <a href="mailto:contact@{{ shop.domain }}" class="contact-link">contact@{{ shop.domain }}</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Payment Section - Hide for contact requests -->
-      <div class="stripe-form" id="paymentSection">
-        <h3 data-translate="paymentInfo">Payment Information</h3>
-        <p data-translate="stripeNotice">Secure payment processing powered by Shopify</p>
-        <!-- FIXED: Removed onclick handler to prevent duplicate submissions -->
-        <button id="processPaymentBtn" class="btn" data-translate="payNow">Add to Cart & Checkout</button>
-      </div>
-
-      <!-- Contact Request Section - Show for contact requests -->
-      <div class="contact-request-section" id="contactSection" style="display: none;">
-        <h3 data-translate="contactRequest">Contact Request</h3>
-        <p data-translate="contactNotice">We will contact you within 24 hours to discuss your custom music needs and provide a personalized quote.</p>
-        <!-- FIXED: Removed onclick handler to prevent duplicate submissions -->
-        <button id="submitContactBtn" class="btn" data-translate="submitRequest">Submit Contact Request</button>
-      </div>
-
-      <button class="btn" onclick="MusicadoApp.goBack()" style="background: #6c757d; margin-top: 1rem;" data-translate="goBack">Go Back</button>
     </div>
   </div>
 </div>
@@ -497,31 +393,3 @@
     </div>
   </div>
 </div>
-
-<!-- FIXED: Clean JavaScript event handling - no global onclick handlers -->
-<script>
-  // Single event handler setup when DOM loads
-  document.addEventListener('DOMContentLoaded', function() {
-    // Setup payment button event handler (one time only)
-    const processPaymentBtn = document.getElementById('processPaymentBtn');
-    const submitContactBtn = document.getElementById('submitContactBtn');
-    
-    if (processPaymentBtn) {
-      processPaymentBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (window.MusicadoApp && window.MusicadoApp.processPayment) {
-          window.MusicadoApp.processPayment();
-        }
-      });
-    }
-    
-    if (submitContactBtn) {
-      submitContactBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (window.MusicadoApp && window.MusicadoApp.processPayment) {
-          window.MusicadoApp.processPayment();
-        }
-      });
-    }
-  });
-</script>

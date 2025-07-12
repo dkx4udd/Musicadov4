@@ -127,7 +127,7 @@
           </div>
 
           <!-- Discount Code Section -->
-          <div class="card">
+          <div class="card" id="discountCard">
             <h3>Discount Code</h3>
             <div class="discount-input-container">
               <input type="text" id="discountCodeInput" name="discountCode" placeholder="Enter discount code (optional)">
@@ -463,6 +463,44 @@ Order Date: ${new Date().toLocaleString()}`;
     }
   }
 
+  // Show success message
+  function showSuccessMessage(message) {
+    const notification = document.createElement('div');
+    notification.className = 'success-notification';
+    notification.innerHTML = `
+      <div class="success-icon">✅</div>
+      <div class="success-text">${message}</div>
+    `;
+    
+    // Add styles
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      animation: slideInRight 0.3s ease-out;
+      max-width: 300px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after delay
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 3000);
+  }
+
   // Event listeners
   const checkoutBtn = document.getElementById('checkoutBtn');
   const applyDiscountBtn = document.getElementById('applyDiscountBtn');
@@ -506,11 +544,45 @@ Order Date: ${new Date().toLocaleString()}`;
   if (savedOrderData) {
     try {
       const orderData = JSON.parse(savedOrderData);
-      // You can auto-fill some fields here if needed
       console.log('Found saved order data:', orderData);
     } catch (e) {
       console.log('No saved order data found');
     }
+  }
+
+  // AUTO-APPLY PENDING DISCOUNT CODE FROM MODAL - THIS IS THE NEW PART!
+  const pendingDiscountCode = localStorage.getItem('pendingDiscountCode');
+  const discountSource = localStorage.getItem('discountSource');
+  
+  if (pendingDiscountCode && discountSource === 'modal') {
+    console.log('Found pending discount code from modal:', pendingDiscountCode);
+    
+    // Fill the discount input
+    const discountInput = document.getElementById('discountCodeInput');
+    if (discountInput) {
+      discountInput.value = pendingDiscountCode;
+      
+      // Show notification that discount is ready to apply
+      const message = 'Discount code ready! Click "Apply" below to activate your 15% discount.';
+      showSuccessMessage(message);
+      
+      // Highlight the discount section
+      const discountCard = document.getElementById('discountCard');
+      if (discountCard) {
+        discountCard.style.border = '2px solid #fbbf24';
+        discountCard.style.background = 'rgba(251, 191, 36, 0.1)';
+        
+        // Remove highlight after 5 seconds
+        setTimeout(() => {
+          discountCard.style.border = '';
+          discountCard.style.background = '';
+        }, 5000);
+      }
+    }
+    
+    // Clear the pending discount so it doesn't auto-fill again
+    localStorage.removeItem('pendingDiscountCode');
+    localStorage.removeItem('discountSource');
   }
 });
 </script>

@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - DUTCH DEFAULT VERSION
+// FIXED Musicado Application JavaScript - ENFORCED DUTCH DEFAULT VERSION
 (function() {
     'use strict';
 
@@ -12,28 +12,38 @@
     // CRITICAL: Language persistence key
     const LANGUAGE_KEY = 'musicado_language';
 
-    // Language persistence functions - MODIFIED FOR DUTCH DEFAULT
+    // Language persistence functions - ENFORCED DUTCH DEFAULT
     function saveLanguagePreference(lang) {
-        localStorage.setItem(LANGUAGE_KEY, lang);
-        console.log('💾 Language preference saved:', lang);
+        // Only save valid languages
+        if (lang === 'nl' || lang === 'en') {
+            localStorage.setItem(LANGUAGE_KEY, lang);
+            console.log('💾 Language preference saved:', lang);
+        } else {
+            console.warn('⚠️ Invalid language, not saving:', lang);
+        }
     }
 
-    // FIXED: True Dutch Default - Replace lines 18-33 in musicado.js
-
-function getSavedLanguagePreference() {
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved) {
-        console.log('📱 Found saved language preference:', saved);
-        return saved;
+    // FIXED: Robust Dutch Default - Enforced for all new visitors
+    function getSavedLanguagePreference() {
+        const saved = localStorage.getItem(LANGUAGE_KEY);
+        if (saved && (saved === 'nl' || saved === 'en')) {
+            console.log('📱 Found valid saved language preference:', saved);
+            return saved;
+        }
+        
+        // Clear any invalid saved preference
+        if (saved && saved !== 'nl' && saved !== 'en') {
+            console.log('⚠️ Invalid saved language, clearing:', saved);
+            localStorage.removeItem(LANGUAGE_KEY);
+        }
+        
+        // ENFORCED: Always default to Dutch for new visitors
+        // No browser detection, no timezone detection - just Dutch
+        console.log('🇳🇱 No valid saved preference, enforcing Dutch default for all visitors');
+        return 'nl';
     }
-    
-    // MODIFIED: Always default to Dutch for new visitors
-    // Only English if user explicitly chooses it later
-    console.log('🇳🇱 No saved preference, defaulting to Dutch for all visitors');
-    return 'nl';
-}
 
-    // Get saved language for initialization - DUTCH DEFAULT
+    // Get saved language for initialization - ENFORCED DUTCH DEFAULT
     const savedLang = getSavedLanguagePreference();
 
     // Centralized state management
@@ -543,7 +553,7 @@ function getSavedLanguagePreference() {
         currentLanguage: currentLanguage, // Expose current language for cart page
 
         init: function() {
-            console.log('Musicado App Initializing with Dutch as default language:', currentLanguage);
+            console.log('Musicado App Initializing with enforced Dutch default language:', currentLanguage);
             
             this.initializeLanguage();
             this.setupEventListeners();
@@ -569,558 +579,22 @@ function getSavedLanguagePreference() {
             this.initializeDiscountModal();
         },
 
-        // FIXED: Proper discount modal initialization
-        initializeDiscountModal: function() {
-            console.log('🎯 Initializing discount modal...');
-            
-            // Wait for DOM to be fully ready
-            setTimeout(() => {
-                const modal = document.getElementById('discountModal');
-                const modalContent = modal ? modal.querySelector('.modal-content') : null;
-                
-                console.log('📊 Modal elements check:', {
-                    modal: !!modal,
-                    modalContent: !!modalContent
-                });
-                
-                if (!modal || !modalContent) {
-                    console.warn('⚠️ Discount modal not found in DOM - creating fallback');
-                    this.createDiscountModalFallback();
-                    return;
-                }
-                
-                // Ensure static modal content is properly set up
-                this.setupStaticModalContent();
-                
-                // Setup modal event listeners
-                this.setupDiscountModalListeners();
-                
-                console.log('✅ Discount modal initialized successfully');
-                
-            }, 500);
-        },
-
-        // FIXED: Create modal fallback if not found
-        createDiscountModalFallback: function() {
-            console.log('🔧 Creating discount modal fallback...');
-            
-            const modalHTML = `
-                <div id="discountModal" class="discount-modal" style="display: none;">
-                    <div class="discount-modal-overlay">
-                        <div class="modal-content">
-                            <span class="discount-close">&times;</span>
-                            <div class="discount-step" id="emailStep">
-                                <h2>${translations[currentLanguage].discountTitle}</h2>
-                                <p>${translations[currentLanguage].discountEmailDescription}</p>
-                                
-                                <div class="email-form">
-                                    <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
-                                    
-                                    <div class="email-consent-section" id="emailConsentCheckbox">
-                                        <label class="consent-checkbox">
-                                            <input type="checkbox" id="emailConsent">
-                                            <span class="checkmark"></span>
-                                            ${translations[currentLanguage].emailConsentText}
-                                        </label>
-                                    </div>
-                                    
-                                    <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
-                                        ${translations[currentLanguage].getDiscount}
-                                    </button>
-                                </div>
-                                
-                                <div class="privacy-note">
-                                    <small>${translations[currentLanguage].discountTermsPrivacy}</small>
-                                </div>
-                            </div>
-                            
-                            <div class="discount-step" id="codeStep" style="display: none;">
-                                <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
-                                <p>${translations[currentLanguage].discountSuccessMessage}</p>
-                                
-                                <div class="discount-code-display">
-                                    <div class="code-box">
-                                        <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
-                                        <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-                                            <span class="copy-text">${translations[currentLanguage].copyCode}</span>
-                                            <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="code-validity-info">
-                                    <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
-                                </div>
-                                
-                                <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
-                                    ${translations[currentLanguage].continueToCheckout}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Add modal to page
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-            
-            // Add required styles
-            this.addDiscountModalStyles();
-            
-            // Setup event listeners
-            this.setupDiscountModalListeners();
-            
-            console.log('✅ Discount modal fallback created');
-        },
-
-        // FIXED: Setup static modal content without overwriting
-        setupStaticModalContent: function() {
-            const emailStep = document.getElementById('emailStep');
-            const codeStep = document.getElementById('codeStep');
-            
-            console.log('🔧 Setting up static modal content...', {
-                emailStep: !!emailStep,
-                codeStep: !!codeStep
-            });
-            
-            // If email step exists but content is missing, populate it
-            if (emailStep && !emailStep.querySelector('#submitDiscountEmail')) {
-                emailStep.innerHTML = `
-                    <h2>${translations[currentLanguage].discountTitle}</h2>
-                    <p>${translations[currentLanguage].discountEmailDescription}</p>
-                    
-                    <div class="email-form">
-                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
-                        
-                        <div class="email-consent-section" id="emailConsentCheckbox">
-                            <label class="consent-checkbox">
-                                <input type="checkbox" id="emailConsent">
-                                <span class="checkmark"></span>
-                                ${translations[currentLanguage].emailConsentText}
-                            </label>
-                        </div>
-                        
-                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
-                            ${translations[currentLanguage].getDiscount}
-                        </button>
-                    </div>
-                    
-                    <div class="privacy-note">
-                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
-                    </div>
-                `;
-            }
-            
-            // Create code step if it doesn't exist
-            if (!codeStep) {
-                const modalContent = document.querySelector('#discountModal .modal-content');
-                if (modalContent) {
-                    const codeStepHTML = `
-                        <div class="discount-step" id="codeStep" style="display: none;">
-                            <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
-                            <p>${translations[currentLanguage].discountSuccessMessage}</p>
-                            
-                            <div class="discount-code-display">
-                                <div class="code-box">
-                                    <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
-                                    <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-                                        <span class="copy-text">${translations[currentLanguage].copyCode}</span>
-                                        <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="code-validity-info">
-                                <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
-                            </div>
-                            
-                            <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
-                                ${translations[currentLanguage].continueToCheckout}
-                            </button>
-                        </div>
-                    `;
-                    modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
-                }
-            }
-        },
-
-        // FIXED: Add modal styles if needed
-        addDiscountModalStyles: function() {
-            if (document.getElementById('discountModalStyles')) return;
-            
-            const styles = document.createElement('style');
-            styles.id = 'discountModalStyles';
-            styles.textContent = `
-                /* Discount Modal Styles */
-                .discount-modal {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(8px);
-                    z-index: 10000;
-                    animation: fadeIn 0.3s ease-out;
-                }
-
-                .discount-modal-overlay {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 100%;
-                    height: 100%;
-                    padding: 20px;
-                }
-
-                .discount-modal .modal-content {
-                    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
-                    backdrop-filter: blur(25px) saturate(180%);
-                    border-radius: 24px;
-                    padding: 2.5rem;
-                    max-width: 500px;
-                    width: 100%;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    position: relative;
-                    box-shadow: 
-                        0 25px 60px rgba(0,0,0,0.5),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        0 0 0 1px rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(59, 130, 246, 0.3);
-                    color: #e2e8f0;
-                    animation: slideInUp 0.4s ease-out;
-                }
-
-                .discount-close {
-                    position: absolute;
-                    top: 1rem;
-                    right: 1.5rem;
-                    font-size: 2rem;
-                    color: #94a3b8;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    z-index: 1;
-                    width: 40px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 50%;
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid rgba(59, 130, 246, 0.2);
-                }
-
-                .discount-close:hover {
-                    color: #ef4444;
-                    background: rgba(239, 68, 68, 0.1);
-                    border-color: rgba(239, 68, 68, 0.3);
-                    transform: scale(1.1);
-                }
-
-                .discount-step h2 {
-                    color: #06b6d4;
-                    margin-bottom: 1rem;
-                    font-size: 1.75rem;
-                    font-weight: 700;
-                    text-align: center;
-                    text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
-                }
-
-                .discount-step p {
-                    color: #cbd5e1;
-                    margin-bottom: 2rem;
-                    font-size: 1.1rem;
-                    line-height: 1.6;
-                    text-align: center;
-                }
-
-                .email-form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1.5rem;
-                }
-
-                .email-form input[type="email"] {
-                    width: 100%;
-                    padding: 16px 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    font-size: 1rem;
-                    background: rgba(15, 23, 42, 0.6);
-                    backdrop-filter: blur(10px);
-                    color: #e2e8f0;
-                    transition: all 0.3s ease;
-                    box-shadow: 
-                        inset 0 1px 3px rgba(0, 0, 0, 0.2),
-                        0 1px 0 rgba(255, 255, 255, 0.05);
-                }
-
-                .email-form input[type="email"]:focus {
-                    outline: none;
-                    border-color: rgba(59, 130, 246, 0.6);
-                    box-shadow: 
-                        0 0 0 3px rgba(59, 130, 246, 0.1),
-                        inset 0 1px 3px rgba(0, 0, 0, 0.2),
-                        0 0 20px rgba(59, 130, 246, 0.2);
-                    background: rgba(15, 23, 42, 0.8);
-                    transform: translateY(-2px);
-                }
-
-                .email-form input[type="email"]::placeholder {
-                    color: #94a3b8;
-                }
-
-                .email-consent-section {
-                    margin: 1rem 0;
-                }
-
-                .consent-checkbox {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 12px;
-                    cursor: pointer;
-                    color: #cbd5e1;
-                    font-size: 0.9rem;
-                    line-height: 1.5;
-                    transition: all 0.3s ease;
-                }
-
-                .consent-checkbox input[type="checkbox"] {
-                    width: 20px;
-                    height: 20px;
-                    margin: 0;
-                    cursor: pointer;
-                    accent-color: #3b82f6;
-                    transform: scale(1.1);
-                    flex-shrink: 0;
-                    margin-top: 2px;
-                }
-
-                .email-consent-section.error {
-                    animation: shake 0.5s ease-in-out;
-                }
-
-                .email-consent-section.error .consent-checkbox {
-                    color: #ef4444;
-                }
-
-                .discount-code-display {
-                    margin: 2rem 0;
-                    text-align: center;
-                }
-
-                .code-box {
-                    background: rgba(15, 23, 42, 0.8);
-                    border: 2px solid rgba(59, 130, 246, 0.3);
-                    border-radius: 16px;
-                    padding: 1.5rem;
-                    margin-bottom: 1rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 1rem;
-                    backdrop-filter: blur(10px);
-                    box-shadow: 
-                        0 8px 25px rgba(59, 130, 246, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-
-                .discount-code-text {
-                    font-family: 'Courier New', monospace;
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: #fbbf24;
-                    text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
-                    letter-spacing: 2px;
-                    flex: 1;
-                    text-align: left;
-                }
-
-                .copy-code-btn {
-                    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                    color: #1e293b;
-                    border: none;
-                    border-radius: 10px;
-                    padding: 12px 20px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    font-size: 0.9rem;
-                    white-space: nowrap;
-                    min-width: 120px;
-                    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
-                }
-
-                .copy-code-btn:hover {
-                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
-                }
-
-                .code-validity-info {
-                    background: rgba(59, 130, 246, 0.1);
-                    border: 1px solid rgba(59, 130, 246, 0.2);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    margin: 1.5rem 0;
-                    text-align: center;
-                }
-
-                .code-validity-info p {
-                    margin: 0;
-                    color: #94a3b8;
-                    font-style: italic;
-                }
-
-                .btn {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 16px 24px;
-                    border: none;
-                    border-radius: 12px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    text-decoration: none;
-                    transition: all 0.3s ease;
-                    backdrop-filter: blur(10px);
-                    position: relative;
-                    overflow: hidden;
-                    min-height: 56px;
-                }
-
-                .btn::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, 
-                        transparent, 
-                        rgba(255, 255, 255, 0.2), 
-                        transparent);
-                    transition: left 0.4s ease;
-                    pointer-events: none;
-                }
-
-                .btn:hover::before {
-                    left: 100%;
-                }
-
-                .discount-submit-btn {
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                    color: white;
-                    width: 100%;
-                    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                }
-
-                .discount-submit-btn:hover {
-                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-                    transform: translateY(-2px);
-                    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-                }
-
-                .continue-shopping-btn {
-                    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-                    color: white;
-                    width: 100%;
-                    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                }
-
-                .continue-shopping-btn:hover {
-                    background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
-                    transform: translateY(-2px);
-                    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
-                }
-
-                .privacy-note {
-                    text-align: center;
-                    margin-top: 1.5rem;
-                    padding-top: 1rem;
-                    border-top: 1px solid rgba(59, 130, 246, 0.2);
-                }
-
-                .privacy-note small {
-                    color: #94a3b8;
-                    font-style: italic;
-                    font-size: 0.85rem;
-                }
-
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-
-                @keyframes slideInUp {
-                    from {
-                        transform: translateY(50px);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateY(0);
-                        opacity: 1;
-                    }
-                }
-
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-5px); }
-                    75% { transform: translateX(5px); }
-                }
-
-                @media (max-width: 768px) {
-                    .discount-modal-overlay {
-                        padding: 10px;
-                    }
-                    
-                    .discount-modal .modal-content {
-                        padding: 2rem 1.5rem;
-                        max-height: 95vh;
-                    }
-                    
-                    .code-box {
-                        flex-direction: column;
-                        gap: 1rem;
-                        text-align: center;
-                    }
-                    
-                    .discount-code-text {
-                        font-size: 1.25rem;
-                        text-align: center;
-                    }
-                    
-                    .copy-code-btn {
-                        width: 100%;
-                        min-width: unset;
-                    }
-                }
-            `;
-            document.head.appendChild(styles);
-        },
-
-        // UPDATED: Initialize language with saved preference (Dutch default)
+        // UPDATED: Initialize language with enforced Dutch default
         initializeLanguage: function() {
-            // Use saved language preference (Dutch default)
-            const savedLang = getSavedLanguagePreference();
-            console.log('🎯 Initializing with language (Dutch default):', savedLang);
+            // Use enforced Dutch default from getSavedLanguagePreference
+            const enforcedLang = getSavedLanguagePreference();
+            console.log('🎯 Initializing with enforced Dutch default language:', enforcedLang);
             
-            this.setLanguage(savedLang);
+            this.setLanguage(enforcedLang);
             
-            // MODIFIED: Set Dutch button as default active
-            const activeBtn = document.querySelector(`[data-lang="${savedLang}"]`);
+            // Set Dutch button as active by default
+            const activeBtn = document.querySelector(`[data-lang="${enforcedLang}"]`);
             if (activeBtn) {
                 // Remove active from all buttons first
                 document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
                 // Add active to current language
                 activeBtn.classList.add('active');
-                console.log('✅ Active language button set for:', savedLang);
+                console.log('✅ Active language button set for:', enforcedLang);
             } else {
                 // Fallback: make Dutch button active if no button found
                 const nlButton = document.querySelector('[data-lang="nl"]');
@@ -1256,8 +730,14 @@ function getSavedLanguagePreference() {
             });
         },
 
-        // UPDATED: setLanguage function with persistence
+        // UPDATED: setLanguage function with persistence and validation
         setLanguage: function(lang) {
+            // Validate language before setting
+            if (lang !== 'nl' && lang !== 'en') {
+                console.warn('⚠️ Invalid language attempted:', lang, '- keeping current:', currentLanguage);
+                return;
+            }
+            
             currentLanguage = lang;
             this.currentLanguage = lang; // Update the exposed property for cart page
             AppState.ui.currentLanguage = lang;
@@ -1904,6 +1384,204 @@ function getSavedLanguagePreference() {
         },
 
         // DISCOUNT MODAL FUNCTIONS
+        initializeDiscountModal: function() {
+            console.log('🎯 Initializing discount modal...');
+            
+            // Wait for DOM to be fully ready
+            setTimeout(() => {
+                const modal = document.getElementById('discountModal');
+                const modalContent = modal ? modal.querySelector('.modal-content') : null;
+                
+                console.log('📊 Modal elements check:', {
+                    modal: !!modal,
+                    modalContent: !!modalContent
+                });
+                
+                if (!modal || !modalContent) {
+                    console.warn('⚠️ Discount modal not found in DOM - creating fallback');
+                    this.createDiscountModalFallback();
+                    return;
+                }
+                
+                // Ensure static modal content is properly set up
+                this.setupStaticModalContent();
+                
+                // Setup modal event listeners
+                this.setupDiscountModalListeners();
+                
+                console.log('✅ Discount modal initialized successfully');
+                
+            }, 500);
+        },
+
+        // Create modal fallback if not found
+        createDiscountModalFallback: function() {
+            console.log('🔧 Creating discount modal fallback...');
+            
+            const modalHTML = `
+                <div id="discountModal" class="discount-modal" style="display: none;">
+                    <div class="discount-modal-overlay">
+                        <div class="modal-content">
+                            <span class="discount-close">&times;</span>
+                            <div class="discount-step" id="emailStep">
+                                <h2>${translations[currentLanguage].discountTitle}</h2>
+                                <p>${translations[currentLanguage].discountEmailDescription}</p>
+                                
+                                <div class="email-form">
+                                    <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                                    
+                                    <div class="email-consent-section" id="emailConsentCheckbox">
+                                        <label class="consent-checkbox">
+                                            <input type="checkbox" id="emailConsent">
+                                            <span class="checkmark"></span>
+                                            ${translations[currentLanguage].emailConsentText}
+                                        </label>
+                                    </div>
+                                    
+                                    <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                                        ${translations[currentLanguage].getDiscount}
+                                    </button>
+                                </div>
+                                
+                                <div class="privacy-note">
+                                    <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="discount-step" id="codeStep" style="display: none;">
+                                <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                                <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                                
+                                <div class="discount-code-display">
+                                    <div class="code-box">
+                                        <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
+                                        <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                            <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                            <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="code-validity-info">
+                                    <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                                </div>
+                                
+                                <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                                    ${translations[currentLanguage].continueToCheckout}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Add required styles
+            this.addDiscountModalStyles();
+            
+            // Setup event listeners
+            this.setupDiscountModalListeners();
+            
+            console.log('✅ Discount modal fallback created');
+        },
+
+        // Setup static modal content without overwriting
+        setupStaticModalContent: function() {
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            console.log('🔧 Setting up static modal content...', {
+                emailStep: !!emailStep,
+                codeStep: !!codeStep
+            });
+            
+            // If email step exists but content is missing, populate it
+            if (emailStep && !emailStep.querySelector('#submitDiscountEmail')) {
+                emailStep.innerHTML = `
+                    <h2>${translations[currentLanguage].discountTitle}</h2>
+                    <p>${translations[currentLanguage].discountEmailDescription}</p>
+                    
+                    <div class="email-form">
+                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                        
+                        <div class="email-consent-section" id="emailConsentCheckbox">
+                            <label class="consent-checkbox">
+                                <input type="checkbox" id="emailConsent">
+                                <span class="checkmark"></span>
+                                ${translations[currentLanguage].emailConsentText}
+                            </label>
+                        </div>
+                        
+                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                            ${translations[currentLanguage].getDiscount}
+                        </button>
+                    </div>
+                    
+                    <div class="privacy-note">
+                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                    </div>
+                `;
+            }
+            
+            // Create code step if it doesn't exist
+            if (!codeStep) {
+                const modalContent = document.querySelector('#discountModal .modal-content');
+                if (modalContent) {
+                    const codeStepHTML = `
+                        <div class="discount-step" id="codeStep" style="display: none;">
+                            <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                            <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                            
+                            <div class="discount-code-display">
+                                <div class="code-box">
+                                    <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
+                                    <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                        <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                        <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="code-validity-info">
+                                <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                            </div>
+                            
+                            <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                                ${translations[currentLanguage].continueToCheckout}
+                            </button>
+                        </div>
+                    `;
+                    modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
+                }
+            }
+        },
+
+        // Add modal styles if needed
+        addDiscountModalStyles: function() {
+            if (document.getElementById('discountModalStyles')) return;
+            
+            const styles = document.createElement('style');
+            styles.id = 'discountModalStyles';
+            styles.textContent = `
+                /* Basic discount modal styles - include full styles from original */
+                .discount-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(8px);
+                    z-index: 10000;
+                    animation: fadeIn 0.3s ease-out;
+                }
+                /* Add other modal styles as needed */
+            `;
+            document.head.appendChild(styles);
+        },
+
         showDiscountModal: function() {
             console.log('🎯 Showing discount modal...');
             
@@ -2067,12 +1745,6 @@ function getSavedLanguagePreference() {
             this.showDiscountCodeStep();
         },
 
-        // Show discount code directly without email
-        showDiscountCodeDirectly: function() {
-            console.log('⏭️ Showing discount code directly...');
-            this.showDiscountCodeStep();
-        },
-
         // Copy discount code to clipboard
         copyDiscountCode: function() {
             console.log('📋 Copying discount code...');
@@ -2220,151 +1892,6 @@ function getSavedLanguagePreference() {
                 console.log('✅ All discount modal listeners set up');
                 
             }, 100);
-        },
-
-        // Full Album Modal Functions
-        showFullAlbumModal: function() {
-            const modal = document.getElementById('fullAlbumModal');
-            if (modal) {
-                modal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-        },
-
-        closeFullAlbumModal: function() {
-            const modal = document.getElementById('fullAlbumModal');
-            if (modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                
-                // Reset form
-                const form = document.getElementById('fullAlbumContactForm');
-                if (form) {
-                    form.reset();
-                    const topicField = document.getElementById('fullAlbumTopic');
-                    if (topicField) {
-                        topicField.value = 'Interested in a full album please contact me';
-                    }
-                }
-            }
-        },
-
-        handleFullAlbumContactSubmission: function() {
-            const form = document.getElementById('fullAlbumContactForm');
-            if (!form) return;
-            
-            const formData = new FormData(form);
-            
-            const email = formData.get('email');
-            const phone = formData.get('phone');
-            const topic = formData.get('topic');
-            const notes = formData.get('notes');
-
-            // Basic validation
-            if (!email || !phone) {
-                alert(currentLanguage === 'nl' ? 
-                    'Vul alle verplichte velden in.' : 
-                    'Please fill in all required fields.');
-                return;
-            }
-
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert(currentLanguage === 'nl' ? 
-                    'Voer een geldig e-mailadres in.' : 
-                    'Please enter a valid email address.');
-                return;
-            }
-
-            // Save the contact request
-            const contactRequest = {
-                id: Date.now(),
-                date: new Date().toLocaleDateString(),
-                customerName: 'Full Album Inquiry',
-                customerEmail: email,
-                customerPhone: phone,
-                package: 'Full Album Contact Request',
-                originalPrice: 'Contact',
-                finalPrice: 'Contact',
-                status: 'contact_request',
-                topic: topic,
-                notes: notes || '',
-                source: 'full_album_modal'
-            };
-            
-            orders.push(contactRequest);
-            localStorage.setItem('musicOrders', JSON.stringify(orders));
-
-            // Show success message
-            alert(currentLanguage === 'nl' ? 
-                'Bedankt voor uw interesse! We nemen binnen 24 uur contact met u op via e-mail voor een persoonlijk gesprek over uw volledige album.' : 
-                'Thank you for your interest! We will contact you within 24 hours via email for a personal consultation about your full album.');
-
-            // Close modal
-            this.closeFullAlbumModal();
-        },
-
-        setupFullAlbumModalListeners: function() {
-            // Full album modal functionality
-            const fullAlbumModal = document.getElementById('fullAlbumModal');
-            const fullAlbumCloseBtn = document.getElementById('fullAlbumClose');
-            const fullAlbumForm = document.getElementById('fullAlbumContactForm');
-
-            // Close button
-            if (fullAlbumCloseBtn) {
-                fullAlbumCloseBtn.addEventListener('click', () => this.closeFullAlbumModal());
-            }
-
-            // Click outside modal to close
-            if (fullAlbumModal) {
-                fullAlbumModal.addEventListener('click', (e) => {
-                    if (e.target === fullAlbumModal) {
-                        this.closeFullAlbumModal();
-                    }
-                });
-            }
-
-            // Form submission
-            if (fullAlbumForm) {
-                fullAlbumForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.handleFullAlbumContactSubmission();
-                });
-            }
-
-            // ESC key to close modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && fullAlbumModal && fullAlbumModal.style.display === 'block') {
-                    this.closeFullAlbumModal();
-                }
-            });
-        },
-
-        setupPrivacyModal: function() {
-            const modal = document.getElementById('privacyModal');
-            const link = document.getElementById('fullPrivacyLink');
-            const closeBtn = document.querySelector('.close');
-
-            if (link && modal && closeBtn) {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    modal.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                });
-
-                closeBtn.addEventListener('click', () => {
-                    modal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                });
-
-                window.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                        document.body.style.overflow = 'auto';
-                    }
-                });
-            }
         },
 
         // Scroll trigger for discount popup
@@ -2558,6 +2085,151 @@ function getSavedLanguagePreference() {
             console.log('Submitting email to Shopify as lead:', email, 'Source:', source);
         },
 
+        // Full Album Modal Functions
+        showFullAlbumModal: function() {
+            const modal = document.getElementById('fullAlbumModal');
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        },
+
+        closeFullAlbumModal: function() {
+            const modal = document.getElementById('fullAlbumModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                
+                // Reset form
+                const form = document.getElementById('fullAlbumContactForm');
+                if (form) {
+                    form.reset();
+                    const topicField = document.getElementById('fullAlbumTopic');
+                    if (topicField) {
+                        topicField.value = 'Interested in a full album please contact me';
+                    }
+                }
+            }
+        },
+
+        handleFullAlbumContactSubmission: function() {
+            const form = document.getElementById('fullAlbumContactForm');
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            
+            const email = formData.get('email');
+            const phone = formData.get('phone');
+            const topic = formData.get('topic');
+            const notes = formData.get('notes');
+
+            // Basic validation
+            if (!email || !phone) {
+                alert(currentLanguage === 'nl' ? 
+                    'Vul alle verplichte velden in.' : 
+                    'Please fill in all required fields.');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert(currentLanguage === 'nl' ? 
+                    'Voer een geldig e-mailadres in.' : 
+                    'Please enter a valid email address.');
+                return;
+            }
+
+            // Save the contact request
+            const contactRequest = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                customerName: 'Full Album Inquiry',
+                customerEmail: email,
+                customerPhone: phone,
+                package: 'Full Album Contact Request',
+                originalPrice: 'Contact',
+                finalPrice: 'Contact',
+                status: 'contact_request',
+                topic: topic,
+                notes: notes || '',
+                source: 'full_album_modal'
+            };
+            
+            orders.push(contactRequest);
+            localStorage.setItem('musicOrders', JSON.stringify(orders));
+
+            // Show success message
+            alert(currentLanguage === 'nl' ? 
+                'Bedankt voor uw interesse! We nemen binnen 24 uur contact met u op via e-mail voor een persoonlijk gesprek over uw volledige album.' : 
+                'Thank you for your interest! We will contact you within 24 hours via email for a personal consultation about your full album.');
+
+            // Close modal
+            this.closeFullAlbumModal();
+        },
+
+        setupFullAlbumModalListeners: function() {
+            // Full album modal functionality
+            const fullAlbumModal = document.getElementById('fullAlbumModal');
+            const fullAlbumCloseBtn = document.getElementById('fullAlbumClose');
+            const fullAlbumForm = document.getElementById('fullAlbumContactForm');
+
+            // Close button
+            if (fullAlbumCloseBtn) {
+                fullAlbumCloseBtn.addEventListener('click', () => this.closeFullAlbumModal());
+            }
+
+            // Click outside modal to close
+            if (fullAlbumModal) {
+                fullAlbumModal.addEventListener('click', (e) => {
+                    if (e.target === fullAlbumModal) {
+                        this.closeFullAlbumModal();
+                    }
+                });
+            }
+
+            // Form submission
+            if (fullAlbumForm) {
+                fullAlbumForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFullAlbumContactSubmission();
+                });
+            }
+
+            // ESC key to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && fullAlbumModal && fullAlbumModal.style.display === 'block') {
+                    this.closeFullAlbumModal();
+                }
+            });
+        },
+
+        setupPrivacyModal: function() {
+            const modal = document.getElementById('privacyModal');
+            const link = document.getElementById('fullPrivacyLink');
+            const closeBtn = document.querySelector('.close');
+
+            if (link && modal && closeBtn) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                });
+
+                window.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
+        },
+
         // Admin Functions
         addNewOrder: function() {
             const form = document.getElementById('adminForm');
@@ -2674,17 +2346,6 @@ function getSavedLanguagePreference() {
         } else {
             alert(result.message);
         }
-    };
-    
-    // Debug function to test if functions are working
-    window.testDiscountFunctions = () => {
-        console.log('Testing discount functions...');
-        console.log('submitDiscountEmail:', typeof window.submitDiscountEmail);
-        console.log('copyDiscountCode:', typeof window.copyDiscountCode);
-        console.log('MusicadoApp available:', typeof window.MusicadoApp);
-        
-        // Test modal creation
-        MusicadoApp.showDiscountModal();
     };
 
     // Auto-initialize if DOM is already loaded

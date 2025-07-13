@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - COMPLETE with Language Persistence & Cart Translations
+// Musicado Application JavaScript - DUTCH DEFAULT VERSION
 (function() {
     'use strict';
 
@@ -12,25 +12,28 @@
     // CRITICAL: Language persistence key
     const LANGUAGE_KEY = 'musicado_language';
 
-    // Language persistence functions
+    // Language persistence functions - MODIFIED FOR DUTCH DEFAULT
     function saveLanguagePreference(lang) {
         localStorage.setItem(LANGUAGE_KEY, lang);
         console.log('💾 Language preference saved:', lang);
     }
 
-    function getSavedLanguagePreference() {
-        const saved = localStorage.getItem(LANGUAGE_KEY);
-        if (saved) {
-            console.log('📱 Found saved language preference:', saved);
-            return saved;
-        }
-        
-        const detected = navigator.language.startsWith('nl') ? 'nl' : 'en';
-        console.log('🌐 No saved preference, using detected language:', detected);
-        return detected;
-    }
+    // FIXED: True Dutch Default - Replace lines 18-33 in musicado.js
 
-    // Get saved language for initialization
+function getSavedLanguagePreference() {
+    const saved = localStorage.getItem(LANGUAGE_KEY);
+    if (saved) {
+        console.log('📱 Found saved language preference:', saved);
+        return saved;
+    }
+    
+    // MODIFIED: Always default to Dutch for new visitors
+    // Only English if user explicitly chooses it later
+    console.log('🇳🇱 No saved preference, defaulting to Dutch for all visitors');
+    return 'nl';
+}
+
+    // Get saved language for initialization - DUTCH DEFAULT
     const savedLang = getSavedLanguagePreference();
 
     // Centralized state management
@@ -43,7 +46,7 @@
         },
         ui: {
             modalShown: false,
-            currentLanguage: savedLang // Use saved language
+            currentLanguage: savedLang // Use saved language (Dutch default)
         }
     };
 
@@ -51,168 +54,8 @@
     const generateToken = () => Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 
     // COMPLETE Translations including cart-specific translations
+    // REORDERED: Dutch first, English second
     const translations = {
-        en: {
-            intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.",
-            mainIntro: "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones.",
-            listenExamples: "Listen to our examples",
-            example1Title: "Loading...",
-            example1Description: "Random example from our collection",
-            example2Title: "Loading...", 
-            example2Description: "Random example from our collection",
-            playAnother: "🔄 Play Another Example",
-            audioNotSupported: "Your browser does not support the audio element.",
-            featuredTestimonial1: '"The quality blew me away! After hearing their examples, I knew I had to order. The final song was even better than I imagined - truly professional work!"',
-            featuredTestimonial2: '"I listened to their examples and immediately placed an order for my wedding. The song they created became the highlight of our ceremony. Absolutely perfect!"',
-            featuredTestimonial3: '"Perfect for my mom\'s birthday! The song captured all our family memories beautifully. She cried happy tears when she heard it. Such a personal and meaningful gift!"',
-            featuredTestimonial4: '"Amazing quality and super fast delivery! I ordered a surprise song for my girlfriend and it turned out incredible. The lyrics were exactly what I wanted to say."',
-            swipeHint: "← Swipe for more reviews →",
-            traditionalWay: "The Traditional Way",
-            instrument: "Instrument: €2000,-",
-            studioSession: "Studio session: €3000,-",
-            timeRequired: "Time: 20-40 hours",
-            traditionalTotal: "Total: €5000+ & weeks of work",
-            versus: "VS",
-            ourWay: "Our Way",
-            fewClicks: "A few clicks",
-            lovingMessage: "A loving message",
-            professionalQuality: "Professional quality",
-            ourTotal: "Starting at just €49 (Full Albums: Custom pricing)",
-            comparisonConclusion: "Why spend thousands when you can create something equally beautiful and personal for a fraction of the cost?",
-            customerReviews: "What our customers say",
-            testimonial1: '"Amazing! They created the perfect love song for my anniversary. My partner was in tears - it was exactly what we dreamed of. Highly recommended!"',
-            testimonial2: '"I ordered an EP for my mom\'s 60th birthday with family memories in the lyrics. The quality was outstanding and she plays it every day!"',
-            testimonial3: '"Professional service from start to finish. The rock album they made for our band sounds like it was produced in a major studio. Worth every euro!"',
-            basedOnReviews: "Based on 247+ reviews",
-            selectPackage: "Select your package:",
-            oneSong: "One Song",
-            ep: "EP (4 songs)",
-            fullAlbum: "Full Album:",
-            contactForPricing: "Contact us for custom pricing",
-            usageDisclaimer: "All songs created can be used for personal use only, for commercial use, please contact us. We can publish your song on Spotify on your demand.",
-            musicStyles: "Select your two favorite music styles:",
-            firstMusicStyle: "First Music Style *",
-            secondMusicStyle: "Second Music Style *",
-            selectOption: "-- Select an option --",
-            favoriteArtists: "Enter your favorite Artists:",
-            voiceSelection: "Select voice preference:",
-            maleVoice: "Male Voice",
-            femaleVoice: "Female Voice",
-            noVoicePreference: "No Preference",
-            reason: "Reason for this song:",
-            myself: "For myself",
-            love: "For my love",
-            friend: "For my friend",
-            mom: "For Mom",
-            dad: "For my dad",
-            sibling: "For my Brother or Sister",
-            other: "Other",
-            wordsNames: "What words or names would you like to have back in the songs:",
-            songLanguage: "What language do you want the songs to be:",
-            dutch: "Dutch",
-            english: "English",
-            french: "French",
-            german: "German",
-            spanish: "Spanish",
-            portuguese: "Portuguese",
-            songTitles: "Give the songs a title (leave blank for us to choose):",
-            ownLyrics: "Do you have your own lyrics or a story about the song: Enter here:",
-            addToCart: "Add to Cart",
-            discountTitle: "🎵 Get 15% OFF Your Purchase!",
-            discountEmailDescription: "Enter your email to unlock 15% off your custom song creation!",
-            discountEmailPlaceholder: "Enter your email address",
-            emailConsentText: "I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.",
-            getDiscount: "Get My 15% Discount",
-            discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
-            discountSuccessTitle: "🎉 Your Discount Code!",
-            discountSuccessMessage: "Here's your 15% discount code. Copy it and use it at checkout:",
-            discountValidityInfo: "This code is valid for 30 days. Save it for your order!",
-            copyCode: "Copy Code",
-            codeCopied: "Code Copied!",
-            continueToCheckout: "Close & Continue Shopping",
-            fullAlbumContactTitle: "🎵 Full Album Inquiry",
-            fullAlbumContactDescription: "Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.",
-            emailAddress: "Email Address *",
-            phoneNumber: "Mobile Phone *",
-            topic: "Topic",
-            additionalNotes: "Additional Notes (Optional)",
-            submitContact: "Submit Contact Request",
-            emailPlaceholder: "your@email.com",
-            phonePlaceholder: "+31 6 12345678",
-            notesPlaceholder: "Tell us more about your album vision...",
-            adminPanel: "Admin Panel",
-            backToCustomer: "Back to Customer",
-            exportRTF: "Export to RTF",
-            allOrders: "All Orders",
-            pending: "Pending",
-            completed: "Completed",
-            addNewOrder: "Add New Order Data",
-            customerName: "Customer Name",
-            customerEmail: "Customer Email",
-            orderStatus: "Order Status",
-            inProgress: "In Progress",
-            notes: "Notes",
-            addOrder: "Add Order",
-            orderHistory: "Order History",
-            date: "Date",
-            customer: "Customer",
-            package: "Package",
-            price: "Price",
-            status: "Status",
-            actions: "Actions",
-
-            // CART-SPECIFIC TRANSLATIONS
-            cartPageTitle: "Your Order",
-            orderSummary: "Order Summary", 
-            removeItem: "Remove Item",
-            subtotal: "Subtotal:",
-            discountApplied: "Discount",
-            total: "Total:",
-            taxNote: "Taxes and shipping calculated at checkout",
-            customerInformation: "Customer Information",
-            firstName: "First Name *",
-            middleName: "Middle Name",
-            lastName: "Last Name *",
-            musicDeliveryTitle: "📧 Music Delivery Information",
-            musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
-            discountCodeTitle: "Discount Code",
-            discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
-            applyDiscount: "Apply",
-            discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
-            discountAppliedSuccess: "Discount applied!",
-            agreeTerms: "I agree with the terms and conditions and privacy policy",
-            privacyPolicyLink: "Read our privacy policy",
-            importantInformation: "Important Information",
-            deliveryInfo: "You will receive an email link to download your music within 24 hours",
-            personalUseInfo: "Songs are for personal use only (contact us for commercial use)",
-            spotifyInfo: "We can publish your song on Spotify upon request",
-            contactInfo: "Any questions? Contact us at:",
-            completeOrderPay: "Complete Order & Pay",
-            processing: "Processing...",
-            continueShopping: "Continue Shopping",
-            tryAgain: "Try Again",
-            emptyCartTitle: "Your cart is empty",
-            emptyCartDescription: "You haven't added any items to your cart yet.",
-            startShopping: "Start Shopping",
-            
-            // Validation messages
-            pleaseComplete: "Please complete the following:",
-            validEmail: "Valid email address",
-            agreeToTerms: "Agreement with terms and conditions",
-            enterDiscountCode: "Please enter a discount code.",
-            invalidDiscountCode: "Invalid discount code. Please check and try again.",
-            agreeToEmails: "You must agree to receive emails to get your discount code.",
-            discountAlreadyApplied: "Discount already applied.",
-            discountAppliedMessage: "Discount applied! This will be applied at checkout.",
-            orderUpdated: "Order updated! Redirecting to checkout...",
-            processingError: "An error occurred. Please try again.",
-            updateError: "Failed to update order information. Please try again.",
-            
-            // Cart button translations
-            viewCart: "View Cart",
-            cartEmpty: "Cart Empty",
-            itemsInCart: "items in cart"
-        },
         nl: {
             intro: "Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken.",
             mainIntro: "Creëer moeiteloos uw eigen muziek in slechts een paar klikken: Kies elke stijl— van folk, hip-hop, pop of klassiek. Voeg uw eigen woorden of teksten toe, en deel uw unieke track met uw geliefden.",
@@ -373,10 +216,171 @@
             viewCart: "Bekijk Winkelwagen",
             cartEmpty: "Winkelwagen Leeg", 
             itemsInCart: "items in winkelwagen"
+        },
+        en: {
+            intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.",
+            mainIntro: "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones.",
+            listenExamples: "Listen to our examples",
+            example1Title: "Loading...",
+            example1Description: "Random example from our collection",
+            example2Title: "Loading...", 
+            example2Description: "Random example from our collection",
+            playAnother: "🔄 Play Another Example",
+            audioNotSupported: "Your browser does not support the audio element.",
+            featuredTestimonial1: '"The quality blew me away! After hearing their examples, I knew I had to order. The final song was even better than I imagined - truly professional work!"',
+            featuredTestimonial2: '"I listened to their examples and immediately placed an order for my wedding. The song they created became the highlight of our ceremony. Absolutely perfect!"',
+            featuredTestimonial3: '"Perfect for my mom\'s birthday! The song captured all our family memories beautifully. She cried happy tears when she heard it. Such a personal and meaningful gift!"',
+            featuredTestimonial4: '"Amazing quality and super fast delivery! I ordered a surprise song for my girlfriend and it turned out incredible. The lyrics were exactly what I wanted to say."',
+            swipeHint: "← Swipe for more reviews →",
+            traditionalWay: "The Traditional Way",
+            instrument: "Instrument: €2000,-",
+            studioSession: "Studio session: €3000,-",
+            timeRequired: "Time: 20-40 hours",
+            traditionalTotal: "Total: €5000+ & weeks of work",
+            versus: "VS",
+            ourWay: "Our Way",
+            fewClicks: "A few clicks",
+            lovingMessage: "A loving message",
+            professionalQuality: "Professional quality",
+            ourTotal: "Starting at just €49 (Full Albums: Custom pricing)",
+            comparisonConclusion: "Why spend thousands when you can create something equally beautiful and personal for a fraction of the cost?",
+            customerReviews: "What our customers say",
+            testimonial1: '"Amazing! They created the perfect love song for my anniversary. My partner was in tears - it was exactly what we dreamed of. Highly recommended!"',
+            testimonial2: '"I ordered an EP for my mom\'s 60th birthday with family memories in the lyrics. The quality was outstanding and she plays it every day!"',
+            testimonial3: '"Professional service from start to finish. The rock album they made for our band sounds like it was produced in a major studio. Worth every euro!"',
+            basedOnReviews: "Based on 247+ reviews",
+            selectPackage: "Select your package:",
+            oneSong: "One Song",
+            ep: "EP (4 songs)",
+            fullAlbum: "Full Album:",
+            contactForPricing: "Contact us for custom pricing",
+            usageDisclaimer: "All songs created can be used for personal use only, for commercial use, please contact us. We can publish your song on Spotify on your demand.",
+            musicStyles: "Select your two favorite music styles:",
+            firstMusicStyle: "First Music Style *",
+            secondMusicStyle: "Second Music Style *",
+            selectOption: "-- Select an option --",
+            favoriteArtists: "Enter your favorite Artists:",
+            voiceSelection: "Select voice preference:",
+            maleVoice: "Male Voice",
+            femaleVoice: "Female Voice",
+            noVoicePreference: "No Preference",
+            reason: "Reason for this song:",
+            myself: "For myself",
+            love: "For my love",
+            friend: "For my friend",
+            mom: "For Mom",
+            dad: "For my dad",
+            sibling: "For my Brother or Sister",
+            other: "Other",
+            wordsNames: "What words or names would you like to have back in the songs:",
+            songLanguage: "What language do you want the songs to be:",
+            dutch: "Dutch",
+            english: "English",
+            french: "French",
+            german: "German",
+            spanish: "Spanish",
+            portuguese: "Portuguese",
+            songTitles: "Give the songs a title (leave blank for us to choose):",
+            ownLyrics: "Do you have your own lyrics or a story about the song: Enter here:",
+            addToCart: "Add to Cart",
+            discountTitle: "🎵 Get 15% OFF Your Purchase!",
+            discountEmailDescription: "Enter your email to unlock 15% off your custom song creation!",
+            discountEmailPlaceholder: "Enter your email address",
+            emailConsentText: "I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.",
+            getDiscount: "Get My 15% Discount",
+            discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
+            discountSuccessTitle: "🎉 Your Discount Code!",
+            discountSuccessMessage: "Here's your 15% discount code. Copy it and use it at checkout:",
+            discountValidityInfo: "This code is valid for 30 days. Save it for your order!",
+            copyCode: "Copy Code",
+            codeCopied: "Code Copied!",
+            continueToCheckout: "Close & Continue Shopping",
+            fullAlbumContactTitle: "🎵 Full Album Inquiry",
+            fullAlbumContactDescription: "Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.",
+            emailAddress: "Email Address *",
+            phoneNumber: "Mobile Phone *",
+            topic: "Topic",
+            additionalNotes: "Additional Notes (Optional)",
+            submitContact: "Submit Contact Request",
+            emailPlaceholder: "your@email.com",
+            phonePlaceholder: "+31 6 12345678",
+            notesPlaceholder: "Tell us more about your album vision...",
+            adminPanel: "Admin Panel",
+            backToCustomer: "Back to Customer",
+            exportRTF: "Export to RTF",
+            allOrders: "All Orders",
+            pending: "Pending",
+            completed: "Completed",
+            addNewOrder: "Add New Order Data",
+            customerName: "Customer Name",
+            customerEmail: "Customer Email",
+            orderStatus: "Order Status",
+            inProgress: "In Progress",
+            notes: "Notes",
+            addOrder: "Add Order",
+            orderHistory: "Order History",
+            date: "Date",
+            customer: "Customer",
+            package: "Package",
+            price: "Price",
+            status: "Status",
+            actions: "Actions",
+
+            // CART-SPECIFIC TRANSLATIONS
+            cartPageTitle: "Your Order",
+            orderSummary: "Order Summary", 
+            removeItem: "Remove Item",
+            subtotal: "Subtotal:",
+            discountApplied: "Discount",
+            total: "Total:",
+            taxNote: "Taxes and shipping calculated at checkout",
+            customerInformation: "Customer Information",
+            firstName: "First Name *",
+            middleName: "Middle Name",
+            lastName: "Last Name *",
+            musicDeliveryTitle: "📧 Music Delivery Information",
+            musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
+            discountCodeTitle: "Discount Code",
+            discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
+            applyDiscount: "Apply",
+            discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
+            discountAppliedSuccess: "Discount applied!",
+            agreeTerms: "I agree with the terms and conditions and privacy policy",
+            privacyPolicyLink: "Read our privacy policy",
+            importantInformation: "Important Information",
+            deliveryInfo: "You will receive an email link to download your music within 24 hours",
+            personalUseInfo: "Songs are for personal use only (contact us for commercial use)",
+            spotifyInfo: "We can publish your song on Spotify upon request",
+            contactInfo: "Any questions? Contact us at:",
+            completeOrderPay: "Complete Order & Pay",
+            processing: "Processing...",
+            continueShopping: "Continue Shopping",
+            tryAgain: "Try Again",
+            emptyCartTitle: "Your cart is empty",
+            emptyCartDescription: "You haven't added any items to your cart yet.",
+            startShopping: "Start Shopping",
+            
+            // Validation messages
+            pleaseComplete: "Please complete the following:",
+            validEmail: "Valid email address",
+            agreeToTerms: "Agreement with terms and conditions",
+            enterDiscountCode: "Please enter a discount code.",
+            invalidDiscountCode: "Invalid discount code. Please check and try again.",
+            agreeToEmails: "You must agree to receive emails to get your discount code.",
+            discountAlreadyApplied: "Discount already applied.",
+            discountAppliedMessage: "Discount applied! This will be applied at checkout.",
+            orderUpdated: "Order updated! Redirecting to checkout...",
+            processingError: "An error occurred. Please try again.",
+            updateError: "Failed to update order information. Please try again.",
+            
+            // Cart button translations
+            viewCart: "View Cart",
+            cartEmpty: "Cart Empty",
+            itemsInCart: "items in cart"
         }
     };
 
-    // Global variables - UPDATED to use saved language
+    // Global variables - UPDATED to use saved language (Dutch default)
     let currentLanguage = savedLang;
     let formData = {};
     let orders = JSON.parse(localStorage.getItem('musicOrders') || '[]');
@@ -408,30 +412,8 @@
     // Track which files are currently playing to avoid duplicates
     let currentlyPlaying = [null, null];
 
-    // Subheadline arrays
+    // Subheadline arrays - REORDERED: Dutch first
     const subheadlines = {
-        en: [
-            "Make Your Loved Ones Happy With Personal Songs",
-            "Make Your Loved Ones Happy With Personal Songs in Less than 3 minutes",
-            "It's music, but personal",
-            "Songs that will not only be stuck in their head, but in their hearts.",
-            "Your mom has enough perfume, but does she have a song?",
-            "It's not simply a song, it's an emotion.",
-            "Make Songs For Your Loved Ones, No Skills Required",
-            "Imagine your loved ones singing your songs in the shower",
-            "It's not simply music, it's a message",
-            "Imagine your favourite song but it's personal and will be remembered forever",
-            "You're going to THAT store again to buy the same gift as last year? Give something unique and create songs that make your loved ones smile",
-            "It's not a gift you give, it's a gift you feel.",
-            "Stop giving lame presents to the people you love, make unique songs that stick.",
-            "Remember your favourite song? It's that, but personal for the ones you love.",
-            "Remember the gift you got her last year? Neither does she. Try This Unforgettable gift and make your loved ones happy.",
-            "The greatest gifts are not wrapped, they're experienced.",
-            "Another generic bottle of wine? They have enough of those. Let's create some music that makes a party.",
-            "Tired of dull Gifts? You're not alone. Discover the most personal gift in the Netherlands.",
-            "It's like a giftcard, but 10 times cooler and it plays on spotify.",
-            "It could be played at a party, it could be played at a funeral. It's the gift that always works."
-        ],
         nl: [
             "Maak Je Geliefden Blij Met Persoonlijke Liedjes",
             "Maak Je Geliefden Blij Met Persoonlijke Liedjes in Minder dan 3 minuten",
@@ -453,6 +435,28 @@
             "Moe van saaie cadeaus? Je bent niet alleen. Ontdek het meest persoonlijke cadeau van Nederland.",
             "Het is als een cadeaubon, maar 10 keer cooler en het speelt op Spotify.",
             "Het kan gespeeld worden op een feestje, het kan gespeeld worden op een begrafenis. Het is het cadeau dat altijd werkt."
+        ],
+        en: [
+            "Make Your Loved Ones Happy With Personal Songs",
+            "Make Your Loved Ones Happy With Personal Songs in Less than 3 minutes",
+            "It's music, but personal",
+            "Songs that will not only be stuck in their head, but in their hearts.",
+            "Your mom has enough perfume, but does she have a song?",
+            "It's not simply a song, it's an emotion.",
+            "Make Songs For Your Loved Ones, No Skills Required",
+            "Imagine your loved ones singing your songs in the shower",
+            "It's not simply music, it's a message",
+            "Imagine your favourite song but it's personal and will be remembered forever",
+            "You're going to THAT store again to buy the same gift as last year? Give something unique and create songs that make your loved ones smile",
+            "It's not a gift you give, it's a gift you feel.",
+            "Stop giving lame presents to the people you love, make unique songs that stick.",
+            "Remember your favourite song? It's that, but personal for the ones you love.",
+            "Remember the gift you got her last year? Neither does she. Try This Unforgettable gift and make your loved ones happy.",
+            "The greatest gifts are not wrapped, they're experienced.",
+            "Another generic bottle of wine? They have enough of those. Let's create some music that makes a party.",
+            "Tired of dull Gifts? You're not alone. Discover the most personal gift in the Netherlands.",
+            "It's like a giftcard, but 10 times cooler and it plays on spotify.",
+            "It could be played at a party, it could be played at a funeral. It's the gift that always works."
         ]
     };
 
@@ -539,7 +543,7 @@
         currentLanguage: currentLanguage, // Expose current language for cart page
 
         init: function() {
-            console.log('Musicado App Initializing with saved language:', currentLanguage);
+            console.log('Musicado App Initializing with Dutch as default language:', currentLanguage);
             
             this.initializeLanguage();
             this.setupEventListeners();
@@ -1101,17 +1105,30 @@
             document.head.appendChild(styles);
         },
 
-        // UPDATED: Initialize language with saved preference
+        // UPDATED: Initialize language with saved preference (Dutch default)
         initializeLanguage: function() {
-            // Use saved language preference
+            // Use saved language preference (Dutch default)
             const savedLang = getSavedLanguagePreference();
-            console.log('🎯 Initializing with saved language:', savedLang);
+            console.log('🎯 Initializing with language (Dutch default):', savedLang);
             
             this.setLanguage(savedLang);
+            
+            // MODIFIED: Set Dutch button as default active
             const activeBtn = document.querySelector(`[data-lang="${savedLang}"]`);
             if (activeBtn) {
+                // Remove active from all buttons first
+                document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+                // Add active to current language
                 activeBtn.classList.add('active');
                 console.log('✅ Active language button set for:', savedLang);
+            } else {
+                // Fallback: make Dutch button active if no button found
+                const nlButton = document.querySelector('[data-lang="nl"]');
+                if (nlButton) {
+                    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+                    nlButton.classList.add('active');
+                    console.log('✅ Fallback: Dutch button set as active');
+                }
             }
         },
 

@@ -49,6 +49,16 @@
 <script>
   var _learnq = _learnq || [];
 </script>
+
+  <!-- Add this to your theme.liquid <head> section to fix font preload warnings -->
+<link rel="preload" 
+      href="{{ 'assistant_n4.bcd3d09dcb631dec5544b8fb7b154ff234a44630.woff2' | asset_url }}" 
+      as="font" 
+      type="font/woff2" 
+      crossorigin>
+
+<!-- Or if you're not using this font, remove the preload entirely -->
+<!-- The warning suggests the font is preloaded but not actually used -->
 </head>
 
 <body class="gradient">

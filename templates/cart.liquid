@@ -1,5 +1,5 @@
 {% comment %}
-  Complete Cart Template with Auto-Discount Integration
+  Updated Cart Template - Manual Discount Code Entry Only
   Save this as: templates/cart.liquid
 {% endcomment %}
 
@@ -132,7 +132,7 @@
             </form>
           </div>
 
-          <!-- Discount Code Section -->
+          <!-- Discount Code Section - Manual Entry Only -->
           <div class="card discount-card" id="discountCard">
             <h3>Discount Code</h3>
             <div class="discount-input-container">
@@ -140,7 +140,7 @@
                 type="text" 
                 id="discountCodeInput" 
                 name="discountCode" 
-                placeholder="Enter discount code (optional)"
+                placeholder="Enter discount code (e.g. 15%MUSIC)"
                 style="text-transform: uppercase;"
               >
               <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn">
@@ -150,7 +150,7 @@
             <div id="discountMessage" class="discount-message" style="display: none;"></div>
             
             <div class="discount-help">
-              <p>Have a discount code? Enter it above to save on your order!</p>
+              <p>💡 Have a discount code from our popup? Paste it here to save on your order!</p>
             </div>
           </div>
 
@@ -226,7 +226,7 @@
   </div>
 </div>
 
-<!-- Enhanced cart JavaScript with auto-discount functionality -->
+<!-- Enhanced cart JavaScript with manual discount code only -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   console.log('Cart page initialized');
@@ -466,7 +466,7 @@ Order Date: ${new Date().toLocaleString()}`;
     });
   }
 
-  // Apply discount code
+  // Apply discount code - Manual entry only
   function applyDiscountCode() {
     const codeInput = document.getElementById('discountCodeInput');
     const messageDiv = document.getElementById('discountMessage');
@@ -481,7 +481,7 @@ Order Date: ${new Date().toLocaleString()}`;
     messageDiv.style.display = 'none';
     
     if (!code) {
-      showDiscountMessage('error', 'Please enter a valid code.');
+      showDiscountMessage('error', 'Please enter a discount code.');
       return;
     }
     
@@ -510,8 +510,6 @@ Order Date: ${new Date().toLocaleString()}`;
       messageDiv.style.display = 'block';
     }
   }
-
-
 
   // Show success message
   function showSuccessMessage(message) {
@@ -550,8 +548,6 @@ Order Date: ${new Date().toLocaleString()}`;
       }
     }, 3000);
   }
-
-
 
   // Event listeners
   const checkoutBtn = document.getElementById('checkoutBtn');
@@ -625,53 +621,6 @@ Order Date: ${new Date().toLocaleString()}`;
     });
   }
 
-
-
-  // AUTO-APPLY DISCOUNT CODE FROM MODAL - Simple Version
-  function checkAndApplyPendingDiscount() {
-    const pendingDiscountCode = localStorage.getItem('pendingDiscountCode');
-    const discountSource = localStorage.getItem('discountSource');
-    
-    console.log('Checking for pending discount:', { pendingDiscountCode, discountSource });
-    
-    if (pendingDiscountCode && discountSource === 'modal') {
-      console.log('Found pending discount code from modal:', pendingDiscountCode);
-      
-      // Find the discount input field
-      const discountInput = document.getElementById('discountCodeInput');
-      
-      if (discountInput) {
-        console.log('Found discount input field, filling with code:', pendingDiscountCode);
-        
-        // Fill the input field
-        discountInput.value = pendingDiscountCode;
-        
-        // Trigger input event to show the value
-        discountInput.dispatchEvent(new Event('input', { bubbles: true }));
-        
-        // Auto-apply the discount after a short delay
-        setTimeout(() => {
-          console.log('Auto-applying discount code');
-          applyDiscountCode();
-        }, 1500);
-        
-      } else {
-        console.error('Could not find discount input field with ID: discountCodeInput');
-      }
-      
-      // Clear the pending discount so it doesn't auto-fill again
-      localStorage.removeItem('pendingDiscountCode');
-      localStorage.removeItem('discountSource');
-    } else {
-      console.log('No pending discount code found');
-    }
-  }
-
-  // Initialize discount checking after page load
-  setTimeout(() => {
-    checkAndApplyPendingDiscount();
-  }, 1000);
-
   console.log('Cart JavaScript initialization complete');
 });
 </script>
@@ -724,7 +673,7 @@ Order Date: ${new Date().toLocaleString()}`;
 .card {
   background: rgba(30, 41, 59, 0.4);
   backdrop-filter: blur(25px) saturate(180%);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 
@@ -1107,9 +1056,9 @@ Order Date: ${new Date().toLocaleString()}`;
 .discount-help {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(251, 191, 36, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.1);
 }
 
 .discount-help p {

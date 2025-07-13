@@ -1,4 +1,4 @@
-// FIXED Musicado Application JavaScript - ENFORCED DUTCH DEFAULT VERSION
+// FIXED Musicado Application JavaScript - FIXED MODAL STEP SWITCHING
 (function() {
     'use strict';
 
@@ -1383,7 +1383,7 @@
             }
         },
 
-        // DISCOUNT MODAL FUNCTIONS
+        // FIXED DISCOUNT MODAL FUNCTIONS - PROPER STEP SWITCHING
         initializeDiscountModal: function() {
             console.log('🎯 Initializing discount modal...');
             
@@ -1398,13 +1398,12 @@
                 });
                 
                 if (!modal || !modalContent) {
-                    console.warn('⚠️ Discount modal not found in DOM - creating fallback');
-                    this.createDiscountModalFallback();
+                    console.warn('⚠️ Discount modal not found in DOM');
                     return;
                 }
                 
-                // Ensure static modal content is properly set up
-                this.setupStaticModalContent();
+                // Ensure modal steps exist and are properly configured
+                this.ensureModalStepsExist();
                 
                 // Setup modal event listeners
                 this.setupDiscountModalListeners();
@@ -1414,172 +1413,32 @@
             }, 500);
         },
 
-        // Create modal fallback if not found
-        createDiscountModalFallback: function() {
-            console.log('🔧 Creating discount modal fallback...');
-            
-            const modalHTML = `
-                <div id="discountModal" class="discount-modal" style="display: none;">
-                    <div class="discount-modal-overlay">
-                        <div class="modal-content">
-                            <span class="discount-close">&times;</span>
-                            <div class="discount-step" id="emailStep">
-                                <h2>${translations[currentLanguage].discountTitle}</h2>
-                                <p>${translations[currentLanguage].discountEmailDescription}</p>
-                                
-                                <div class="email-form">
-                                    <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
-                                    
-                                    <div class="email-consent-section" id="emailConsentCheckbox">
-                                        <label class="consent-checkbox">
-                                            <input type="checkbox" id="emailConsent">
-                                            <span class="checkmark"></span>
-                                            ${translations[currentLanguage].emailConsentText}
-                                        </label>
-                                    </div>
-                                    
-                                    <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
-                                        ${translations[currentLanguage].getDiscount}
-                                    </button>
-                                </div>
-                                
-                                <div class="privacy-note">
-                                    <small>${translations[currentLanguage].discountTermsPrivacy}</small>
-                                </div>
-                            </div>
-                            
-                            <div class="discount-step" id="codeStep" style="display: none;">
-                                <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
-                                <p>${translations[currentLanguage].discountSuccessMessage}</p>
-                                
-                                <div class="discount-code-display">
-                                    <div class="code-box">
-                                        <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
-                                        <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-                                            <span class="copy-text">${translations[currentLanguage].copyCode}</span>
-                                            <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="code-validity-info">
-                                    <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
-                                </div>
-                                
-                                <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
-                                    ${translations[currentLanguage].continueToCheckout}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Add modal to page
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-            
-            // Add required styles
-            this.addDiscountModalStyles();
-            
-            // Setup event listeners
-            this.setupDiscountModalListeners();
-            
-            console.log('✅ Discount modal fallback created');
-        },
+        // FIXED: Ensure modal steps exist and are properly configured
+        ensureModalStepsExist: function() {
+            const modal = document.getElementById('discountModal');
+            if (!modal) return;
 
-        // Setup static modal content without overwriting
-        setupStaticModalContent: function() {
             const emailStep = document.getElementById('emailStep');
             const codeStep = document.getElementById('codeStep');
-            
-            console.log('🔧 Setting up static modal content...', {
-                emailStep: !!emailStep,
-                codeStep: !!codeStep
-            });
-            
-            // If email step exists but content is missing, populate it
-            if (emailStep && !emailStep.querySelector('#submitDiscountEmail')) {
-                emailStep.innerHTML = `
-                    <h2>${translations[currentLanguage].discountTitle}</h2>
-                    <p>${translations[currentLanguage].discountEmailDescription}</p>
-                    
-                    <div class="email-form">
-                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
-                        
-                        <div class="email-consent-section" id="emailConsentCheckbox">
-                            <label class="consent-checkbox">
-                                <input type="checkbox" id="emailConsent">
-                                <span class="checkmark"></span>
-                                ${translations[currentLanguage].emailConsentText}
-                            </label>
-                        </div>
-                        
-                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
-                            ${translations[currentLanguage].getDiscount}
-                        </button>
-                    </div>
-                    
-                    <div class="privacy-note">
-                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
-                    </div>
-                `;
-            }
-            
-            // Create code step if it doesn't exist
-            if (!codeStep) {
-                const modalContent = document.querySelector('#discountModal .modal-content');
-                if (modalContent) {
-                    const codeStepHTML = `
-                        <div class="discount-step" id="codeStep" style="display: none;">
-                            <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
-                            <p>${translations[currentLanguage].discountSuccessMessage}</p>
-                            
-                            <div class="discount-code-display">
-                                <div class="code-box">
-                                    <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
-                                    <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-                                        <span class="copy-text">${translations[currentLanguage].copyCode}</span>
-                                        <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="code-validity-info">
-                                <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
-                            </div>
-                            
-                            <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
-                                ${translations[currentLanguage].continueToCheckout}
-                            </button>
-                        </div>
-                    `;
-                    modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
-                }
-            }
-        },
 
-        // Add modal styles if needed
-        addDiscountModalStyles: function() {
-            if (document.getElementById('discountModalStyles')) return;
-            
-            const styles = document.createElement('style');
-            styles.id = 'discountModalStyles';
-            styles.textContent = `
-                /* Basic discount modal styles - include full styles from original */
-                .discount-modal {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(8px);
-                    z-index: 10000;
-                    animation: fadeIn 0.3s ease-out;
-                }
-                /* Add other modal styles as needed */
-            `;
-            document.head.appendChild(styles);
+            console.log('🔧 Checking modal steps:', { 
+                emailStep: !!emailStep, 
+                codeStep: !!codeStep 
+            });
+
+            // If email step doesn't exist, something is seriously wrong
+            if (!emailStep) {
+                console.error('❌ Email step missing from modal');
+                return;
+            }
+
+            // Ensure both steps are properly configured
+            emailStep.style.display = 'block';
+            if (codeStep) {
+                codeStep.style.display = 'none';
+            }
+
+            console.log('✅ Modal steps configured properly');
         },
 
         showDiscountModal: function() {
@@ -1593,93 +1452,83 @@
             
             const modal = document.getElementById('discountModal');
             if (!modal) {
-                console.warn('⚠️ Discount modal not found, creating fallback');
-                this.createDiscountModalFallback();
+                console.warn('⚠️ Discount modal not found');
                 return;
             }
+            
+            // FIXED: Reset modal to email step before showing
+            this.resetModalToEmailStep();
             
             // Show the modal
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
             AppState.ui.modalShown = true;
             
-            // Ensure email step is visible and code step is hidden
-            const emailStep = document.getElementById('emailStep');
-            const codeStep = document.getElementById('codeStep');
-            
-            if (emailStep) emailStep.style.display = 'block';
-            if (codeStep) codeStep.style.display = 'none';
-            
             console.log('✅ Discount modal shown successfully');
         },
 
-        // Switch to code step
+        // FIXED: Reset modal to email step (ensures clean state)
+        resetModalToEmailStep: function() {
+            console.log('🔄 Resetting modal to email step...');
+            
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            if (emailStep) {
+                emailStep.style.display = 'block';
+                emailStep.style.opacity = '1';
+                emailStep.style.visibility = 'visible';
+                emailStep.style.position = 'relative';
+                emailStep.style.zIndex = '1';
+                emailStep.style.textAlign = 'center';
+                console.log('✅ Email step reset and visible');
+            }
+            
+            if (codeStep) {
+                codeStep.style.display = 'none';
+                codeStep.style.opacity = '0';
+                codeStep.style.visibility = 'hidden';
+                codeStep.style.position = 'absolute';
+                codeStep.style.zIndex = '0';
+                codeStep.style.textAlign = 'center';
+                console.log('✅ Code step hidden');
+            }
+        },
+
+        // FIXED: Switch to code step with proper hiding/showing
         showDiscountCodeStep: function() {
             console.log('🔄 Switching to code step...');
             
             const emailStep = document.getElementById('emailStep');
             const codeStep = document.getElementById('codeStep');
             
-            console.log('📊 Step elements:', { 
+            console.log('📊 Step elements found:', { 
                 emailStep: !!emailStep, 
                 codeStep: !!codeStep 
             });
             
-            if (emailStep) {
-                emailStep.style.display = 'none';
-                console.log('✅ Email step hidden');
-            }
-            
-            if (codeStep) {
-                codeStep.style.display = 'block';
-                console.log('✅ Code step shown');
-            } else {
-                console.warn('⚠️ Code step not found, creating it...');
-                this.createCodeStep();
-            }
-        },
-
-        // Create code step dynamically if missing
-        createCodeStep: function() {
-            const modal = document.getElementById('discountModal');
-            const modalContent = modal ? modal.querySelector('.modal-content') : null;
-            
-            if (!modalContent) {
-                console.error('❌ Modal content not found');
+            if (!emailStep || !codeStep) {
+                console.error('❌ Modal steps not found');
                 return;
             }
+
+            // FIXED: Properly hide email step
+            emailStep.style.display = 'none';
+            emailStep.style.opacity = '0';
+            emailStep.style.visibility = 'hidden';
+            emailStep.style.position = 'absolute';
+            emailStep.style.zIndex = '0';
+            console.log('✅ Email step hidden completely');
             
-            const codeStepHTML = `
-                <div class="discount-step" id="codeStep" style="display: block;">
-                    <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
-                    <p>${translations[currentLanguage].discountSuccessMessage}</p>
-                    
-                    <div class="discount-code-display">
-                        <div class="code-box">
-                            <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
-                            <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-                                <span class="copy-text">${translations[currentLanguage].copyCode}</span>
-                                <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="code-validity-info">
-                        <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
-                    </div>
-                    
-                    <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
-                        ${translations[currentLanguage].continueToCheckout}
-                    </button>
-                </div>
-            `;
+            // FIXED: Properly show code step - now using simplified structure like email step
+            codeStep.style.display = 'block';
+            codeStep.style.opacity = '1';
+            codeStep.style.visibility = 'visible';
+            codeStep.style.position = 'relative';
+            codeStep.style.zIndex = '1';
+            codeStep.style.textAlign = 'center';
             
-            modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
-            
-            // Re-setup event listeners for new elements
-            this.setupDiscountModalListeners();
-            
-            console.log('✅ Code step created successfully');
+            console.log('✅ Code step shown with simplified structure');
         },
 
         // Submit discount email
@@ -1741,7 +1590,7 @@
             localStorage.setItem('emailConsent', 'true');
             console.log('📧 Email stored successfully');
             
-            // Show the discount code step
+            // FIXED: Show the discount code step using proper method
             this.showDiscountCodeStep();
         },
 
@@ -1829,11 +1678,15 @@
             if (modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
-                console.log('✅ Modal closed');
+                
+                // Reset modal state for next time
+                this.resetModalToEmailStep();
+                
+                console.log('✅ Modal closed and reset');
             }
         },
 
-        // Setup discount modal event listeners
+        // FIXED: Setup discount modal event listeners
         setupDiscountModalListeners: function() {
             console.log('🔧 Setting up discount modal listeners...');
             
@@ -2329,14 +2182,10 @@
     window.deleteOrder = (id) => MusicadoApp.deleteOrder(id);
     window.exportToRTF = () => MusicadoApp.exportToRTF();
     
-    // Export discount functions for global access
+    // FIXED: Export discount functions for global access with proper binding
     window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
     window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
-    
-    // Ensure the discount modal functions work with onclick handlers
-    window.MusicadoApp.submitDiscountEmail = MusicadoApp.submitDiscountEmail.bind(MusicadoApp);
-    window.MusicadoApp.copyDiscountCode = MusicadoApp.copyDiscountCode.bind(MusicadoApp);
-    window.MusicadoApp.closeDiscountModal = MusicadoApp.closeDiscountModal.bind(MusicadoApp);
+    window.closeDiscountModal = () => MusicadoApp.closeDiscountModal();
     
     // Legacy function for manual discount application (unchanged)
     window.applyDiscountCode = (code) => {

@@ -1,4 +1,4 @@
-<!-- Single Page Order Form with Cart Button -->
+<!-- COMPLETE templates/index.liquid - Fixed Dutch default and removed conflicts -->
 <!-- Language Detection Data -->
 <script>
 window.shopifyCustomerData = {
@@ -30,13 +30,13 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
         </svg>
         <span id="cartCount" class="cart-count">0</span>
       </div>
-      <span id="cartText" class="cart-text" data-translate="cartEmpty">Cart Empty</span>
+      <span id="cartText" class="cart-text" data-translate="cartEmpty">Winkelwagen Leeg</span>
     </a>
   </div>
 
   <!-- Language Switcher -->
   <div class="language-switcher">
-    <button class="lang-btn" data-lang="nl">Nederlands</button>
+    <button class="lang-btn active" data-lang="nl">Nederlands</button>
     <button class="lang-btn" data-lang="en">English</button>
   </div>
 </div>
@@ -436,84 +436,12 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
   </div>
 </div>
 
-<!-- Include Discount Modal -->
-{% render 'discount-modal' %}
-
-<!-- Enhanced Language Detection and Cart Integration for Index Page -->
+<!-- FIXED: Simplified cart integration without competing language detection -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Index page initializing with Dutch customer detection and cart integration...');
+  console.log('🚀 Index page initializing with consistent Dutch default...');
   
-  const LANGUAGE_KEY = 'musicado_language';
-  
-  // Enhanced Dutch customer detection
-  function detectCustomerLanguage() {
-    // Check saved preference first
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved) {
-      console.log('📱 Using saved language:', saved);
-      return saved;
-    }
-    
-    // Use Shopify customer data if available
-    if (window.shopifyCustomerData) {
-      const data = window.shopifyCustomerData;
-      
-      // Check customer's country
-      if (data.countryCode === 'NL' || data.lastOrderCountry === 'NL') {
-        console.log('🇳🇱 Dutch customer from Shopify data');
-        return 'nl';
-      }
-      
-      // Check request locale
-      if (data.requestLocale && data.requestLocale.startsWith('nl')) {
-        console.log('🇳🇱 Dutch locale from Shopify');
-        return 'nl';
-      }
-      
-      // Check browser language header
-      if (data.browserLanguageHeader && data.browserLanguageHeader.toLowerCase().includes('nl')) {
-        console.log('🇳🇱 Dutch language from headers');
-        return 'nl';
-      }
-    }
-    
-    // Enhanced browser language detection
-    const languages = navigator.languages || [navigator.language];
-    for (const lang of languages) {
-      const normalizedLang = lang.toLowerCase();
-      if (normalizedLang.startsWith('nl') || normalizedLang === 'nl-nl' || normalizedLang === 'nl-be') {
-        console.log('🇳🇱 Dutch browser language detected:', lang);
-        return 'nl';
-      }
-    }
-    
-    // Check timezone
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone === 'Europe/Amsterdam') {
-      console.log('🇳🇱 Dutch timezone detected');
-      return 'nl';
-    }
-    
-    // Check URL for Dutch indicators
-    const url = window.location.href.toLowerCase();
-    if (url.includes('/nl/') || url.includes('.nl/') || window.location.hostname.endsWith('.nl')) {
-      console.log('🇳🇱 Dutch URL detected');
-      return 'nl';
-    }
-    
-    // Default to English
-    console.log('🇳🇱 Defaulting to Dutch');
-    return 'nl';
-  }
-  
-  // Save language preference
-  function saveLanguage(lang) {
-    localStorage.setItem(LANGUAGE_KEY, lang);
-    console.log('💾 Language saved:', lang);
-  }
-  
-  // Cart functionality
+  // Cart functionality only - no competing language detection
   function updateCartButton() {
     console.log('🛒 Updating cart button...');
     
@@ -525,13 +453,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const cartText = document.getElementById('cartText');
         const cartButton = document.getElementById('cartButton');
         
+        // Get current language from MusicadoApp
+        const currentLang = (typeof MusicadoApp !== 'undefined' && MusicadoApp.currentLanguage) ? 
+                           MusicadoApp.currentLanguage : 
+                           localStorage.getItem('musicado_language') || 'nl';
+        
         if (cart.item_count > 0) {
           if (cartCount) {
             cartCount.textContent = cart.item_count;
             cartCount.style.display = 'block';
           }
           if (cartText) {
-            const currentLang = localStorage.getItem(LANGUAGE_KEY) || 'en';
             const itemText = currentLang === 'nl' ? 
               `${cart.item_count} items in winkelwagen` : 
               `${cart.item_count} items in cart`;
@@ -545,7 +477,6 @@ document.addEventListener('DOMContentLoaded', function() {
             cartCount.style.display = 'none';
           }
           if (cartText) {
-            const currentLang = localStorage.getItem(LANGUAGE_KEY) || 'en';
             cartText.textContent = currentLang === 'nl' ? 'Winkelwagen Leeg' : 'Cart Empty';
           }
           if (cartButton) {
@@ -560,101 +491,71 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
   
-  // Apply language to UI
-  function applyLanguage(lang) {
-    // Update language buttons
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.lang === lang);
-    });
-    
-    // Update cart button text
-    updateCartButton();
-    
-    // Update MusicadoApp if available
-    if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
-      console.log('🔧 Setting MusicadoApp language to:', lang);
-      MusicadoApp.setLanguage(lang);
-    }
-    
-    // Apply translations if function exists
-    if (typeof applyTranslations === 'function') {
-      applyTranslations(lang);
-    }
-    
-    console.log('✅ Language applied to index page:', lang);
-  }
-  
-  // Setup language switcher event listeners
-  function setupLanguageSwitcher() {
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const selectedLang = e.target.dataset.lang;
-        console.log('🔄 Index page - Language switched to:', selectedLang);
-        
-        // Update UI
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        
-        // Save preference
-        saveLanguage(selectedLang);
-        
-        // Apply language
-        applyLanguage(selectedLang);
-      });
-    });
-  }
-  
   // Setup cart button click analytics
   function setupCartButton() {
     const cartButton = document.getElementById('cartButton');
     if (cartButton) {
       cartButton.addEventListener('click', function(e) {
         console.log('🛒 Cart button clicked');
-        // Analytics can be added here if needed
       });
     }
   }
   
-  // Wait for MusicadoApp to be available
-  function waitForMusicadoApp() {
+  // Setup language switcher to work with MusicadoApp
+  function setupLanguageSwitcher() {
+    document.querySelectorAll('.language-switcher .lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const selectedLang = e.target.dataset.lang;
+        console.log('🔄 Index page - Language switched to:', selectedLang);
+        
+        // Let MusicadoApp handle the language change
+        if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
+          // Update button states
+          document.querySelectorAll('.language-switcher .lang-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          
+          // Let MusicadoApp handle language setting and persistence
+          MusicadoApp.setLanguage(selectedLang);
+          
+          // Update cart button with new language
+          setTimeout(updateCartButton, 100);
+        }
+      });
+    });
+  }
+  
+  // Initialize when MusicadoApp is ready
+  function initialize() {
     if (typeof MusicadoApp !== 'undefined') {
-      console.log('✅ MusicadoApp available on index page');
-      initializeLanguageDetection();
+      console.log('✅ MusicadoApp available, initializing index page features...');
+      
+      // Get current language from MusicadoApp (will be Dutch by default)
+      const currentLang = MusicadoApp.currentLanguage || 'nl';
+      
+      // Update language button states to match MusicadoApp
+      document.querySelectorAll('.language-switcher .lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === currentLang);
+      });
+      
+      // Setup features
+      setupLanguageSwitcher();
+      setupCartButton();
+      updateCartButton();
+      
+      // Update cart button periodically
+      setInterval(updateCartButton, 5000);
+      
+      console.log('🎉 Index page initialization complete with language:', currentLang);
     } else {
-      console.log('⏳ Waiting for MusicadoApp on index page...');
-      setTimeout(waitForMusicadoApp, 50);
+      // Wait for MusicadoApp
+      setTimeout(initialize, 100);
     }
   }
   
-  // Initialize language detection
-  function initializeLanguageDetection() {
-    const detectedLanguage = detectCustomerLanguage();
-    
-    // Save the detected language
-    saveLanguage(detectedLanguage);
-    
-    // Apply the language
-    applyLanguage(detectedLanguage);
-    
-    // Setup language switcher
-    setupLanguageSwitcher();
-    
-    // Setup cart button
-    setupCartButton();
-    
-    // Update cart button immediately
-    updateCartButton();
-    
-    // Update cart button periodically to catch changes
-    setInterval(updateCartButton, 5000);
-    
-    console.log('🎉 Index page language detection and cart integration complete:', detectedLanguage);
-  }
+  // Start initialization
+  initialize();
   
-  // Start the process
-  waitForMusicadoApp();
-  
-  // Make updateCartButton available globally for use by other scripts
+  // Make updateCartButton available globally
   window.updateCartButton = updateCartButton;
 });
 </script>

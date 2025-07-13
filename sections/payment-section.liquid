@@ -1,5 +1,5 @@
 {% comment %}
-  Payment Section for Cart Page - Complete Implementation
+  Payment Section for Cart Page - Updated for Manual Discount Entry Only
   Save this as: sections/payment-section.liquid
 {% endcomment %}
 
@@ -45,7 +45,7 @@
     </form>
   </div>
 
-  <!-- Discount Code Section -->
+  <!-- Discount Code Section - Manual Entry Only -->
   {% if section.settings.show_discount_section %}
     <div class="discount-card">
       <h3>{{ section.settings.discount_title | default: 'Discount Code' }}</h3>
@@ -54,7 +54,8 @@
           type="text" 
           id="discountCodeInput" 
           name="discountCode" 
-          placeholder="{{ section.settings.discount_placeholder | default: 'Enter discount code (optional)' }}"
+          placeholder="{{ section.settings.discount_placeholder | default: 'Enter discount code (e.g. 15%MUSIC)' }}"
+          style="text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;"
         >
         <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn">
           {{ section.settings.apply_button_text | default: 'Apply' }}
@@ -64,7 +65,7 @@
       
       {% if section.settings.show_discount_help %}
         <div class="discount-help">
-          <p>{{ section.settings.discount_help_text | default: 'Have a discount code? Enter it above to save on your order!' }}</p>
+          <p>{{ section.settings.discount_help_text | default: '💡 Have a discount code from our popup? Paste it here to save on your order!' }}</p>
         </div>
       {% endif %}
     </div>
@@ -134,7 +135,7 @@
   </div>
 </div>
 
-<!-- Enhanced JavaScript for Payment Processing -->
+<!-- Enhanced JavaScript for Payment Processing - Manual Discount Only -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Payment processing state management
@@ -419,7 +420,7 @@ Order Date: ${new Date().toLocaleString()}`;
     }, 3000);
   }
 
-  // Apply discount code
+  // Apply discount code - Manual entry only
   function applyDiscountCode() {
     const codeInput = document.getElementById('discountCodeInput');
     const messageDiv = document.getElementById('discountMessage');
@@ -442,28 +443,16 @@ Order Date: ${new Date().toLocaleString()}`;
     applyBtn.disabled = true;
     applyBtn.textContent = 'Applying...';
     
-    // Simulate discount application (replace with actual logic)
-    setTimeout(() => {
-      if (code === '15%MUSIC' || code === 'WELCOME15' || code === 'SAVE15') {
-        // Success
-        showDiscountMessage('success', 'Discount code applied successfully! 15% off your order.');
-        codeInput.disabled = true;
-        applyBtn.textContent = 'Applied ✓';
-        applyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        applyBtn.style.color = 'white';
-        
-        // Trigger cart refresh to show discount
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-        
-      } else {
-        // Error
-        showDiscountMessage('error', 'Invalid discount code. Please check and try again.');
-        applyBtn.disabled = false;
-        applyBtn.textContent = '{{ section.settings.apply_button_text | default: "Apply" }}';
-      }
-    }, 1000);
+    // Apply discount through Shopify's discount URL redirect
+    if (code === '15%MUSIC' || code === 'WELCOME15' || code === 'SAVE15') {
+      // Redirect to cart with discount code applied
+      window.location.href = `/discount/${code}?redirect=/cart`;
+    } else {
+      // Error for invalid codes
+      showDiscountMessage('error', 'Invalid discount code. Please check and try again.');
+      applyBtn.disabled = false;
+      applyBtn.textContent = '{{ section.settings.apply_button_text | default: "Apply" }}';
+    }
   }
 
   // Show discount message
@@ -702,6 +691,8 @@ Order Date: ${new Date().toLocaleString()}`;
 .discount-input-container input {
   flex: 1;
   text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .discount-apply-btn {
@@ -763,9 +754,9 @@ Order Date: ${new Date().toLocaleString()}`;
 .discount-help {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(251, 191, 36, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.1);
 }
 
 .discount-help p {
@@ -1179,7 +1170,7 @@ Order Date: ${new Date().toLocaleString()}`;
       "type": "text",
       "id": "discount_placeholder",
       "label": "Discount Placeholder",
-      "default": "Enter discount code (optional)",
+      "default": "Enter discount code (e.g. 15%MUSIC)",
       "info": "Placeholder for discount input"
     },
     {
@@ -1193,14 +1184,14 @@ Order Date: ${new Date().toLocaleString()}`;
       "type": "checkbox",
       "id": "show_discount_help",
       "label": "Show Discount Help",
-      "default": false,
+      "default": true,
       "info": "Show discount help text"
     },
     {
       "type": "text",
       "id": "discount_help_text",
       "label": "Discount Help Text",
-      "default": "Have a discount code? Enter it above to save on your order!",
+      "default": "💡 Have a discount code from our popup? Paste it here to save on your order!",
       "info": "Help text for discount section"
     },
     {

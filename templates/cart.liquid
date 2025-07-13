@@ -1,5 +1,5 @@
 {% comment %}
-  COMPLETE templates/cart.liquid - Fixed syntax error and consistent Dutch default
+  UPDATED templates/cart.liquid - Consistent with fixed modal and Dutch default
   Save this as: templates/cart.liquid
 {% endcomment %}
 
@@ -251,7 +251,7 @@ window.shopifyCustomerData = {
 <!-- Include the main Musicado script -->
 <script src="{{ 'musicado.js' | asset_url }}" defer></script>
 
-<!-- FIXED cart JavaScript with consistent Dutch default -->
+<!-- CONSISTENT: Cart JavaScript with Dutch default -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Cart page initializing...');
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const LANGUAGE_KEY = 'musicado_language';
   const FORM_DATA_KEY = 'musicado_cart_form_data';
   
-  // FIXED: Get saved language with consistent Dutch default
+  // CONSISTENT: Get saved language with Dutch default
   function getSavedLanguage() {
     const saved = localStorage.getItem(LANGUAGE_KEY);
     if (saved && (saved === 'nl' || saved === 'en')) {
@@ -592,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // FIXED: Apply discount code using proper Shopify method
+  // Apply discount code using proper Shopify method
   function applyDiscountCode() {
     const codeInput = document.getElementById('discountCodeInput');
     const applyBtn = document.getElementById('applyDiscountBtn');
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // FIXED: Checkout process
+  // Checkout process
   function processCheckout() {
     if (!validateCustomerDetails()) {
       return false;

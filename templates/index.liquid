@@ -1,4 +1,4 @@
-<!-- UPDATED templates/index.liquid - Fixed Dutch default and modal integration -->
+<!-- UPDATED templates/index.liquid - Full Album Option Hidden -->
 <!-- Language Detection Data -->
 <script>
 window.shopifyCustomerData = {
@@ -117,7 +117,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
                 <li data-translate="lovingMessage">A loving message</li>
                 <li data-translate="professionalQuality">Professional quality</li>
               </ul>
-              <div class="total-ours" data-translate="ourTotal">Starting at just €49 (Full Albums: Custom pricing)</div>
+              <div class="total-ours" data-translate="ourTotal">Starting at just €49</div>
             </div>
           </div>
           
@@ -176,7 +176,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
       </div>
 
       <form id="selectionForm">
-        <!-- Package Selection - Fixed with hardcoded packages -->
+        <!-- Package Selection - Full Album Option Hidden -->
         <div class="form-group">
           <label data-translate="selectPackage">Select your package:</label>
           <div class="radio-group">
@@ -194,6 +194,8 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
                 <span class="price">€99</span>
               </label>
             </div>
+            <!-- TEMPORARILY HIDDEN: Full Album Option - Keep for future use -->
+            <!--
             <div class="radio-option">
               <input type="radio" name="package" value="contact" id="pkgContact" data-price="contact">
               <label for="pkgContact">
@@ -201,6 +203,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
                 <span data-translate="contactForPricing">Contact us for custom pricing</span>
               </label>
             </div>
+            -->
           </div>
           <div class="package-disclaimer">
             <p data-translate="usageDisclaimer">All songs created can be used for personal use only, for commercial use, please contact us. We can publish your song on Spotify on your demand.</p>
@@ -238,7 +241,6 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
                 <option value="ELECTRONIC">Electronic</option>
                 <option value="LATIN">LATIN</option>
                 <option value="CLASSICAL">CLASSICAL</option>
-                <option value="COUNTRY">COUNTRY</option>
                 <option value="JAZZ_BLUES">JAZZ/BLUES</option>
                 <option value="METAL">METAL</option>
                 <option value="REGGAE">REGGAE</option>
@@ -436,7 +438,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
   </div>
 </div>
 
-<!-- FIXED: Include the discount modal snippet -->
+<!-- KEPT: Include the discount modal snippet (full album modal functionality preserved) -->
 {% render 'discount-modal' %}
 
 <!-- Include the main Musicado script -->

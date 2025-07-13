@@ -1,5 +1,5 @@
 {% comment %}
-  Multilingual Discount Modal - Supports Dutch & English
+  FIXED Multilingual Discount Modal - Proper Step Switching
   Save this as: snippets/discount-modal.liquid
 {% endcomment %}
 
@@ -40,23 +40,24 @@
         <h2 data-translate="discountSuccessTitle">🎉 Your Discount Code!</h2>
         <p data-translate="discountSuccessMessage">Here's your 15% discount code. Copy it and use it at checkout:</p>
         
-        <div class="discount-code-display">
-          <div class="code-box">
-            <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
-            <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-              <span class="copy-text" data-translate="copyCode">Copy Code</span>
-              <span class="copied-text" data-translate="codeCopied" style="display: none;">Code Copied!</span>
-            </button>
+        <div class="code-form">
+          <div class="code-display-box">
+            <div class="code-text">MUSIC15</div>
           </div>
+          
+          <button type="button" id="copyDiscountCode" class="btn code-copy-btn">
+            <span class="copy-text" data-translate="copyCode">Copy Code</span>
+            <span class="copied-text" data-translate="codeCopied" style="display: none;">Code Copied!</span>
+          </button>
+          
+          <div class="code-info">
+            <small data-translate="discountValidityInfo">This code is valid for 30 days. Save it for your order!</small>
+          </div>
+          
+          <button type="button" class="btn continue-shopping-btn" id="continueShoppingBtn">
+            <span data-translate="continueToCheckout">Close & Continue Shopping</span>
+          </button>
         </div>
-        
-        <div class="code-validity-info">
-          <p><small data-translate="discountValidityInfo">This code is valid for 30 days. Save it for your order!</small></p>
-        </div>
-        
-        <button type="button" class="btn continue-shopping-btn" onclick="closeDiscountModal()">
-          <span data-translate="continueToCheckout">Close & Continue Shopping</span>
-        </button>
       </div>
     </div>
   </div>
@@ -101,271 +102,68 @@
   </div>
 </div>
 
+<!-- SIMPLIFIED: Modal initialization script that works with main app -->
 <script>
-// Enhanced modal functions with proper translations
-function closeDiscountModal() {
-  const modal = document.getElementById('discountModal');
-  if (modal) {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }
-}
-
-function showCodeStep() {
-  const emailStep = document.getElementById('emailStep');
-  const codeStep = document.getElementById('codeStep');
-  
-  console.log('Switching to code step...', { emailStep: !!emailStep, codeStep: !!codeStep });
-  
-  if (emailStep) emailStep.style.display = 'none';
-  if (codeStep) codeStep.style.display = 'block';
-}
-
-function copyDiscountCode() {
-  const codeText = 'MUSIC15';
-  const copyBtn = document.getElementById('copyDiscountCode');
-  const copyTextSpan = copyBtn ? copyBtn.querySelector('.copy-text') : null;
-  const copiedTextSpan = copyBtn ? copyBtn.querySelector('.copied-text') : null;
-  
-  console.log('Copying code:', codeText);
-  
-  // Try modern clipboard API first
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(codeText).then(() => {
-      console.log('✅ Code copied successfully');
-      showCopySuccess();
-    }).catch((err) => {
-      console.log('❌ Modern copy failed, trying fallback');
-      fallbackCopy(codeText);
-    });
-  } else {
-    console.log('📋 Using fallback copy method');
-    fallbackCopy(codeText);
-  }
-  
-  function showCopySuccess() {
-    // Show success state
-    if (copyTextSpan) copyTextSpan.style.display = 'none';
-    if (copiedTextSpan) copiedTextSpan.style.display = 'inline';
-    if (copyBtn) {
-      copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-      copyBtn.style.color = 'white';
-    }
-    
-    // Show notification
-    showCopyNotification();
-    
-    // Reset button after 3 seconds
-    setTimeout(() => {
-      if (copyTextSpan) copyTextSpan.style.display = 'inline';
-      if (copiedTextSpan) copiedTextSpan.style.display = 'none';
-      if (copyBtn) {
-        copyBtn.style.background = '';
-        copyBtn.style.color = '';
-      }
-    }, 3000);
-  }
-  
-  function fallbackCopy(text) {
-    try {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.top = '-9999px';
-      textArea.style.left = '-9999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        console.log('✅ Fallback copy successful');
-        showCopySuccess();
-      } else {
-        console.log('❌ Fallback copy failed');
-        alert('Copy the code: ' + text);
-      }
-    } catch (err) {
-      console.log('❌ All copy methods failed:', err);
-      alert('Copy this code: ' + text);
-    }
-  }
-}
-
-function showCopyNotification() {
-  // Get current language for notification text
-  const currentLang = navigator.language.startsWith('nl') ? 'nl' : 'en';
-  const notificationText = currentLang === 'nl' ? 
-    'Code gekopieerd naar klembord!' : 
-    'Code copied to clipboard!';
-    
-  const notification = document.createElement('div');
-  notification.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
-      <span>📋</span>
-      <span>${notificationText}</span>
-    </div>
-  `;
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-    z-index: 10001;
-    font-weight: 600;
-    animation: slideInRight 0.3s ease-out;
-    max-width: 300px;
-    text-align: center;
-    line-height: 1.4;
-  `;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    if (notification.parentNode) {
-      notification.parentNode.removeChild(notification);
-    }
-  }, 3000);
-}
-
-// Initialize modal functionality when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('✅ Multilingual discount modal initialized');
+  console.log('✅ Discount modal DOM initialized');
   
-  // Detect current language
-  const currentLang = navigator.language.startsWith('nl') ? 'nl' : 'en';
-  console.log('🌍 Detected language:', currentLang);
-  
-  // Apply translations to modal elements
-  function applyModalTranslations() {
-    if (typeof window.MusicadoApp !== 'undefined' && window.MusicadoApp.setLanguage) {
-      window.MusicadoApp.setLanguage(currentLang);
+  // Wait for MusicadoApp to be available
+  function waitForMusicadoApp() {
+    if (typeof window.MusicadoApp !== 'undefined') {
+      console.log('🎯 MusicadoApp found, setting up modal integration');
+      setupModalIntegration();
+    } else {
+      setTimeout(waitForMusicadoApp, 100);
     }
   }
   
-  // Apply translations after a short delay to ensure MusicadoApp is loaded
-  setTimeout(applyModalTranslations, 100);
-  
-  // Verify both steps exist
-  const emailStep = document.getElementById('emailStep');
-  const codeStep = document.getElementById('codeStep');
-  console.log('📊 Modal steps check:', { 
-    emailStep: !!emailStep, 
-    codeStep: !!codeStep 
-  });
-  
-  // Close button functionality
-  const closeBtn = document.querySelector('.discount-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeDiscountModal);
-  }
-  
-  // Email submit button - REQUIRED EMAIL & CONSENT
-  const submitEmailBtn = document.getElementById('submitDiscountEmail');
-  if (submitEmailBtn) {
-    submitEmailBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      console.log('📧 Email submit clicked');
-      
-      const emailInput = document.getElementById('discountEmail');
-      const consentCheckbox = document.getElementById('emailConsent');
-      const email = emailInput ? emailInput.value.trim() : '';
-      const hasConsent = consentCheckbox ? consentCheckbox.checked : false;
-      
-      // Get error messages in current language
-      const errorMessages = {
-        en: {
-          emailRequired: 'Please enter your email address to receive your discount code.',
-          emailInvalid: 'Please enter a valid email address.',
-          consentRequired: 'You must agree to receive emails to get your discount code.'
-        },
-        nl: {
-          emailRequired: 'Voer uw e-mailadres in om uw kortingscode te ontvangen.',
-          emailInvalid: 'Voer een geldig e-mailadres in.',
-          consentRequired: 'U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.'
+  function setupModalIntegration() {
+    // FIXED: Use MusicadoApp functions directly for consistency
+    
+    // Continue shopping button - use MusicadoApp function
+    const continueBtn = document.getElementById('continueShoppingBtn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.MusicadoApp && window.MusicadoApp.closeDiscountModal) {
+          window.MusicadoApp.closeDiscountModal();
         }
-      };
-      
-      const messages = errorMessages[currentLang] || errorMessages.en;
-      
-      // Reset error states
-      if (emailInput) emailInput.style.borderColor = '';
-      const consentSection = document.getElementById('emailConsentCheckbox');
-      if (consentSection) consentSection.classList.remove('error');
-      
-      // REQUIRE EMAIL
-      if (!email) {
-        if (emailInput) {
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.focus();
-        }
-        alert(messages.emailRequired);
-        return;
-      }
-      
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        if (emailInput) {
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.focus();
-        }
-        alert(messages.emailInvalid);
-        return;
-      }
-      
-      // REQUIRE CONSENT
-      if (!hasConsent) {
-        if (consentSection) consentSection.classList.add('error');
-        alert(messages.consentRequired);
-        return;
-      }
-      
-      // Store email and consent
-      localStorage.setItem('discountEmail', email);
-      localStorage.setItem('emailConsent', 'true');
-      console.log('📧 Email stored:', email);
-      
-      // Show code step
-      showCodeStep();
-    });
-  }
-  
-  // Copy code button
-  const copyBtn = document.getElementById('copyDiscountCode');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      console.log('📋 Copy code clicked');
-      copyDiscountCode();
-    });
-  }
-  
-  // Click outside to close
-  const modal = document.getElementById('discountModal');
-  if (modal) {
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeDiscountModal();
-      }
-    });
-  }
-  
-  // ESC key to close
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && modal && modal.style.display === 'block') {
-      closeDiscountModal();
+      });
     }
-  });
+    
+    // Verify modal steps exist and log their state
+    const emailStep = document.getElementById('emailStep');
+    const codeStep = document.getElementById('codeStep');
+    
+    console.log('📊 Modal integration check:', {
+      emailStep: !!emailStep,
+      codeStep: !!codeStep,
+      emailStepVisible: emailStep ? emailStep.style.display !== 'none' : false,
+      codeStepVisible: codeStep ? codeStep.style.display !== 'none' : false
+    });
+    
+    // FIXED: Ensure proper initial state
+    if (emailStep) {
+      emailStep.style.display = 'block';
+      emailStep.style.position = 'relative';
+      emailStep.style.zIndex = '1';
+    }
+    
+    if (codeStep) {
+      codeStep.style.display = 'none';
+      codeStep.style.position = 'absolute';
+      codeStep.style.zIndex = '0';
+    }
+    
+    console.log('✅ Modal integration complete - relying on MusicadoApp for functionality');
+  }
+  
+  waitForMusicadoApp();
 });
 </script>
 
 <style>
-/* Discount Modal Styles - Same as before but enhanced for translations */
+/* FIXED: Discount Modal Styles with proper step management */
 .discount-modal {
   position: fixed;
   top: 0;
@@ -406,6 +204,44 @@ document.addEventListener('DOMContentLoaded', function() {
   animation: slideInUp 0.4s ease-out;
 }
 
+/* FIXED: Step management to prevent overlapping */
+.discount-step {
+  width: 100%;
+  transition: all 0.3s ease;
+  text-align: center !important;
+}
+
+.discount-step#emailStep {
+  position: relative;
+  z-index: 1;
+}
+
+.discount-step#codeStep {
+  position: absolute;
+  top: 2.5rem;
+  left: 2.5rem;
+  right: 2.5rem;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+  text-align: center !important;
+}
+
+.discount-step#codeStep[style*="display: block"] {
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  text-align: center !important;
+}
+
+.discount-step#emailStep[style*="display: none"] {
+  position: absolute;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
 .discount-close {
   position: absolute;
   top: 1rem;
@@ -414,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
   color: #94a3b8;
   cursor: pointer;
   transition: all 0.3s ease;
-  z-index: 1;
+  z-index: 2;
   width: 40px;
   height: 40px;
   display: flex;
@@ -437,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
   margin-bottom: 1rem;
   font-size: 1.75rem;
   font-weight: 700;
-  text-align: center;
+  text-align: center !important;
   text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
 }
 
@@ -446,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
   margin-bottom: 2rem;
   font-size: 1.1rem;
   line-height: 1.6;
-  text-align: center;
+  text-align: center !important;
 }
 
 /* Email Form Styles */
@@ -520,71 +356,55 @@ document.addEventListener('DOMContentLoaded', function() {
   color: #ef4444;
 }
 
-/* Discount Code Display */
-.discount-code-display {
-  margin: 2rem 0;
-  text-align: center;
-}
-
-.code-box {
-  background: rgba(15, 23, 42, 0.8);
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+/* Code Form Styles - Mirroring Email Form */
+.code-form {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  backdrop-filter: blur(10px);
-  box-shadow: 
-    0 8px 25px rgba(59, 130, 246, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.discount-code-text {
+.code-display-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.code-text {
   font-family: 'Courier New', monospace;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #fbbf24;
   text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
-  letter-spacing: 2px;
-  flex: 1;
-  text-align: left;
+  letter-spacing: 3px;
 }
 
-.copy-code-btn {
+.code-copy-btn {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: #1e293b;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 20px;
+  width: 100%;
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+  font-size: 1.1rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  min-width: 120px;
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
 }
 
-.copy-code-btn:hover {
+.code-copy-btn:hover {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+  box-shadow: 0 15px 35px rgba(251, 191, 36, 0.4);
 }
 
-.code-validity-info {
+.code-info {
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 12px;
   padding: 1rem;
-  margin: 1.5rem 0;
   text-align: center;
 }
 
-.code-validity-info p {
-  margin: 0;
+.code-info small {
   color: #94a3b8;
   font-style: italic;
 }
@@ -787,6 +607,12 @@ document.addEventListener('DOMContentLoaded', function() {
     max-height: 95vh;
   }
   
+  .discount-step#codeStep {
+    left: 1.5rem;
+    right: 1.5rem;
+    top: 2rem;
+  }
+  
   .discount-step h2 {
     font-size: 1.5rem;
   }
@@ -795,20 +621,9 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 1rem;
   }
   
-  .code-box {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .discount-code-text {
-    font-size: 1.25rem;
-    text-align: center;
-  }
-  
-  .copy-code-btn {
-    width: 100%;
-    min-width: unset;
+  .code-text {
+    font-size: 1.5rem;
+    letter-spacing: 2px;
   }
 }
 
@@ -819,12 +634,18 @@ document.addEventListener('DOMContentLoaded', function() {
     border-radius: 16px;
   }
   
+  .discount-step#codeStep {
+    left: 1rem;
+    right: 1rem;
+    top: 1.5rem;
+  }
+  
   .discount-step h2 {
     font-size: 1.25rem;
   }
   
-  .discount-code-text {
-    font-size: 1.1rem;
+  .code-text {
+    font-size: 1.3rem;
     letter-spacing: 1px;
   }
   

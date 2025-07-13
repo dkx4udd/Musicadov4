@@ -1,4 +1,4 @@
-<!-- COMPLETE templates/index.liquid - Fixed Dutch default and removed conflicts -->
+<!-- UPDATED templates/index.liquid - Fixed Dutch default and modal integration -->
 <!-- Language Detection Data -->
 <script>
 window.shopifyCustomerData = {
@@ -436,7 +436,13 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
   </div>
 </div>
 
-<!-- FIXED: Simplified cart integration without competing language detection -->
+<!-- FIXED: Include the discount modal snippet -->
+{% render 'discount-modal' %}
+
+<!-- Include the main Musicado script -->
+<script src="{{ 'musicado.js' | asset_url }}" defer></script>
+
+<!-- FIXED: Simplified cart integration script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Index page initializing with consistent Dutch default...');

@@ -1,5 +1,5 @@
 {% comment %}
-  Fixed Multilingual Cart Template - Working Discount Codes & Checkout
+  COMPLETE templates/cart.liquid - Fixed syntax error and consistent Dutch default
   Save this as: templates/cart.liquid
 {% endcomment %}
 
@@ -251,44 +251,31 @@ window.shopifyCustomerData = {
 <!-- Include the main Musicado script -->
 <script src="{{ 'musicado.js' | asset_url }}" defer></script>
 
-<!-- FIXED cart JavaScript with working discount codes and checkout -->
+<!-- FIXED cart JavaScript with consistent Dutch default -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Cart page initializing...');
   
-  // Language management
+  // Language management - CONSISTENT Dutch default
   const LANGUAGE_KEY = 'musicado_language';
   const FORM_DATA_KEY = 'musicado_cart_form_data';
   
-  // Get saved language
+  // FIXED: Get saved language with consistent Dutch default
   function getSavedLanguage() {
     const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved) {
-      console.log('📱 Found saved language:', saved);
+    if (saved && (saved === 'nl' || saved === 'en')) {
+      console.log('📱 Found valid saved language:', saved);
       return saved;
     }
     
-    // Enhanced Dutch detection
-    function isDutchCustomer() {
-      // Browser language check
-      const languages = navigator.languages || [navigator.language];
-      for (const lang of languages) {
-        if (lang.toLowerCase().startsWith('nl')) {
-          console.log('🇳🇱 Dutch language detected:', lang);
-          return true;
-        }
-      }
-      
-      // Timezone check
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (timezone === 'Europe/Amsterdam') {
-        console.log('🇳🇱 Dutch timezone detected');
-        return true;
-      }
-      
-      return false;
+    // Clear any invalid saved preference
+    if (saved && saved !== 'nl' && saved !== 'en') {
+      console.log('⚠️ Invalid saved language, clearing:', saved);
+      localStorage.removeItem(LANGUAGE_KEY);
     }
     
+    // CONSISTENT: Always default to Dutch for new visitors
+    console.log('🇳🇱 No valid saved preference, defaulting to Dutch');
     return 'nl';
   }
   

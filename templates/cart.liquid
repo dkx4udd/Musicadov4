@@ -1,5 +1,5 @@
 {% comment %}
-  Enhanced Cart Template with Order Summary and Customer Details
+  Complete Cart Template with Auto-Discount Integration
   Save this as: templates/cart.liquid
 {% endcomment %}
 
@@ -58,7 +58,9 @@
                 
                 <!-- Remove item link -->
                 <div class="item-actions">
-                  <a href="{{ item.url_to_remove }}" class="remove-item">Remove Item</a>
+                  <a href="{{ item.url_to_remove }}" class="remove-item">
+                    Remove Item
+                  </a>
                 </div>
               </div>
             {% endfor %}
@@ -67,7 +69,7 @@
             <div class="cart-totals">
               <div class="subtotal-row">
                 <span>Subtotal:</span>
-                <span>{{ cart.total_price | money }}</span>
+                <span>{{ cart.items_subtotal_price | money }}</span>
               </div>
               
               {% if cart.total_discount > 0 %}
@@ -81,6 +83,10 @@
                 <span>Total:</span>
                 <span>{{ cart.total_price | money }}</span>
               </div>
+              
+              <div class="tax-note">
+                <small>Taxes and shipping calculated at checkout</small>
+              </div>
             </div>
           </div>
         </div>
@@ -89,7 +95,7 @@
         <div class="checkout-section">
           <!-- Customer Details Form -->
           <div class="card">
-            <h3>Customer Details</h3>
+            <h3>Customer Information</h3>
             <form id="customerDetailsForm">
               <div class="form-row">
                 <div class="form-group">
@@ -112,7 +118,7 @@
                   <input type="email" id="customerEmail" name="customerEmail" required>
                 </div>
                 <div class="form-group">
-                  <label for="mobilePhone">Mobile Phone *</label>
+                  <label for="mobilePhone">Phone Number *</label>
                   <input type="tel" id="mobilePhone" name="mobilePhone" required placeholder="+31 6 12345678">
                 </div>
               </div>
@@ -127,15 +133,25 @@
           </div>
 
           <!-- Discount Code Section -->
-          <div class="card" id="discountCard">
+          <div class="card discount-card" id="discountCard">
             <h3>Discount Code</h3>
             <div class="discount-input-container">
-              <input type="text" id="discountCodeInput" name="discountCode" placeholder="Enter discount code (optional)">
+              <input 
+                type="text" 
+                id="discountCodeInput" 
+                name="discountCode" 
+                placeholder="Enter discount code (optional)"
+                style="text-transform: uppercase;"
+              >
               <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn">
                 Apply
               </button>
             </div>
             <div id="discountMessage" class="discount-message" style="display: none;"></div>
+            
+            <div class="discount-help">
+              <p>Have a discount code? Enter it above to save on your order!</p>
+            </div>
           </div>
 
           <!-- Terms and Conditions -->
@@ -145,6 +161,11 @@
                 <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
                 <label for="agreeTerms">
                   I agree with the terms and conditions and privacy policy
+                  {% if settings.privacy_policy_url != blank %}
+                    - <a href="{{ settings.privacy_policy_url }}" target="_blank" class="privacy-link">
+                      Read our privacy policy
+                    </a>
+                  {% endif %}
                 </label>
               </div>
             </div>
@@ -152,13 +173,18 @@
 
           <!-- Important Information -->
           <div class="card">
-            <div class="disclaimer-box">
+            <div class="info-box">
               <h4>Important Information</h4>
-              <ul>
+              <ul class="info-list">
                 <li>You will receive an email link to download your music within 24 hours</li>
                 <li>Songs are for personal use only (contact us for commercial use)</li>
                 <li>We can publish your song on Spotify upon request</li>
-                <li>Any questions? Contact us at: <a href="mailto:contact@{{ shop.domain }}" class="contact-link">contact@{{ shop.domain }}</a></li>
+                <li>
+                  Any questions? Contact us at: 
+                  <a href="mailto:{{ settings.contact_email | default: 'contact@' | append: shop.domain }}" class="contact-link">
+                    {{ settings.contact_email | default: 'contact@' | append: shop.domain }}
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
@@ -173,13 +199,14 @@
               </span>
             </button>
             
-            <a href="/" class="btn continue-shopping">
+            <a href="{{ routes.root_url }}" class="btn continue-shopping">
               Continue Shopping
             </a>
           </div>
 
           <!-- Payment Error Display -->
           <div id="paymentError" class="payment-error" style="display: none;">
+            <div class="error-icon">⚠️</div>
             <p class="error-message"></p>
             <button type="button" id="retryPaymentBtn" class="btn btn-secondary">
               Try Again
@@ -190,17 +217,20 @@
       
     {% else %}
       <div class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
         <h2>Your cart is empty</h2>
         <p>You haven't added any items to your cart yet.</p>
-        <a href="/" class="btn">Start Shopping</a>
+        <a href="{{ routes.root_url }}" class="btn">Start Shopping</a>
       </div>
     {% endif %}
   </div>
 </div>
 
-<!-- Enhanced cart JavaScript with customer details and payment -->
+<!-- Enhanced cart JavaScript with auto-discount functionality -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('Cart page initialized');
+  
   // Enhanced cart functionality with customer details and payment
   
   // Payment processing state
@@ -266,29 +296,34 @@ document.addEventListener('DOMContentLoaded', function() {
       const field = document.getElementById(fieldName);
       if (!field || !field.value.trim()) {
         isValid = false;
-        const label = field ? field.previousElementSibling.textContent : fieldName;
+        const label = field ? field.previousElementSibling.textContent.replace(' *', '') : fieldName;
         missingFields.push(label);
         if (field) {
           field.style.borderColor = '#ef4444';
+          field.style.background = 'rgba(239, 68, 68, 0.1)';
         }
       } else {
         if (field) {
           field.style.borderColor = '';
+          field.style.background = '';
         }
       }
     });
 
     // Check terms agreement
     const termsCheckbox = document.getElementById('agreeTerms');
+    const termsCard = document.querySelector('.terms-agreement');
     if (!termsCheckbox || !termsCheckbox.checked) {
       isValid = false;
       missingFields.push('Agreement with terms and conditions');
-      if (termsCheckbox) {
-        termsCheckbox.closest('.terms-agreement').style.borderColor = '#ef4444';
+      if (termsCard) {
+        termsCard.style.borderColor = '#ef4444';
+        termsCard.style.background = 'rgba(239, 68, 68, 0.05)';
       }
     } else {
-      if (termsCheckbox) {
-        termsCheckbox.closest('.terms-agreement').style.borderColor = '';
+      if (termsCard) {
+        termsCard.style.borderColor = '';
+        termsCard.style.background = '';
       }
     }
 
@@ -300,12 +335,19 @@ document.addEventListener('DOMContentLoaded', function() {
         isValid = false;
         missingFields.push('Valid email address');
         emailField.style.borderColor = '#ef4444';
+        emailField.style.background = 'rgba(239, 68, 68, 0.1)';
       }
     }
 
     if (!isValid) {
-      const message = 'Please fill in the following required fields correctly:\n• ' + missingFields.join('\n• ');
+      const message = 'Please complete the following:\n• ' + missingFields.join('\n• ');
       alert(message);
+      
+      // Scroll to first error field
+      const firstErrorField = document.querySelector('input[style*="border-color: rgb(239, 68, 68)"], .terms-agreement[style*="border-color: rgb(239, 68, 68)"]');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     return isValid;
@@ -320,6 +362,9 @@ document.addEventListener('DOMContentLoaded', function() {
       errorDiv.querySelector('.error-message').textContent = message;
       errorDiv.style.display = 'block';
       checkoutActions.style.display = 'none';
+      
+      // Scroll to error
+      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     
     resetPaymentState();
@@ -398,15 +443,26 @@ Order Date: ${new Date().toLocaleString()}`;
         note: customerNote
       })
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       console.log('Cart updated with customer details:', data);
-      // Proceed to checkout
-      window.location.href = '/checkout';
+      
+      // Show success message briefly
+      showSuccessMessage('Order updated! Redirecting to checkout...');
+      
+      // Redirect to checkout
+      setTimeout(() => {
+        window.location.href = '/checkout';
+      }, 1500);
     })
     .catch(error => {
       console.error('Error updating cart:', error);
-      showPaymentError('Failed to update order. Please try again.');
+      showPaymentError('Failed to update order information. Please try again.');
     });
   }
 
@@ -414,8 +470,9 @@ Order Date: ${new Date().toLocaleString()}`;
   function applyDiscountCode() {
     const codeInput = document.getElementById('discountCodeInput');
     const messageDiv = document.getElementById('discountMessage');
+    const applyBtn = document.getElementById('applyDiscountBtn');
     
-    if (!codeInput || !messageDiv) return;
+    if (!codeInput || !messageDiv || !applyBtn) return;
     
     const code = codeInput.value.trim().toUpperCase();
     
@@ -428,28 +485,19 @@ Order Date: ${new Date().toLocaleString()}`;
       return;
     }
     
-    if (code === '15%MUSIC') {
-      // Apply discount via Shopify discount API
-      fetch('/discount/' + code, {
-        method: 'POST'
-      })
-      .then(response => {
-        if (response.ok) {
-          showDiscountMessage('success', 'Discount applied successfully!');
-          // Reload page to reflect discount
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } else {
-          showDiscountMessage('error', 'Invalid discount code.');
-        }
-      })
-      .catch(error => {
-        console.error('Discount error:', error);
-        showDiscountMessage('error', 'Failed to apply discount. Please try again.');
-      });
+    // Set loading state
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Applying...';
+    
+    // Apply discount through Shopify's discount URL redirect
+    if (code === '15%MUSIC' || code === 'WELCOME15' || code === 'SAVE15') {
+      // Redirect to cart with discount code applied
+      window.location.href = `/discount/${code}?redirect=/cart`;
     } else {
-      showDiscountMessage('error', 'Invalid discount code.');
+      // Error for invalid codes
+      showDiscountMessage('error', 'Invalid discount code. Please check and try again.');
+      applyBtn.disabled = false;
+      applyBtn.textContent = 'Apply';
     }
   }
 
@@ -462,6 +510,8 @@ Order Date: ${new Date().toLocaleString()}`;
       messageDiv.style.display = 'block';
     }
   }
+
+
 
   // Show success message
   function showSuccessMessage(message) {
@@ -501,10 +551,13 @@ Order Date: ${new Date().toLocaleString()}`;
     }, 3000);
   }
 
+
+
   // Event listeners
   const checkoutBtn = document.getElementById('checkoutBtn');
   const applyDiscountBtn = document.getElementById('applyDiscountBtn');
   const retryPaymentBtn = document.getElementById('retryPaymentBtn');
+  const discountInput = document.getElementById('discountCodeInput');
 
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', function(e) {
@@ -530,6 +583,16 @@ Order Date: ${new Date().toLocaleString()}`;
     });
   }
 
+  // Allow Enter key to apply discount
+  if (discountInput) {
+    discountInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyDiscountCode();
+      }
+    });
+  }
+
   // Page unload prevention during processing
   window.addEventListener('beforeunload', function(e) {
     if (paymentProcessingState.isProcessing) {
@@ -539,55 +602,82 @@ Order Date: ${new Date().toLocaleString()}`;
     }
   });
 
-  // Auto-fill customer details if available from local storage
-  const savedOrderData = localStorage.getItem('musicOrderData');
-  if (savedOrderData) {
-    try {
-      const orderData = JSON.parse(savedOrderData);
-      console.log('Found saved order data:', orderData);
-    } catch (e) {
-      console.log('No saved order data found');
+  // Auto-clear validation errors on input
+  const formInputs = document.querySelectorAll('#customerDetailsForm input');
+  formInputs.forEach(input => {
+    input.addEventListener('input', function() {
+      if (this.style.borderColor === 'rgb(239, 68, 68)') {
+        this.style.borderColor = '';
+        this.style.background = '';
+      }
+    });
+  });
+
+  // Clear terms validation error on check
+  const termsCheckbox = document.getElementById('agreeTerms');
+  if (termsCheckbox) {
+    termsCheckbox.addEventListener('change', function() {
+      const termsCard = document.querySelector('.terms-agreement');
+      if (this.checked && termsCard) {
+        termsCard.style.borderColor = '';
+        termsCard.style.background = '';
+      }
+    });
+  }
+
+
+
+  // AUTO-APPLY DISCOUNT CODE FROM MODAL - Simple Version
+  function checkAndApplyPendingDiscount() {
+    const pendingDiscountCode = localStorage.getItem('pendingDiscountCode');
+    const discountSource = localStorage.getItem('discountSource');
+    
+    console.log('Checking for pending discount:', { pendingDiscountCode, discountSource });
+    
+    if (pendingDiscountCode && discountSource === 'modal') {
+      console.log('Found pending discount code from modal:', pendingDiscountCode);
+      
+      // Find the discount input field
+      const discountInput = document.getElementById('discountCodeInput');
+      
+      if (discountInput) {
+        console.log('Found discount input field, filling with code:', pendingDiscountCode);
+        
+        // Fill the input field
+        discountInput.value = pendingDiscountCode;
+        
+        // Trigger input event to show the value
+        discountInput.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        // Auto-apply the discount after a short delay
+        setTimeout(() => {
+          console.log('Auto-applying discount code');
+          applyDiscountCode();
+        }, 1500);
+        
+      } else {
+        console.error('Could not find discount input field with ID: discountCodeInput');
+      }
+      
+      // Clear the pending discount so it doesn't auto-fill again
+      localStorage.removeItem('pendingDiscountCode');
+      localStorage.removeItem('discountSource');
+    } else {
+      console.log('No pending discount code found');
     }
   }
 
-  // AUTO-APPLY PENDING DISCOUNT CODE FROM MODAL - THIS IS THE NEW PART!
-  const pendingDiscountCode = localStorage.getItem('pendingDiscountCode');
-  const discountSource = localStorage.getItem('discountSource');
-  
-  if (pendingDiscountCode && discountSource === 'modal') {
-    console.log('Found pending discount code from modal:', pendingDiscountCode);
-    
-    // Fill the discount input
-    const discountInput = document.getElementById('discountCodeInput');
-    if (discountInput) {
-      discountInput.value = pendingDiscountCode;
-      
-      // Show notification that discount is ready to apply
-      const message = 'Discount code ready! Click "Apply" below to activate your 15% discount.';
-      showSuccessMessage(message);
-      
-      // Highlight the discount section
-      const discountCard = document.getElementById('discountCard');
-      if (discountCard) {
-        discountCard.style.border = '2px solid #fbbf24';
-        discountCard.style.background = 'rgba(251, 191, 36, 0.1)';
-        
-        // Remove highlight after 5 seconds
-        setTimeout(() => {
-          discountCard.style.border = '';
-          discountCard.style.background = '';
-        }, 5000);
-      }
-    }
-    
-    // Clear the pending discount so it doesn't auto-fill again
-    localStorage.removeItem('pendingDiscountCode');
-    localStorage.removeItem('discountSource');
-  }
+  // Initialize discount checking after page load
+  setTimeout(() => {
+    checkAndApplyPendingDiscount();
+  }, 1000);
+
+  console.log('Cart JavaScript initialization complete');
 });
 </script>
 
 <style>
+/* Complete Cart Page Styles */
 .cart-page {
   padding: 40px 0;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
@@ -643,21 +733,47 @@ Order Date: ${new Date().toLocaleString()}`;
     0 0 0 1px rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(59, 130, 246, 0.2);
   color: #e2e8f0;
+  transition: all 0.3s ease;
 }
 
 .card h2, .card h3 {
   color: #06b6d4;
   margin-bottom: 1.5rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card h2::before {
+  content: "📋";
+  font-size: 1.2em;
+}
+
+.card h3::before {
+  content: "👤";
+  font-size: 1.2em;
+}
+
+.discount-card h3::before {
+  content: "🎫";
+  font-size: 1.2em;
 }
 
 .order-item {
   padding: 20px 0;
   border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
 }
 
 .order-item:last-child {
   border-bottom: none;
+}
+
+.order-item:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 12px;
+  padding: 20px 15px;
 }
 
 .item-header {
@@ -675,10 +791,16 @@ Order Date: ${new Date().toLocaleString()}`;
   flex: 1;
 }
 
+.item-header h3::before {
+  content: "🎵";
+  margin-right: 0.5rem;
+}
+
 .variant-title {
   color: #94a3b8;
   font-weight: 500;
   margin-left: 10px;
+  font-size: 0.9rem;
 }
 
 .item-price {
@@ -692,12 +814,14 @@ Order Date: ${new Date().toLocaleString()}`;
 .quantity {
   color: #94a3b8;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .price {
   font-size: 1.25rem;
   font-weight: 700;
   color: #06b6d4;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
 }
 
 .order-details {
@@ -706,12 +830,14 @@ Order Date: ${new Date().toLocaleString()}`;
   border-radius: 12px;
   border: 1px solid rgba(59, 130, 246, 0.2);
   margin-bottom: 15px;
+  backdrop-filter: blur(10px);
 }
 
 .detail-item {
   margin-bottom: 8px;
   font-size: 0.9rem;
   color: #cbd5e1;
+  line-height: 1.5;
 }
 
 .detail-item:last-child {
@@ -720,13 +846,15 @@ Order Date: ${new Date().toLocaleString()}`;
 
 .detail-item strong {
   color: #e2e8f0;
+  font-weight: 600;
 }
 
 .words-detail {
   background: rgba(6, 182, 212, 0.1);
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid rgba(6, 182, 212, 0.2);
+  margin: 8px 0;
 }
 
 .words-list {
@@ -734,6 +862,7 @@ Order Date: ${new Date().toLocaleString()}`;
   padding: 4px 8px;
   border-radius: 6px;
   font-style: italic;
+  font-weight: 500;
 }
 
 .lyrics-detail {
@@ -741,6 +870,7 @@ Order Date: ${new Date().toLocaleString()}`;
   padding: 12px;
   border-radius: 8px;
   border: 1px solid rgba(251, 191, 36, 0.3);
+  margin: 8px 0;
 }
 
 .lyrics-preview {
@@ -752,21 +882,25 @@ Order Date: ${new Date().toLocaleString()}`;
   line-height: 1.5;
   margin-top: 8px;
   color: #f1f5f9;
+  font-size: 0.9rem;
 }
 
 .item-actions {
   text-align: right;
+  margin-top: 10px;
 }
 
 .remove-item {
   color: #ef4444;
   font-size: 0.9rem;
   text-decoration: underline;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .remove-item:hover {
   color: #dc2626;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
 }
 
 .cart-totals {
@@ -775,17 +909,24 @@ Order Date: ${new Date().toLocaleString()}`;
   border-radius: 16px;
   border: 1px solid rgba(59, 130, 246, 0.3);
   margin-top: 20px;
+  backdrop-filter: blur(15px);
 }
 
 .subtotal-row, .discount-row, .total-row {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
+  font-size: 1rem;
 }
 
 .discount-row {
   color: #10b981;
   font-weight: 600;
+}
+
+.discount-row::before {
+  content: "💰";
+  margin-right: 0.5rem;
 }
 
 .total-row {
@@ -795,6 +936,19 @@ Order Date: ${new Date().toLocaleString()}`;
   color: #06b6d4;
   margin-top: 10px;
   padding-top: 15px;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.tax-note {
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.tax-note small {
+  color: #94a3b8;
+  font-style: italic;
 }
 
 .form-row {
@@ -813,11 +967,14 @@ Order Date: ${new Date().toLocaleString()}`;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #f1f5f9;
+  font-size: 0.95rem;
 }
 
-.form-group input, .form-group select, .form-group textarea {
+.form-group input,
+.form-group select,
+.form-group textarea {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   font-size: 1rem;
@@ -830,7 +987,9 @@ Order Date: ${new Date().toLocaleString()}`;
     0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: rgba(59, 130, 246, 0.6);
   box-shadow: 
@@ -838,6 +997,11 @@ Order Date: ${new Date().toLocaleString()}`;
     inset 0 1px 3px rgba(0, 0, 0, 0.2),
     0 0 20px rgba(59, 130, 246, 0.2);
   background: rgba(15, 23, 42, 0.6);
+  transform: translateY(-1px);
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
 }
 
 .delivery-info-box {
@@ -847,12 +1011,20 @@ Order Date: ${new Date().toLocaleString()}`;
   padding: 1.5rem;
   text-align: center;
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.delivery-info-box:hover {
+  background: rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
 }
 
 .delivery-info-box h4 {
   color: #06b6d4;
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .delivery-info-box p {
@@ -870,30 +1042,46 @@ Order Date: ${new Date().toLocaleString()}`;
 
 .discount-input-container input {
   flex: 1;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .discount-apply-btn {
-  padding: 12px 20px;
+  padding: 14px 20px;
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   color: #1e293b;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  min-width: 100px;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
 }
 
 .discount-apply-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+}
+
+.discount-apply-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .discount-message {
-  padding: 10px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .discount-message.success {
@@ -902,10 +1090,34 @@ Order Date: ${new Date().toLocaleString()}`;
   color: #10b981;
 }
 
+.discount-message.success::before {
+  content: "✅";
+}
+
 .discount-message.error {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
+}
+
+.discount-message.error::before {
+  content: "❌";
+}
+
+.discount-help {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.discount-help p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0;
+  text-align: center;
+  font-style: italic;
 }
 
 .terms-agreement {
@@ -913,6 +1125,7 @@ Order Date: ${new Date().toLocaleString()}`;
   border-radius: 12px;
   padding: 1.5rem;
   border: 2px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
 }
 
 .terms-checkbox {
@@ -929,6 +1142,7 @@ Order Date: ${new Date().toLocaleString()}`;
   margin: 0;
   cursor: pointer;
   accent-color: #3b82f6;
+  transform: scale(1.1);
 }
 
 .terms-checkbox label {
@@ -939,42 +1153,70 @@ Order Date: ${new Date().toLocaleString()}`;
   font-size: 1rem;
 }
 
-.disclaimer-box {
+.privacy-link {
+  color: #06b6d4;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.privacy-link:hover {
+  color: #0284c7;
+}
+
+.info-box {
   background: rgba(6, 182, 212, 0.1);
   border: 2px solid rgba(6, 182, 212, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
+  transition: all 0.3s ease;
 }
 
-.disclaimer-box h4 {
+.info-box:hover {
+  background: rgba(6, 182, 212, 0.15);
+  transform: translateY(-2px);
+}
+
+.info-box h4 {
   color: #06b6d4;
   margin-bottom: 1rem;
   font-weight: 600;
 }
 
-.disclaimer-box ul {
+.info-box h4::before {
+  content: "ℹ️";
+  margin-right: 0.5rem;
+}
+
+.info-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.disclaimer-box li {
+.info-list li {
   padding: 0.5rem 0;
   color: #cbd5e1;
   line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
-.disclaimer-box li::before {
+.info-list li::before {
   content: "✓";
   color: #10b981;
   font-weight: bold;
-  margin-right: 0.5rem;
+  font-size: 1.1em;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
 }
 
 .contact-link {
   color: #06b6d4;
   text-decoration: none;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .contact-link:hover {
@@ -986,6 +1228,7 @@ Order Date: ${new Date().toLocaleString()}`;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-bottom: 2rem;
 }
 
 .btn {
@@ -1030,6 +1273,7 @@ Order Date: ${new Date().toLocaleString()}`;
   font-size: 18px;
   padding: 18px 24px;
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  min-height: 60px;
 }
 
 .checkout-btn:hover:not(:disabled) {
@@ -1039,10 +1283,10 @@ Order Date: ${new Date().toLocaleString()}`;
 }
 
 .checkout-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.8;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
 }
 
 .button-loading {
@@ -1053,8 +1297,8 @@ Order Date: ${new Date().toLocaleString()}`;
 }
 
 .loading-spinner {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top: 2px solid white;
   border-radius: 50%;
@@ -1081,14 +1325,32 @@ Order Date: ${new Date().toLocaleString()}`;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   text-align: center;
+  margin-bottom: 2rem;
+}
+
+.error-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
 .payment-error .error-message {
   color: #ef4444;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.btn-secondary {
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(75, 85, 99, 0.9);
+  transform: translateY(-1px);
 }
 
 .empty-cart {
@@ -1101,6 +1363,12 @@ Order Date: ${new Date().toLocaleString()}`;
     0 20px 50px rgba(0,0,0,0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.empty-cart-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.7;
 }
 
 .empty-cart h2 {
@@ -1129,18 +1397,19 @@ Order Date: ${new Date().toLocaleString()}`;
   transform: translateY(-2px);
 }
 
-.btn-secondary {
-  background: rgba(107, 114, 128, 0.8);
-  color: white;
-  border: 1px solid rgba(156, 163, 175, 0.3);
+/* Success notification animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.btn-secondary:hover {
-  background: rgba(75, 85, 99, 0.9);
-  transform: translateY(-1px);
-}
-
-/* Responsive Design */
+/* Mobile Responsiveness */
 @media (max-width: 1024px) {
   .cart-layout {
     grid-template-columns: 1fr;
@@ -1153,8 +1422,13 @@ Order Date: ${new Date().toLocaleString()}`;
 }
 
 @media (max-width: 768px) {
+  .cart-page {
+    padding: 20px 0;
+  }
+  
   .cart-page h1 {
     font-size: 2rem;
+    margin-bottom: 30px;
   }
   
   .card {
@@ -1191,6 +1465,11 @@ Order Date: ${new Date().toLocaleString()}`;
   .discount-input-container {
     flex-direction: column;
   }
+  
+  .discount-apply-btn {
+    min-width: unset;
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1204,12 +1483,19 @@ Order Date: ${new Date().toLocaleString()}`;
   
   .cart-page h1 {
     font-size: 1.75rem;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
   
   .checkout-btn {
     font-size: 16px;
     padding: 16px 20px;
+    min-height: 56px;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px;
   }
 }
 </style>

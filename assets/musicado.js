@@ -206,7 +206,12 @@
             discountAppliedMessage: "Discount applied! This will be applied at checkout.",
             orderUpdated: "Order updated! Redirecting to checkout...",
             processingError: "An error occurred. Please try again.",
-            updateError: "Failed to update order information. Please try again."
+            updateError: "Failed to update order information. Please try again.",
+            
+            // Cart button translations
+            viewCart: "View Cart",
+            cartEmpty: "Cart Empty",
+            itemsInCart: "items in cart"
         },
         nl: {
             intro: "Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken.",
@@ -362,7 +367,12 @@
             discountAppliedMessage: "Korting toegepast! Dit wordt toegepast bij het afrekenen.",
             orderUpdated: "Bestelling bijgewerkt! Doorverwijzen naar afrekenen...",
             processingError: "Er is een fout opgetreden. Probeer het opnieuw.",
-            updateError: "Kan bestellingsinformatie niet bijwerken. Probeer het opnieuw."
+            updateError: "Kan bestellingsinformatie niet bijwerken. Probeer het opnieuw.",
+            
+            // Cart button translations
+            viewCart: "Bekijk Winkelwagen",
+            cartEmpty: "Winkelwagen Leeg", 
+            itemsInCart: "items in winkelwagen"
         }
     };
 
@@ -1256,6 +1266,11 @@
             // Update random subheadline for new language
             this.setRandomSubheadline();
             
+            // Update cart button if it exists
+            if (typeof updateCartButton === 'function') {
+                updateCartButton();
+            }
+            
             console.log('✅ Language set and saved:', lang);
         },
 
@@ -1415,7 +1430,7 @@
             }
         },
 
-        // Add to Shopify cart with complete order data
+        // FIXED: Add to Shopify cart with proper error handling and data validation
         addToShopifyCart: function() {
             const variantId = this.getVariantId(formData.package);
             
@@ -1426,32 +1441,43 @@
             }
 
             console.log('Adding to cart with variant ID:', variantId);
+            console.log('Form data:', formData);
 
-            // Prepare cart data with all order information
-            const cartData = {
-                items: [{
-                    id: variantId,
-                    quantity: 1,
-                    properties: {
-                        'Package': this.getPackageDisplayName(formData.package),
-                        'Music Style 1': formData.musicStyle1,
-                        'Music Style 2': formData.musicStyle2,
-                        'Voice Type': formData.voiceType,
-                        'Language': formData.songLanguage,
-                        'Reason': formData.reason
-                    }
-                }]
-            };
+            // FIXED: Clean and validate properties before sending
+            const cleanProperties = {};
+            
+            // Only add properties that have actual values
+            if (formData.package) {
+                cleanProperties['Package'] = this.getPackageDisplayName(formData.package);
+            }
+            if (formData.musicStyle1) {
+                cleanProperties['Music Style 1'] = formData.musicStyle1;
+            }
+            if (formData.musicStyle2) {
+                cleanProperties['Music Style 2'] = formData.musicStyle2;
+            }
+            if (formData.voiceType) {
+                cleanProperties['Voice Type'] = formData.voiceType;
+            }
+            if (formData.songLanguage) {
+                cleanProperties['Language'] = formData.songLanguage;
+            }
+            if (formData.reason) {
+                cleanProperties['Reason'] = formData.reason === 'other' ? formData.otherReason || 'Other' : formData.reason;
+            }
 
-            // Add optional properties
-            if (formData.artist1 || formData.artist2 || formData.artist3) {
-                const artists = [formData.artist1, formData.artist2, formData.artist3].filter(a => a);
-                cartData.items[0].properties['Favorite Artists'] = artists.join(', ');
+            // Add optional properties only if they exist
+            const artists = [];
+            if (formData.artist1 && formData.artist1.trim()) artists.push(formData.artist1.trim());
+            if (formData.artist2 && formData.artist2.trim()) artists.push(formData.artist2.trim());
+            if (formData.artist3 && formData.artist3.trim()) artists.push(formData.artist3.trim());
+            if (artists.length > 0) {
+                cleanProperties['Favorite Artists'] = artists.join(', ');
             }
 
             // Include custom lyrics/story if provided
             if (formData.ownLyrics && formData.ownLyrics.trim()) {
-                cartData.items[0].properties['Custom Lyrics/Story'] = formData.ownLyrics;
+                cleanProperties['Custom Lyrics/Story'] = formData.ownLyrics.trim();
             }
 
             // Add words/names based on package
@@ -1465,35 +1491,93 @@
                         }
                     }
                     if (songWords.length > 0) {
-                        cartData.items[0].properties[`Song ${song} Words`] = songWords.join(', ');
+                        cleanProperties[`Song ${song} Words`] = songWords.join(', ');
                     }
                 }
             } else if (formData.package === 'one') {
-                const words = [formData.word1, formData.word2, formData.word3].filter(w => w && w.trim());
+                const words = [];
+                if (formData.word1 && formData.word1.trim()) words.push(formData.word1.trim());
+                if (formData.word2 && formData.word2.trim()) words.push(formData.word2.trim());
+                if (formData.word3 && formData.word3.trim()) words.push(formData.word3.trim());
                 if (words.length > 0) {
-                    cartData.items[0].properties['Words/Names'] = words.join(', ');
+                    cleanProperties['Words/Names'] = words.join(', ');
                 }
             }
+
+            // Add song titles if provided
+            if (formData.package === 'ep') {
+                for (let i = 1; i <= 4; i++) {
+                    const titleValue = formData[`songTitle${i}`];
+                    if (titleValue && titleValue.trim()) {
+                        cleanProperties[`Song ${i} Title`] = titleValue.trim();
+                    }
+                }
+            } else if (formData.package === 'one') {
+                const titleValue = formData.songTitle1;
+                if (titleValue && titleValue.trim()) {
+                    cleanProperties['Song Title'] = titleValue.trim();
+                }
+            }
+
+            console.log('Clean properties being sent:', cleanProperties);
+
+            // Prepare cart data with cleaned properties
+            const cartData = {
+                items: [{
+                    id: variantId,
+                    quantity: 1,
+                    properties: cleanProperties
+                }]
+            };
+
+            console.log('Cart data being sent:', cartData);
 
             // Store order data in localStorage for cart page
             localStorage.setItem('musicOrderData', JSON.stringify(formData));
 
-            // Add to cart via Shopify API
+            // Add to cart via Shopify API with better error handling
             fetch('/cart/add.js', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(cartData)
             })
             .then(response => {
+                console.log('Cart API response status:', response.status);
+                console.log('Cart API response headers:', response.headers);
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Get response text for better error details
+                    return response.text().then(text => {
+                        console.error('Cart API error response:', text);
+                        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                        try {
+                            const errorJson = JSON.parse(text);
+                            if (errorJson.message) {
+                                errorMessage = errorJson.message;
+                            } else if (errorJson.description) {
+                                errorMessage = errorJson.description;
+                            }
+                        } catch (e) {
+                            // Text response, use as is
+                            if (text) {
+                                errorMessage = text;
+                            }
+                        }
+                        throw new Error(errorMessage);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Successfully added to cart:', data);
+                
+                // Update cart button if it exists
+                if (typeof updateCartButton === 'function') {
+                    updateCartButton();
+                }
                 
                 // Show success message
                 const successMessage = currentLanguage === 'nl' ? 
@@ -1510,21 +1594,40 @@
             })
             .catch(error => {
                 console.error('Error adding to cart:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    formData: formData,
+                    cartData: cartData
+                });
                 
-                // Show user-friendly error
+                // Show more specific error messages based on the error
+                let errorMessage;
+                
                 if (error.message.includes('404')) {
-                    alert(currentLanguage === 'nl' ? 
+                    errorMessage = currentLanguage === 'nl' ? 
                         'Product niet gevonden. Controleer de product configuratie.' : 
-                        'Product not found. Please check product configuration.');
+                        'Product not found. Please check product configuration.';
                 } else if (error.message.includes('422')) {
-                    alert(currentLanguage === 'nl' ? 
+                    errorMessage = currentLanguage === 'nl' ? 
                         'Product niet beschikbaar. Probeer het later opnieuw.' : 
-                        'Product unavailable. Please try again later.');
+                        'Product unavailable. Please try again later.';
+                } else if (error.message.includes('variant')) {
+                    errorMessage = currentLanguage === 'nl' ? 
+                        'Product variant niet gevonden. Controleer uw selectie.' : 
+                        'Product variant not found. Please check your selection.';
+                } else if (error.message.includes('inventory')) {
+                    errorMessage = currentLanguage === 'nl' ? 
+                        'Product niet op voorraad.' : 
+                        'Product out of stock.';
                 } else {
-                    alert(currentLanguage === 'nl' ? 
-                        'Er was een fout bij het toevoegen aan winkelwagen. Probeer het opnieuw.' : 
-                        'There was an error adding to cart. Please try again.');
+                    // Include more details in generic error
+                    errorMessage = currentLanguage === 'nl' ? 
+                        `Er was een fout bij het toevoegen aan winkelwagen: ${error.message}` : 
+                        `There was an error adding to cart: ${error.message}`;
                 }
+                
+                alert(errorMessage);
             });
         },
 

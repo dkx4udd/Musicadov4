@@ -1,5 +1,5 @@
 {% comment %}
-  CORRECTED Discount Modal - Both Steps Included
+  UPDATED Discount Modal - Skip Button Removed
   Save this as: snippets/discount-modal.liquid
 {% endcomment %}
 
@@ -28,10 +28,6 @@
           <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
             Get My 15% Discount
           </button>
-          
-          <button type="button" id="showDiscountCode" class="btn discount-skip-btn">
-            Skip email, just give me the discount
-          </button>
         </div>
         
         <div class="privacy-note">
@@ -39,14 +35,14 @@
         </div>
       </div>
 
-      <!-- Code Step (Hidden by default) - THIS WAS MISSING! -->
+      <!-- Code Step (Hidden by default) -->
       <div class="discount-step" id="codeStep" style="display: none;">
         <h2>🎉 Your Discount Code!</h2>
         <p>Here's your 15% discount code. Copy it and use it at checkout:</p>
         
         <div class="discount-code-display">
           <div class="code-box">
-            <span class="discount-code-text" id="discountCodeText">15%MUSIC</span>
+            <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
             <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
               <span class="copy-text">Copy Code</span>
               <span class="copied-text" style="display: none;">Code Copied!</span>
@@ -126,7 +122,7 @@ function showCodeStep() {
 }
 
 function copyDiscountCode() {
-  const codeText = '15%MUSIC';
+  const codeText = 'MUSIC15';
   const copyBtn = document.getElementById('copyDiscountCode');
   const copyTextSpan = copyBtn ? copyBtn.querySelector('.copy-text') : null;
   const copiedTextSpan = copyBtn ? copyBtn.querySelector('.copied-text') : null;
@@ -232,7 +228,7 @@ function showCopyNotification() {
 
 // Initialize modal functionality when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('✅ Corrected discount modal initialized');
+  console.log('✅ Updated discount modal initialized (no skip button)');
   
   // Verify both steps exist
   const emailStep = document.getElementById('emailStep');
@@ -248,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
     closeBtn.addEventListener('click', closeDiscountModal);
   }
   
-  // Email submit button
+  // Email submit button - REQUIRED EMAIL & CONSENT
   const submitEmailBtn = document.getElementById('submitDiscountEmail');
   if (submitEmailBtn) {
     submitEmailBtn.addEventListener('click', function(e) {
@@ -265,42 +261,40 @@ document.addEventListener('DOMContentLoaded', function() {
       const consentSection = document.getElementById('emailConsentCheckbox');
       if (consentSection) consentSection.classList.remove('error');
       
-      // Basic validation (only if email is provided)
-      if (email && !hasConsent) {
+      // REQUIRE EMAIL
+      if (!email) {
+        if (emailInput) {
+          emailInput.style.borderColor = '#ef4444';
+          emailInput.focus();
+        }
+        alert('Please enter your email address to receive your discount code.');
+        return;
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        if (emailInput) {
+          emailInput.style.borderColor = '#ef4444';
+          emailInput.focus();
+        }
+        alert('Please enter a valid email address.');
+        return;
+      }
+      
+      // REQUIRE CONSENT
+      if (!hasConsent) {
         if (consentSection) consentSection.classList.add('error');
         alert('You must agree to receive emails to get your discount code.');
         return;
       }
       
-      // If email is provided, validate it
-      if (email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          if (emailInput) {
-            emailInput.style.borderColor = '#ef4444';
-            emailInput.focus();
-          }
-          alert('Please enter a valid email address.');
-          return;
-        }
-        
-        // Store email if provided
-        localStorage.setItem('discountEmail', email);
-        localStorage.setItem('emailConsent', 'true');
-        console.log('📧 Email stored:', email);
-      }
+      // Store email and consent
+      localStorage.setItem('discountEmail', email);
+      localStorage.setItem('emailConsent', 'true');
+      console.log('📧 Email stored:', email);
       
       // Show code step
-      showCodeStep();
-    });
-  }
-  
-  // Skip email button
-  const skipBtn = document.getElementById('showDiscountCode');
-  if (skipBtn) {
-    skipBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      console.log('⏭️ Skip email clicked');
       showCodeStep();
     });
   }
@@ -335,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Discount Modal Styles */
+/* Discount Modal Styles - Updated without skip button styles */
 .discount-modal {
   position: fixed;
   top: 0;
@@ -610,19 +604,6 @@ document.addEventListener('DOMContentLoaded', function() {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-2px);
   box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-}
-
-.discount-skip-btn {
-  background: rgba(107, 114, 128, 0.8);
-  color: white;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-  width: 100%;
-  font-weight: 600;
-}
-
-.discount-skip-btn:hover {
-  background: rgba(75, 85, 99, 0.9);
-  transform: translateY(-1px);
 }
 
 .continue-shopping-btn {

@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - Updated with Copy Code Functionality
+// Musicado Application JavaScript - FIXED Discount Modal Version
 (function() {
     'use strict';
 
@@ -100,7 +100,7 @@
             emailConsentText: "I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.",
             getDiscount: "Get My 15% Discount",
             discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
-            skipEmailDiscount: "Skip email, just give me the discount",
+
             discountSuccessTitle: "🎉 Your Discount Code!",
             discountSuccessMessage: "Here's your 15% discount code. Copy it and use it at checkout:",
             discountValidityInfo: "This code is valid for 30 days. Save it for your order!",
@@ -210,7 +210,7 @@
             emailConsentText: "Ik ga akkoord met het ontvangen van promotionele e-mails en speciale aanbiedingen van musicado. U kunt zich op elk moment uitschrijven.",
             getDiscount: "Krijg Mijn 15% Korting",
             discountTermsPrivacy: "We respecteren uw privacy. Geen spam, en u kunt zich altijd uitschrijven.",
-            skipEmailDiscount: "E-mail overslaan, geef me gewoon de korting",
+
             discountSuccessTitle: "🎉 Uw Kortingscode!",
             discountSuccessMessage: "Hier is uw 15% kortingscode. Kopieer deze en gebruik hem bij het afrekenen:",
             discountValidityInfo: "Deze code is 30 dagen geldig. Bewaar hem voor uw bestelling!",
@@ -352,7 +352,7 @@
                 return { success: false, message: currentLanguage === 'nl' ? 'Korting al toegepast.' : 'Discount already applied.' };
             }
 
-            if (code !== '15%MUSIC') {
+            if (code !== 'MUSIC15') {
                 return { success: false, message: currentLanguage === 'nl' ? 'Ongeldige kortingscode.' : 'Invalid discount code.' };
             }
 
@@ -432,6 +432,545 @@
             
             // Setup scroll trigger for discount popup
             this.setupScrollTrigger();
+            
+            // CRITICAL: Ensure discount modal is properly initialized
+            this.initializeDiscountModal();
+        },
+
+        // FIXED: Proper discount modal initialization
+        initializeDiscountModal: function() {
+            console.log('🎯 Initializing discount modal...');
+            
+            // Wait for DOM to be fully ready
+            setTimeout(() => {
+                const modal = document.getElementById('discountModal');
+                const modalContent = modal ? modal.querySelector('.modal-content') : null;
+                
+                console.log('📊 Modal elements check:', {
+                    modal: !!modal,
+                    modalContent: !!modalContent
+                });
+                
+                if (!modal || !modalContent) {
+                    console.warn('⚠️ Discount modal not found in DOM - creating fallback');
+                    this.createDiscountModalFallback();
+                    return;
+                }
+                
+                // Ensure static modal content is properly set up
+                this.setupStaticModalContent();
+                
+                // Setup modal event listeners
+                this.setupDiscountModalListeners();
+                
+                console.log('✅ Discount modal initialized successfully');
+                
+            }, 500);
+        },
+
+        // FIXED: Create modal fallback if not found
+        createDiscountModalFallback: function() {
+            console.log('🔧 Creating discount modal fallback...');
+            
+            const modalHTML = `
+                <div id="discountModal" class="discount-modal" style="display: none;">
+                    <div class="discount-modal-overlay">
+                        <div class="modal-content">
+                            <span class="discount-close">&times;</span>
+                            <div class="discount-step" id="emailStep">
+                                <h2>${translations[currentLanguage].discountTitle}</h2>
+                                <p>${translations[currentLanguage].discountEmailDescription}</p>
+                                
+                                <div class="email-form">
+                                    <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                                    
+                                    <div class="email-consent-section" id="emailConsentCheckbox">
+                                        <label class="consent-checkbox">
+                                            <input type="checkbox" id="emailConsent">
+                                            <span class="checkmark"></span>
+                                            ${translations[currentLanguage].emailConsentText}
+                                        </label>
+                                    </div>
+                                    
+                                    <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                                        ${translations[currentLanguage].getDiscount}
+                                    </button>
+                                </div>
+                                
+                                <div class="privacy-note">
+                                    <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="discount-step" id="codeStep" style="display: none;">
+                                <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                                <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                                
+                                <div class="discount-code-display">
+                                    <div class="code-box">
+                                        <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
+                                        <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                            <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                            <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="code-validity-info">
+                                    <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                                </div>
+                                
+                                <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                                    ${translations[currentLanguage].continueToCheckout}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Add required styles
+            this.addDiscountModalStyles();
+            
+            // Setup event listeners
+            this.setupDiscountModalListeners();
+            
+            console.log('✅ Discount modal fallback created');
+        },
+
+        // FIXED: Setup static modal content without overwriting
+        setupStaticModalContent: function() {
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            console.log('🔧 Setting up static modal content...', {
+                emailStep: !!emailStep,
+                codeStep: !!codeStep
+            });
+            
+            // If email step exists but content is missing, populate it
+            if (emailStep && !emailStep.querySelector('#submitDiscountEmail')) {
+                emailStep.innerHTML = `
+                    <h2>${translations[currentLanguage].discountTitle}</h2>
+                    <p>${translations[currentLanguage].discountEmailDescription}</p>
+                    
+                    <div class="email-form">
+                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                        
+                        <div class="email-consent-section" id="emailConsentCheckbox">
+                            <label class="consent-checkbox">
+                                <input type="checkbox" id="emailConsent">
+                                <span class="checkmark"></span>
+                                ${translations[currentLanguage].emailConsentText}
+                            </label>
+                        </div>
+                        
+                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                            ${translations[currentLanguage].getDiscount}
+                        </button>
+                    </div>
+                    
+                    <div class="privacy-note">
+                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                    </div>
+                `;
+            }
+            
+            // Create code step if it doesn't exist
+            if (!codeStep) {
+                const modalContent = document.querySelector('#discountModal .modal-content');
+                if (modalContent) {
+                    const codeStepHTML = `
+                        <div class="discount-step" id="codeStep" style="display: none;">
+                            <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                            <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                            
+                            <div class="discount-code-display">
+                                <div class="code-box">
+                                    <span class="discount-code-text" id="discountCodeText">15%MUSIC</span>
+                                    <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                        <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                        <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="code-validity-info">
+                                <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                            </div>
+                            
+                            <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                                ${translations[currentLanguage].continueToCheckout}
+                            </button>
+                        </div>
+                    `;
+                    modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
+                }
+            }
+        },
+
+        // FIXED: Add modal styles if needed
+        addDiscountModalStyles: function() {
+            if (document.getElementById('discountModalStyles')) return;
+            
+            const styles = document.createElement('style');
+            styles.id = 'discountModalStyles';
+            styles.textContent = `
+                /* Discount Modal Styles */
+                .discount-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(8px);
+                    z-index: 10000;
+                    animation: fadeIn 0.3s ease-out;
+                }
+
+                .discount-modal-overlay {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    height: 100%;
+                    padding: 20px;
+                }
+
+                .discount-modal .modal-content {
+                    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
+                    backdrop-filter: blur(25px) saturate(180%);
+                    border-radius: 24px;
+                    padding: 2.5rem;
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    position: relative;
+                    box-shadow: 
+                        0 25px 60px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        0 0 0 1px rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    color: #e2e8f0;
+                    animation: slideInUp 0.4s ease-out;
+                }
+
+                .discount-close {
+                    position: absolute;
+                    top: 1rem;
+                    right: 1.5rem;
+                    font-size: 2rem;
+                    color: #94a3b8;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    z-index: 1;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                }
+
+                .discount-close:hover {
+                    color: #ef4444;
+                    background: rgba(239, 68, 68, 0.1);
+                    border-color: rgba(239, 68, 68, 0.3);
+                    transform: scale(1.1);
+                }
+
+                .discount-step h2 {
+                    color: #06b6d4;
+                    margin-bottom: 1rem;
+                    font-size: 1.75rem;
+                    font-weight: 700;
+                    text-align: center;
+                    text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+                }
+
+                .discount-step p {
+                    color: #cbd5e1;
+                    margin-bottom: 2rem;
+                    font-size: 1.1rem;
+                    line-height: 1.6;
+                    text-align: center;
+                }
+
+                .email-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem;
+                }
+
+                .email-form input[type="email"] {
+                    width: 100%;
+                    padding: 16px 20px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    font-size: 1rem;
+                    background: rgba(15, 23, 42, 0.6);
+                    backdrop-filter: blur(10px);
+                    color: #e2e8f0;
+                    transition: all 0.3s ease;
+                    box-shadow: 
+                        inset 0 1px 3px rgba(0, 0, 0, 0.2),
+                        0 1px 0 rgba(255, 255, 255, 0.05);
+                }
+
+                .email-form input[type="email"]:focus {
+                    outline: none;
+                    border-color: rgba(59, 130, 246, 0.6);
+                    box-shadow: 
+                        0 0 0 3px rgba(59, 130, 246, 0.1),
+                        inset 0 1px 3px rgba(0, 0, 0, 0.2),
+                        0 0 20px rgba(59, 130, 246, 0.2);
+                    background: rgba(15, 23, 42, 0.8);
+                    transform: translateY(-2px);
+                }
+
+                .email-form input[type="email"]::placeholder {
+                    color: #94a3b8;
+                }
+
+                .email-consent-section {
+                    margin: 1rem 0;
+                }
+
+                .consent-checkbox {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    cursor: pointer;
+                    color: #cbd5e1;
+                    font-size: 0.9rem;
+                    line-height: 1.5;
+                    transition: all 0.3s ease;
+                }
+
+                .consent-checkbox input[type="checkbox"] {
+                    width: 20px;
+                    height: 20px;
+                    margin: 0;
+                    cursor: pointer;
+                    accent-color: #3b82f6;
+                    transform: scale(1.1);
+                    flex-shrink: 0;
+                    margin-top: 2px;
+                }
+
+                .email-consent-section.error {
+                    animation: shake 0.5s ease-in-out;
+                }
+
+                .email-consent-section.error .consent-checkbox {
+                    color: #ef4444;
+                }
+
+                .discount-code-display {
+                    margin: 2rem 0;
+                    text-align: center;
+                }
+
+                .code-box {
+                    background: rgba(15, 23, 42, 0.8);
+                    border: 2px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 
+                        0 8px 25px rgba(59, 130, 246, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                }
+
+                .discount-code-text {
+                    font-family: 'Courier New', monospace;
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #fbbf24;
+                    text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+                    letter-spacing: 2px;
+                    flex: 1;
+                    text-align: left;
+                }
+
+                .copy-code-btn {
+                    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                    color: #1e293b;
+                    border: none;
+                    border-radius: 10px;
+                    padding: 12px 20px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-size: 0.9rem;
+                    white-space: nowrap;
+                    min-width: 120px;
+                    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+                }
+
+                .copy-code-btn:hover {
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+                }
+
+                .code-validity-info {
+                    background: rgba(59, 130, 246, 0.1);
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin: 1.5rem 0;
+                    text-align: center;
+                }
+
+                .code-validity-info p {
+                    margin: 0;
+                    color: #94a3b8;
+                    font-style: italic;
+                }
+
+                .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 16px 24px;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-decoration: none;
+                    transition: all 0.3s ease;
+                    backdrop-filter: blur(10px);
+                    position: relative;
+                    overflow: hidden;
+                    min-height: 56px;
+                }
+
+                .btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, 
+                        transparent, 
+                        rgba(255, 255, 255, 0.2), 
+                        transparent);
+                    transition: left 0.4s ease;
+                    pointer-events: none;
+                }
+
+                .btn:hover::before {
+                    left: 100%;
+                }
+
+                .discount-submit-btn {
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    width: 100%;
+                    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                }
+
+                .discount-submit-btn:hover {
+                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+                }
+
+                .continue-shopping-btn {
+                    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+                    color: white;
+                    width: 100%;
+                    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                }
+
+                .continue-shopping-btn:hover {
+                    background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+                }
+
+                .privacy-note {
+                    text-align: center;
+                    margin-top: 1.5rem;
+                    padding-top: 1rem;
+                    border-top: 1px solid rgba(59, 130, 246, 0.2);
+                }
+
+                .privacy-note small {
+                    color: #94a3b8;
+                    font-style: italic;
+                    font-size: 0.85rem;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes slideInUp {
+                    from {
+                        transform: translateY(50px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                }
+
+                @media (max-width: 768px) {
+                    .discount-modal-overlay {
+                        padding: 10px;
+                    }
+                    
+                    .discount-modal .modal-content {
+                        padding: 2rem 1.5rem;
+                        max-height: 95vh;
+                    }
+                    
+                    .code-box {
+                        flex-direction: column;
+                        gap: 1rem;
+                        text-align: center;
+                    }
+                    
+                    .discount-code-text {
+                        font-size: 1.25rem;
+                        text-align: center;
+                    }
+                    
+                    .copy-code-btn {
+                        width: 100%;
+                        min-width: unset;
+                    }
+                }
+            `;
+            document.head.appendChild(styles);
         },
 
         initializeLanguage: function() {
@@ -527,9 +1066,6 @@
             // Setup newsletter form
             this.setupNewsletterForm();
 
-            // Setup discount modal listeners
-            this.setupDiscountModalListeners();
-
             // Setup full album modal listeners
             this.setupFullAlbumModalListeners();
 
@@ -543,10 +1079,7 @@
         setupButtonEventHandlers: function() {
             const buttonHandlers = {
                 'loadRandomAudio1': () => this.loadRandomAudio(1),
-                'loadRandomAudio2': () => this.loadRandomAudio(2),
-                'submitDiscountEmail': () => this.submitDiscountEmail(),
-                'showDiscountCode': () => this.showDiscountCodeDirectly(),
-                'copyDiscountCode': () => this.copyDiscountCode()
+                'loadRandomAudio2': () => this.loadRandomAudio(2)
             };
 
             Object.entries(buttonHandlers).forEach(([id, handler]) => {
@@ -569,20 +1102,6 @@
                         this.loadRandomAudio(parseInt(playerNumber));
                     });
                 }
-            });
-
-            // Handle discount buttons by onclick attribute as well (for backward compatibility)
-            document.querySelectorAll('[onclick*="submitDiscountEmail"], [onclick*="showDiscountCode"]').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (button.onclick && button.onclick.toString().includes('submitDiscountEmail')) {
-                        this.submitDiscountEmail();
-                    } else if (button.onclick && button.onclick.toString().includes('showDiscountCode')) {
-                        this.showDiscountCodeDirectly();
-                    }
-                });
             });
         },
 
@@ -1133,80 +1652,82 @@
             }
         },
 
-        // UPDATED DISCOUNT MODAL FUNCTIONS - Copy Code Instead of Auto-Apply
+        // FIXED DISCOUNT MODAL FUNCTIONS
         showDiscountModal: function() {
+            console.log('🎯 Showing discount modal...');
+            
             // Don't show modal if already shown
             if (AppState.ui.modalShown) {
+                console.log('📝 Modal already shown, skipping');
                 return;
             }
             
             const modal = document.getElementById('discountModal');
-            if (modal) {
-                // Show the initial email collection step
-                this.showDiscountEmailStep();
-                modal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-                AppState.ui.modalShown = true;
+            if (!modal) {
+                console.warn('⚠️ Discount modal not found, creating fallback');
+                this.createDiscountModalFallback();
+                return;
+            }
+            
+            // Show the modal
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            AppState.ui.modalShown = true;
+            
+            // Ensure email step is visible and code step is hidden
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            if (emailStep) emailStep.style.display = 'block';
+            if (codeStep) codeStep.style.display = 'none';
+            
+            console.log('✅ Discount modal shown successfully');
+        },
+
+        // Switch to code step
+        showDiscountCodeStep: function() {
+            console.log('🔄 Switching to code step...');
+            
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            console.log('📊 Step elements:', { 
+                emailStep: !!emailStep, 
+                codeStep: !!codeStep 
+            });
+            
+            if (emailStep) {
+                emailStep.style.display = 'none';
+                console.log('✅ Email step hidden');
+            }
+            
+            if (codeStep) {
+                codeStep.style.display = 'block';
+                console.log('✅ Code step shown');
+            } else {
+                console.warn('⚠️ Code step not found, creating it...');
+                this.createCodeStep();
             }
         },
 
-        // Show the initial email collection step
-        showDiscountEmailStep: function() {
-            const modalContent = document.querySelector('#discountModal .modal-content');
-            if (!modalContent) return;
-
-            modalContent.innerHTML = `
-                <span class="discount-close">&times;</span>
-                <div class="discount-step" id="emailStep">
-                    <h2>${translations[currentLanguage].discountTitle}</h2>
-                    <p>${translations[currentLanguage].discountEmailDescription}</p>
-                    
-                    <div class="email-form">
-                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
-                        
-                        <div class="email-consent-section" id="emailConsentCheckbox">
-                            <label class="consent-checkbox">
-                                <input type="checkbox" id="emailConsent">
-                                <span class="checkmark"></span>
-                                ${translations[currentLanguage].emailConsentText}
-                            </label>
-                        </div>
-                        
-                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
-                            ${translations[currentLanguage].getDiscount}
-                        </button>
-                        
-                        <button type="button" id="showDiscountCode" class="btn discount-skip-btn">
-                            ${translations[currentLanguage].skipEmailDiscount}
-                        </button>
-                    </div>
-                    
-                    <div class="privacy-note">
-                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
-                    </div>
-                </div>
-            `;
-
-            // Re-setup event listeners for the new content
-            this.setupDiscountModalListeners();
-        },
-
-        // Show the discount code step
-        showDiscountCodeStep: function() {
-            const modalContent = document.querySelector('#discountModal .modal-content');
-            if (!modalContent) return;
-
-            const discountCode = '15%MUSIC';
-
-            modalContent.innerHTML = `
-                <span class="discount-close">&times;</span>
-                <div class="discount-step" id="codeStep">
+        // Create code step dynamically if missing
+        createCodeStep: function() {
+            const modal = document.getElementById('discountModal');
+            const modalContent = modal ? modal.querySelector('.modal-content') : null;
+            
+            if (!modalContent) {
+                console.error('❌ Modal content not found');
+                return;
+            }
+            
+            const codeStepHTML = `
+                <div class="discount-step" id="codeStep" style="display: block;">
                     <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
                     <p>${translations[currentLanguage].discountSuccessMessage}</p>
                     
                     <div class="discount-code-display">
                         <div class="code-box">
-                            <span class="discount-code-text" id="discountCodeText">${discountCode}</span>
+                            <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
                             <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
                                 <span class="copy-text">${translations[currentLanguage].copyCode}</span>
                                 <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
@@ -1223,32 +1744,62 @@
                     </button>
                 </div>
             `;
-
-            // Re-setup event listeners for the new content
+            
+            modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
+            
+            // Re-setup event listeners for new elements
             this.setupDiscountModalListeners();
+            
+            console.log('✅ Code step created successfully');
         },
 
-        // Submit discount email (with email if provided)
+        // Submit discount email
         submitDiscountEmail: function() {
+            console.log('📧 Submitting discount email...');
+            
             const emailInput = document.getElementById('discountEmail');
             const consentCheckbox = document.getElementById('emailConsent');
             
-            if (!emailInput || !consentCheckbox) {
-                // If form elements don't exist, just show the code directly
-                this.showDiscountCodeStep();
-                return;
-            }
+            const email = emailInput ? emailInput.value.trim() : '';
+            const hasConsent = consentCheckbox ? consentCheckbox.checked : false;
             
-            const email = emailInput.value.trim();
-            const hasConsent = consentCheckbox.checked;
+            console.log('📊 Email submission data:', { 
+                email: email ? '***@***.***' : 'empty', 
+                hasConsent 
+            });
             
             // Reset error states
-            emailInput.style.borderColor = '';
+            if (emailInput) emailInput.style.borderColor = '';
             const consentSection = document.getElementById('emailConsentCheckbox');
             if (consentSection) consentSection.classList.remove('error');
             
-            // Basic validation (only if email is provided)
-            if (email && !hasConsent) {
+            // Validate email is required
+            if (!email) {
+                if (emailInput) {
+                    emailInput.style.borderColor = '#ef4444';
+                    emailInput.focus();
+                }
+                alert(currentLanguage === 'nl' ? 
+                    'Voer uw e-mailadres in om uw kortingscode te ontvangen.' : 
+                    'Please enter your email address to receive your discount code.');
+                return;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                if (emailInput) {
+                    emailInput.style.borderColor = '#ef4444';
+                    emailInput.focus();
+                }
+                alert(currentLanguage === 'nl' ? 
+                    'Voer een geldig e-mailadres in.' : 
+                    'Please enter a valid email address.');
+                return;
+            }
+            
+            // Validate consent is required
+            if (!hasConsent) {
                 if (consentSection) consentSection.classList.add('error');
                 alert(currentLanguage === 'nl' ? 
                     'U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.' : 
@@ -1256,22 +1807,10 @@
                 return;
             }
             
-            // If email is provided, validate and store it
-            if (email) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    emailInput.style.borderColor = '#ef4444';
-                    emailInput.focus();
-                    alert(currentLanguage === 'nl' ? 
-                        'Voer een geldig e-mailadres in.' : 
-                        'Please enter a valid email address.');
-                    return;
-                }
-                
-                localStorage.setItem('discountEmail', email);
-                localStorage.setItem('emailConsent', 'true');
-                this.submitEmailToShopify(email, 'discount_modal_consent');
-            }
+            // Store email and consent
+            localStorage.setItem('discountEmail', email);
+            localStorage.setItem('emailConsent', 'true');
+            console.log('📧 Email stored successfully');
             
             // Show the discount code step
             this.showDiscountCodeStep();
@@ -1279,22 +1818,23 @@
 
         // Show discount code directly without email
         showDiscountCodeDirectly: function() {
+            console.log('⏭️ Showing discount code directly...');
             this.showDiscountCodeStep();
         },
 
         // Copy discount code to clipboard
         copyDiscountCode: function() {
-            const codeText = document.getElementById('discountCodeText');
+            console.log('📋 Copying discount code...');
+            
+            const codeText = 'MUSIC15';
             const copyBtn = document.getElementById('copyDiscountCode');
             const copyTextSpan = copyBtn ? copyBtn.querySelector('.copy-text') : null;
             const copiedTextSpan = copyBtn ? copyBtn.querySelector('.copied-text') : null;
             
-            if (!codeText) return;
-            
-            const discountCode = codeText.textContent;
-            
-            copyToClipboard(discountCode).then((success) => {
+            copyToClipboard(codeText).then((success) => {
                 if (success) {
+                    console.log('✅ Code copied successfully');
+                    
                     // Show success state
                     if (copyTextSpan) copyTextSpan.style.display = 'none';
                     if (copiedTextSpan) copiedTextSpan.style.display = 'inline';
@@ -1316,17 +1856,10 @@
                         }
                     }, 3000);
                 } else {
-                    // Fallback: Select the text for manual copying
-                    if (window.getSelection && document.createRange) {
-                        const selection = window.getSelection();
-                        const range = document.createRange();
-                        range.selectNodeContents(codeText);
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                    }
+                    console.log('❌ Copy failed, showing fallback');
                     alert(currentLanguage === 'nl' ? 
-                        'Code geselecteerd! Gebruik Ctrl+C om te kopiëren.' : 
-                        'Code selected! Use Ctrl+C to copy.');
+                        'Kopieer deze code: ' + codeText : 
+                        'Copy this code: ' + codeText);
                 }
             });
         },
@@ -1367,11 +1900,75 @@
         },
 
         closeDiscountModal: function() {
+            console.log('❌ Closing discount modal...');
+            
             const modal = document.getElementById('discountModal');
             if (modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                console.log('✅ Modal closed');
             }
+        },
+
+        // Setup discount modal event listeners
+        setupDiscountModalListeners: function() {
+            console.log('🔧 Setting up discount modal listeners...');
+            
+            // Wait a bit to ensure DOM is ready
+            setTimeout(() => {
+                // Close button
+                const discountCloseBtn = document.querySelector('.discount-close');
+                if (discountCloseBtn) {
+                    discountCloseBtn.removeEventListener('click', this.closeDiscountModal);
+                    discountCloseBtn.addEventListener('click', () => this.closeDiscountModal());
+                    console.log('✅ Close button listener added');
+                }
+
+                // Click outside modal to close
+                const discountModal = document.getElementById('discountModal');
+                if (discountModal) {
+                    discountModal.removeEventListener('click', this.handleModalOutsideClick);
+                    discountModal.addEventListener('click', (e) => {
+                        if (e.target === discountModal) {
+                            this.closeDiscountModal();
+                        }
+                    });
+                    console.log('✅ Outside click listener added');
+                }
+
+                // ESC key to close modal
+                document.removeEventListener('keydown', this.handleModalEscKey);
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && discountModal && discountModal.style.display === 'block') {
+                        this.closeDiscountModal();
+                    }
+                });
+
+                // Submit email button
+                const submitEmailBtn = document.getElementById('submitDiscountEmail');
+                if (submitEmailBtn) {
+                    submitEmailBtn.removeEventListener('click', this.submitDiscountEmail);
+                    submitEmailBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.submitDiscountEmail();
+                    });
+                    console.log('✅ Submit email button listener added');
+                }
+
+                // Copy code button
+                const copyCodeBtn = document.getElementById('copyDiscountCode');
+                if (copyCodeBtn) {
+                    copyCodeBtn.removeEventListener('click', this.copyDiscountCode);
+                    copyCodeBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.copyDiscountCode();
+                    });
+                    console.log('✅ Copy code button listener added');
+                }
+                
+                console.log('✅ All discount modal listeners set up');
+                
+            }, 100);
         },
 
         // Full Album Modal Functions
@@ -1455,53 +2052,6 @@
 
             // Close modal
             this.closeFullAlbumModal();
-        },
-
-        setupDiscountModalListeners: function() {
-            // Discount modal functionality
-            const discountModal = document.getElementById('discountModal');
-            const discountCloseBtn = document.querySelector('.discount-close');
-
-            // Close button
-            if (discountCloseBtn) {
-                discountCloseBtn.removeEventListener('click', this.closeDiscountModal); // Remove old listener
-                discountCloseBtn.addEventListener('click', () => this.closeDiscountModal());
-            }
-
-            // Click outside modal to close
-            if (discountModal) {
-                discountModal.removeEventListener('click', this.handleModalOutsideClick); // Remove old listener
-                discountModal.addEventListener('click', (e) => {
-                    if (e.target === discountModal) {
-                        this.closeDiscountModal();
-                    }
-                });
-            }
-
-            // ESC key to close modal
-            document.removeEventListener('keydown', this.handleModalEscKey); // Remove old listener
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && discountModal && discountModal.style.display === 'block') {
-                    this.closeDiscountModal();
-                }
-            });
-
-            // Setup new button listeners
-            const submitEmailBtn = document.getElementById('submitDiscountEmail');
-            const showCodeBtn = document.getElementById('showDiscountCode');
-            const copyCodeBtn = document.getElementById('copyDiscountCode');
-
-            if (submitEmailBtn) {
-                submitEmailBtn.addEventListener('click', () => this.submitDiscountEmail());
-            }
-
-            if (showCodeBtn) {
-                showCodeBtn.addEventListener('click', () => this.showDiscountCodeDirectly());
-            }
-
-            if (copyCodeBtn) {
-                copyCodeBtn.addEventListener('click', () => this.copyDiscountCode());
-            }
         },
 
         setupFullAlbumModalListeners: function() {
@@ -1591,6 +2141,7 @@
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
                             if (entry.isIntersecting && !AppState.ui.modalShown) {
+                                console.log('🎯 Pricing section visible, showing discount modal');
                                 this.showDiscountModal();
                             }
                         });
@@ -1604,6 +2155,7 @@
                     // Fallback: show modal after 3 seconds if pricing section not found
                     setTimeout(() => {
                         if (!AppState.ui.modalShown) {
+                            console.log('🎯 Fallback: showing discount modal after timeout');
                             this.showDiscountModal();
                         }
                     }, 3000);
@@ -1854,19 +2406,18 @@
     window.deleteOrder = (id) => MusicadoApp.deleteOrder(id);
     window.exportToRTF = () => MusicadoApp.exportToRTF();
     
-    // Export updated discount functions for global access
+    // Export discount functions for global access
     window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
-    window.showDiscountCode = () => MusicadoApp.showDiscountCodeDirectly();
     window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
     
     // Ensure the discount modal functions work with onclick handlers
     window.MusicadoApp.submitDiscountEmail = MusicadoApp.submitDiscountEmail.bind(MusicadoApp);
-    window.MusicadoApp.showDiscountCodeDirectly = MusicadoApp.showDiscountCodeDirectly.bind(MusicadoApp);
     window.MusicadoApp.copyDiscountCode = MusicadoApp.copyDiscountCode.bind(MusicadoApp);
+    window.MusicadoApp.closeDiscountModal = MusicadoApp.closeDiscountModal.bind(MusicadoApp);
     
     // Legacy function for manual discount application (unchanged)
     window.applyDiscountCode = (code) => {
-        const result = StateManager.applyDiscount(code || '15%MUSIC', 'manual');
+        const result = StateManager.applyDiscount(code || 'MUSIC15', 'manual');
         if (result.success) {
             alert(result.message);
         } else {
@@ -1878,9 +2429,11 @@
     window.testDiscountFunctions = () => {
         console.log('Testing discount functions...');
         console.log('submitDiscountEmail:', typeof window.submitDiscountEmail);
-        console.log('showDiscountCode:', typeof window.showDiscountCode);
         console.log('copyDiscountCode:', typeof window.copyDiscountCode);
         console.log('MusicadoApp available:', typeof window.MusicadoApp);
+        
+        // Test modal creation
+        MusicadoApp.showDiscountModal();
     };
 
     // Auto-initialize if DOM is already loaded

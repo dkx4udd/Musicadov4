@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - Complete New Version with Simplified Discount Flow
+// Musicado Application JavaScript - Updated with Copy Code Functionality
 (function() {
     'use strict';
 
@@ -101,11 +101,12 @@
             getDiscount: "Get My 15% Discount",
             discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
             skipEmailDiscount: "Skip email, just give me the discount",
-            discountSuccessTitle: "🎉 Thank You!",
-            discountSuccessMessage: "Your discount has been applied! Use the code below at checkout:",
-            discountValidityInfo: "This code is valid for 30 days and has been automatically applied to your cart.",
+            discountSuccessTitle: "🎉 Your Discount Code!",
+            discountSuccessMessage: "Here's your 15% discount code. Copy it and use it at checkout:",
+            discountValidityInfo: "This code is valid for 30 days. Save it for your order!",
             copyCode: "Copy Code",
-            continueToCheckout: "Continue to Checkout",
+            codeCopied: "Code Copied!",
+            continueToCheckout: "Close & Continue Shopping",
             fullAlbumContactTitle: "🎵 Full Album Inquiry",
             fullAlbumContactDescription: "Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.",
             emailAddress: "Email Address *",
@@ -210,11 +211,12 @@
             getDiscount: "Krijg Mijn 15% Korting",
             discountTermsPrivacy: "We respecteren uw privacy. Geen spam, en u kunt zich altijd uitschrijven.",
             skipEmailDiscount: "E-mail overslaan, geef me gewoon de korting",
-            discountSuccessTitle: "🎉 Dank je wel!",
-            discountSuccessMessage: "Uw korting is toegepast! Gebruik de onderstaande code bij het afrekenen:",
-            discountValidityInfo: "Deze code is 30 dagen geldig en is automatisch toegepast op uw winkelwagen.",
+            discountSuccessTitle: "🎉 Uw Kortingscode!",
+            discountSuccessMessage: "Hier is uw 15% kortingscode. Kopieer deze en gebruik hem bij het afrekenen:",
+            discountValidityInfo: "Deze code is 30 dagen geldig. Bewaar hem voor uw bestelling!",
             copyCode: "Kopieer Code",
-            continueToCheckout: "Ga door naar Afrekenen",
+            codeCopied: "Code Gekopieerd!",
+            continueToCheckout: "Sluiten & Verder Winkelen",
             fullAlbumContactTitle: "🎵 Volledig Album Aanvraag",
             fullAlbumContactDescription: "Geïnteresseerd in een volledig album? We maken graag iets geweldigs voor je! Laat je gegevens achter en we nemen binnen 24 uur contact met je op met een persoonlijke offerte.",
             emailAddress: "E-mailadres *",
@@ -372,6 +374,40 @@
         }
     };
 
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            // Modern clipboard API
+            return navigator.clipboard.writeText(text).then(() => {
+                return true;
+            }).catch(() => {
+                return fallbackCopyToClipboard(text);
+            });
+        } else {
+            // Fallback for older browsers
+            return Promise.resolve(fallbackCopyToClipboard(text));
+        }
+    }
+
+    function fallbackCopyToClipboard(text) {
+        try {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '-9999px';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return successful;
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            return false;
+        }
+    }
+
     // Main Application Object
     const MusicadoApp = {
         init: function() {
@@ -509,7 +545,8 @@
                 'loadRandomAudio1': () => this.loadRandomAudio(1),
                 'loadRandomAudio2': () => this.loadRandomAudio(2),
                 'submitDiscountEmail': () => this.submitDiscountEmail(),
-                'applyDiscountSimple': () => this.applyDiscountAndCloseSimple()
+                'showDiscountCode': () => this.showDiscountCodeDirectly(),
+                'copyDiscountCode': () => this.copyDiscountCode()
             };
 
             Object.entries(buttonHandlers).forEach(([id, handler]) => {
@@ -535,15 +572,15 @@
             });
 
             // Handle discount buttons by onclick attribute as well (for backward compatibility)
-            document.querySelectorAll('[onclick*="submitDiscountEmail"], [onclick*="applyDiscountAndCloseSimple"]').forEach(button => {
+            document.querySelectorAll('[onclick*="submitDiscountEmail"], [onclick*="showDiscountCode"]').forEach(button => {
                 button.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     
                     if (button.onclick && button.onclick.toString().includes('submitDiscountEmail')) {
                         this.submitDiscountEmail();
-                    } else if (button.onclick && button.onclick.toString().includes('applyDiscountAndCloseSimple')) {
-                        this.applyDiscountAndCloseSimple();
+                    } else if (button.onclick && button.onclick.toString().includes('showDiscountCode')) {
+                        this.showDiscountCodeDirectly();
                     }
                 });
             });
@@ -786,11 +823,6 @@
                 if (words.length > 0) {
                     cartData.items[0].properties['Words/Names'] = words.join(', ');
                 }
-            }
-
-            // Add discount if applied
-            if (AppState.discount.applied && AppState.discount.code === '15%MUSIC') {
-                cartData.items[0].properties['Discount Applied'] = AppState.discount.code;
             }
 
             // Store order data in localStorage for cart page
@@ -1101,30 +1133,109 @@
             }
         },
 
-        // SIMPLIFIED DISCOUNT MODAL FUNCTIONS
+        // UPDATED DISCOUNT MODAL FUNCTIONS - Copy Code Instead of Auto-Apply
         showDiscountModal: function() {
-            // Don't show modal if already shown or discount already applied
-            if (AppState.ui.modalShown || AppState.discount.applied) {
+            // Don't show modal if already shown
+            if (AppState.ui.modalShown) {
                 return;
             }
             
             const modal = document.getElementById('discountModal');
             if (modal) {
-                // Show single discount step
+                // Show the initial email collection step
+                this.showDiscountEmailStep();
                 modal.style.display = 'block';
                 document.body.style.overflow = 'hidden';
                 AppState.ui.modalShown = true;
             }
         },
 
-        // Simplified discount application - just close modal and set discount code
+        // Show the initial email collection step
+        showDiscountEmailStep: function() {
+            const modalContent = document.querySelector('#discountModal .modal-content');
+            if (!modalContent) return;
+
+            modalContent.innerHTML = `
+                <span class="discount-close">&times;</span>
+                <div class="discount-step" id="emailStep">
+                    <h2>${translations[currentLanguage].discountTitle}</h2>
+                    <p>${translations[currentLanguage].discountEmailDescription}</p>
+                    
+                    <div class="email-form">
+                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                        
+                        <div class="email-consent-section" id="emailConsentCheckbox">
+                            <label class="consent-checkbox">
+                                <input type="checkbox" id="emailConsent">
+                                <span class="checkmark"></span>
+                                ${translations[currentLanguage].emailConsentText}
+                            </label>
+                        </div>
+                        
+                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                            ${translations[currentLanguage].getDiscount}
+                        </button>
+                        
+                        <button type="button" id="showDiscountCode" class="btn discount-skip-btn">
+                            ${translations[currentLanguage].skipEmailDiscount}
+                        </button>
+                    </div>
+                    
+                    <div class="privacy-note">
+                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                    </div>
+                </div>
+            `;
+
+            // Re-setup event listeners for the new content
+            this.setupDiscountModalListeners();
+        },
+
+        // Show the discount code step
+        showDiscountCodeStep: function() {
+            const modalContent = document.querySelector('#discountModal .modal-content');
+            if (!modalContent) return;
+
+            const discountCode = '15%MUSIC';
+
+            modalContent.innerHTML = `
+                <span class="discount-close">&times;</span>
+                <div class="discount-step" id="codeStep">
+                    <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                    <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                    
+                    <div class="discount-code-display">
+                        <div class="code-box">
+                            <span class="discount-code-text" id="discountCodeText">${discountCode}</span>
+                            <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="code-validity-info">
+                        <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                    </div>
+                    
+                    <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                        ${translations[currentLanguage].continueToCheckout}
+                    </button>
+                </div>
+            `;
+
+            // Re-setup event listeners for the new content
+            this.setupDiscountModalListeners();
+        },
+
+        // Submit discount email (with email if provided)
         submitDiscountEmail: function() {
             const emailInput = document.getElementById('discountEmail');
             const consentCheckbox = document.getElementById('emailConsent');
             
             if (!emailInput || !consentCheckbox) {
-                // If form elements don't exist, just apply discount directly
-                this.applyDiscountAndCloseSimple();
+                // If form elements don't exist, just show the code directly
+                this.showDiscountCodeStep();
                 return;
             }
             
@@ -1145,9 +1256,8 @@
                 return;
             }
             
-            // If email is provided, store it
+            // If email is provided, validate and store it
             if (email) {
-                // Validate email format if provided
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
                     emailInput.style.borderColor = '#ef4444';
@@ -1163,54 +1273,97 @@
                 this.submitEmailToShopify(email, 'discount_modal_consent');
             }
             
-            // Apply discount and close modal
-            this.applyDiscountAndCloseSimple();
+            // Show the discount code step
+            this.showDiscountCodeStep();
         },
 
-        // New simplified function to apply discount and close
-        applyDiscountAndCloseSimple: function() {
-            // Store discount code for cart page
-            localStorage.setItem('pendingDiscountCode', '15%MUSIC');
-            localStorage.setItem('discountSource', 'modal');
+        // Show discount code directly without email
+        showDiscountCodeDirectly: function() {
+            this.showDiscountCodeStep();
+        },
+
+        // Copy discount code to clipboard
+        copyDiscountCode: function() {
+            const codeText = document.getElementById('discountCodeText');
+            const copyBtn = document.getElementById('copyDiscountCode');
+            const copyTextSpan = copyBtn ? copyBtn.querySelector('.copy-text') : null;
+            const copiedTextSpan = copyBtn ? copyBtn.querySelector('.copied-text') : null;
             
-            // Apply discount to internal state
-            const result = StateManager.applyDiscount('15%MUSIC', 'modal');
+            if (!codeText) return;
             
-            // Close the modal
-            this.closeDiscountModal();
+            const discountCode = codeText.textContent;
             
-            // Show confirmation message
-            const confirmMsg = currentLanguage === 'nl' ? 
-                '✅ 15% korting wordt toegepast bij de winkelwagen!' : 
-                '✅ 15% discount will be applied in your cart!';
-            
-            // Create temporary notification
+            copyToClipboard(discountCode).then((success) => {
+                if (success) {
+                    // Show success state
+                    if (copyTextSpan) copyTextSpan.style.display = 'none';
+                    if (copiedTextSpan) copiedTextSpan.style.display = 'inline';
+                    if (copyBtn) {
+                        copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                        copyBtn.style.color = 'white';
+                    }
+                    
+                    // Show success notification
+                    this.showCopySuccessNotification();
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        if (copyTextSpan) copyTextSpan.style.display = 'inline';
+                        if (copiedTextSpan) copiedTextSpan.style.display = 'none';
+                        if (copyBtn) {
+                            copyBtn.style.background = '';
+                            copyBtn.style.color = '';
+                        }
+                    }, 3000);
+                } else {
+                    // Fallback: Select the text for manual copying
+                    if (window.getSelection && document.createRange) {
+                        const selection = window.getSelection();
+                        const range = document.createRange();
+                        range.selectNodeContents(codeText);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    alert(currentLanguage === 'nl' ? 
+                        'Code geselecteerd! Gebruik Ctrl+C om te kopiëren.' : 
+                        'Code selected! Use Ctrl+C to copy.');
+                }
+            });
+        },
+
+        // Show copy success notification
+        showCopySuccessNotification: function() {
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                color: #1e293b;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
                 padding: 1rem 1.5rem;
                 border-radius: 12px;
-                box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
-                z-index: 10000;
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                z-index: 10001;
                 font-weight: 600;
                 animation: slideInRight 0.3s ease-out;
-                max-width: 320px;
+                max-width: 300px;
                 text-align: center;
                 line-height: 1.4;
             `;
-            notification.textContent = confirmMsg;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                    <span>📋</span>
+                    <span>${currentLanguage === 'nl' ? 'Code gekopieerd naar klembord!' : 'Code copied to clipboard!'}</span>
+                </div>
+            `;
             document.body.appendChild(notification);
             
-            // Remove notification after 4 seconds
+            // Remove notification after delay
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
-            }, 4000);
+            }, 3000);
         },
 
         closeDiscountModal: function() {
@@ -1218,15 +1371,6 @@
             if (modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
-                
-                // Reset form (optional)
-                const emailInput = document.getElementById('discountEmail');
-                const consentCheckbox = document.getElementById('emailConsent');
-                const consentSection = document.getElementById('emailConsentCheckbox');
-                
-                if (emailInput) emailInput.value = '';
-                if (consentCheckbox) consentCheckbox.checked = false;
-                if (consentSection) consentSection.classList.remove('error');
             }
         },
 
@@ -1320,11 +1464,13 @@
 
             // Close button
             if (discountCloseBtn) {
+                discountCloseBtn.removeEventListener('click', this.closeDiscountModal); // Remove old listener
                 discountCloseBtn.addEventListener('click', () => this.closeDiscountModal());
             }
 
             // Click outside modal to close
             if (discountModal) {
+                discountModal.removeEventListener('click', this.handleModalOutsideClick); // Remove old listener
                 discountModal.addEventListener('click', (e) => {
                     if (e.target === discountModal) {
                         this.closeDiscountModal();
@@ -1333,11 +1479,29 @@
             }
 
             // ESC key to close modal
+            document.removeEventListener('keydown', this.handleModalEscKey); // Remove old listener
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && discountModal && discountModal.style.display === 'block') {
                     this.closeDiscountModal();
                 }
             });
+
+            // Setup new button listeners
+            const submitEmailBtn = document.getElementById('submitDiscountEmail');
+            const showCodeBtn = document.getElementById('showDiscountCode');
+            const copyCodeBtn = document.getElementById('copyDiscountCode');
+
+            if (submitEmailBtn) {
+                submitEmailBtn.addEventListener('click', () => this.submitDiscountEmail());
+            }
+
+            if (showCodeBtn) {
+                showCodeBtn.addEventListener('click', () => this.showDiscountCodeDirectly());
+            }
+
+            if (copyCodeBtn) {
+                copyCodeBtn.addEventListener('click', () => this.copyDiscountCode());
+            }
         },
 
         setupFullAlbumModalListeners: function() {
@@ -1426,7 +1590,7 @@
                 if (pricingSection) {
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
-                            if (entry.isIntersecting && !AppState.ui.modalShown && !AppState.discount.applied) {
+                            if (entry.isIntersecting && !AppState.ui.modalShown) {
                                 this.showDiscountModal();
                             }
                         });
@@ -1439,7 +1603,7 @@
                 } else {
                     // Fallback: show modal after 3 seconds if pricing section not found
                     setTimeout(() => {
-                        if (!AppState.ui.modalShown && !AppState.discount.applied) {
+                        if (!AppState.ui.modalShown) {
                             this.showDiscountModal();
                         }
                     }, 3000);
@@ -1690,15 +1854,17 @@
     window.deleteOrder = (id) => MusicadoApp.deleteOrder(id);
     window.exportToRTF = () => MusicadoApp.exportToRTF();
     
-    // Export simplified discount functions for global access
+    // Export updated discount functions for global access
     window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
-    window.applyDiscountAndCloseSimple = () => MusicadoApp.applyDiscountAndCloseSimple();
+    window.showDiscountCode = () => MusicadoApp.showDiscountCodeDirectly();
+    window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
     
     // Ensure the discount modal functions work with onclick handlers
     window.MusicadoApp.submitDiscountEmail = MusicadoApp.submitDiscountEmail.bind(MusicadoApp);
-    window.MusicadoApp.applyDiscountAndCloseSimple = MusicadoApp.applyDiscountAndCloseSimple.bind(MusicadoApp);
+    window.MusicadoApp.showDiscountCodeDirectly = MusicadoApp.showDiscountCodeDirectly.bind(MusicadoApp);
+    window.MusicadoApp.copyDiscountCode = MusicadoApp.copyDiscountCode.bind(MusicadoApp);
     
-    // Legacy function for manual discount application
+    // Legacy function for manual discount application (unchanged)
     window.applyDiscountCode = (code) => {
         const result = StateManager.applyDiscount(code || '15%MUSIC', 'manual');
         if (result.success) {
@@ -1712,7 +1878,8 @@
     window.testDiscountFunctions = () => {
         console.log('Testing discount functions...');
         console.log('submitDiscountEmail:', typeof window.submitDiscountEmail);
-        console.log('applyDiscountAndCloseSimple:', typeof window.applyDiscountAndCloseSimple);
+        console.log('showDiscountCode:', typeof window.showDiscountCode);
+        console.log('copyDiscountCode:', typeof window.copyDiscountCode);
         console.log('MusicadoApp available:', typeof window.MusicadoApp);
     };
 

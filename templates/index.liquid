@@ -1,4 +1,4 @@
-<!-- Single Page Order Form - No Summary Page -->
+<!-- Single Page Order Form with Cart Button -->
 <!-- Language Detection Data -->
 <script>
 window.shopifyCustomerData = {
@@ -18,9 +18,30 @@ window.shopifyCustomerData = {
 };
 console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCustomerData);
 </script>
-<div class="page active" id="page1">
 
- 
+<!-- Cart Button and Language Switcher Header -->
+<div class="top-navigation">
+  <!-- Cart Button -->
+  <div class="cart-button-container">
+    <a href="/cart" id="cartButton" class="cart-button">
+      <div class="cart-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="cartCount" class="cart-count">0</span>
+      </div>
+      <span id="cartText" class="cart-text" data-translate="cartEmpty">Cart Empty</span>
+    </a>
+  </div>
+
+  <!-- Language Switcher -->
+  <div class="language-switcher">
+    <button class="lang-btn" data-lang="nl">Nederlands</button>
+    <button class="lang-btn" data-lang="en">English</button>
+  </div>
+</div>
+
+<div class="page active" id="page1">
   <div class="container">
     <div class="banner">
       {% if settings.banner_image %}
@@ -416,10 +437,12 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
 </div>
 
 <!-- Include Discount Modal -->
-<!-- Enhanced Language Detection for Index Page -->
+{% render 'discount-modal' %}
+
+<!-- Enhanced Language Detection and Cart Integration for Index Page -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Index page initializing with Dutch customer detection...');
+  console.log('🚀 Index page initializing with Dutch customer detection and cart integration...');
   
   const LANGUAGE_KEY = 'musicado_language';
   
@@ -480,8 +503,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Default to English
-    console.log('🇬🇧 Defaulting to English');
-    return 'en';
+    console.log('🇳🇱 Defaulting to Dutch');
+    return 'nl';
   }
   
   // Save language preference
@@ -490,12 +513,62 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('💾 Language saved:', lang);
   }
   
+  // Cart functionality
+  function updateCartButton() {
+    console.log('🛒 Updating cart button...');
+    
+    // Fetch current cart state
+    fetch('/cart.js')
+      .then(response => response.json())
+      .then(cart => {
+        const cartCount = document.getElementById('cartCount');
+        const cartText = document.getElementById('cartText');
+        const cartButton = document.getElementById('cartButton');
+        
+        if (cart.item_count > 0) {
+          if (cartCount) {
+            cartCount.textContent = cart.item_count;
+            cartCount.style.display = 'block';
+          }
+          if (cartText) {
+            const currentLang = localStorage.getItem(LANGUAGE_KEY) || 'en';
+            const itemText = currentLang === 'nl' ? 
+              `${cart.item_count} items in winkelwagen` : 
+              `${cart.item_count} items in cart`;
+            cartText.textContent = itemText;
+          }
+          if (cartButton) {
+            cartButton.classList.add('has-items');
+          }
+        } else {
+          if (cartCount) {
+            cartCount.style.display = 'none';
+          }
+          if (cartText) {
+            const currentLang = localStorage.getItem(LANGUAGE_KEY) || 'en';
+            cartText.textContent = currentLang === 'nl' ? 'Winkelwagen Leeg' : 'Cart Empty';
+          }
+          if (cartButton) {
+            cartButton.classList.remove('has-items');
+          }
+        }
+        
+        console.log('✅ Cart button updated:', cart.item_count, 'items');
+      })
+      .catch(error => {
+        console.error('❌ Error updating cart:', error);
+      });
+  }
+  
   // Apply language to UI
   function applyLanguage(lang) {
     // Update language buttons
     document.querySelectorAll('.lang-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === lang);
     });
+    
+    // Update cart button text
+    updateCartButton();
     
     // Update MusicadoApp if available
     if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
@@ -531,6 +604,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Setup cart button click analytics
+  function setupCartButton() {
+    const cartButton = document.getElementById('cartButton');
+    if (cartButton) {
+      cartButton.addEventListener('click', function(e) {
+        console.log('🛒 Cart button clicked');
+        // Analytics can be added here if needed
+      });
+    }
+  }
+  
   // Wait for MusicadoApp to be available
   function waitForMusicadoApp() {
     if (typeof MusicadoApp !== 'undefined') {
@@ -555,19 +639,144 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup language switcher
     setupLanguageSwitcher();
     
-    console.log('🎉 Index page language detection complete:', detectedLanguage);
+    // Setup cart button
+    setupCartButton();
+    
+    // Update cart button immediately
+    updateCartButton();
+    
+    // Update cart button periodically to catch changes
+    setInterval(updateCartButton, 5000);
+    
+    console.log('🎉 Index page language detection and cart integration complete:', detectedLanguage);
   }
   
   // Start the process
   waitForMusicadoApp();
+  
+  // Make updateCartButton available globally for use by other scripts
+  window.updateCartButton = updateCartButton;
 });
 </script>
-/* Language Switcher for Index Page */
-.language-switcher {
+
+<!-- Styles for Top Navigation and Cart Button -->
+<style>
+/* Top Navigation Container */
+.top-navigation {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(15px) saturate(180%);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Cart Button */
+.cart-button-container {
+  display: flex;
+  align-items: center;
+}
+
+.cart-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(75, 85, 99, 0.8);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 12px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.cart-button:hover {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  color: white;
+  text-decoration: none;
+}
+
+.cart-button.has-items {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: rgba(16, 185, 129, 0.6);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.cart-button.has-items:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.cart-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-icon svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.3s ease;
+}
+
+.cart-button:hover .cart-icon svg {
+  transform: scale(1.1);
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.cart-count[style*="display: block"] {
+  display: flex !important;
+}
+
+.cart-text {
+  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* Language Switcher - Matching Cart Page Style */
+.language-switcher {
   display: flex;
   gap: 8px;
   background: rgba(30, 41, 59, 0.9);
@@ -587,6 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 14px;
   font-weight: 600;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .lang-btn:hover {
@@ -602,17 +812,126 @@ document.addEventListener('DOMContentLoaded', function() {
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
+/* Page content spacing to account for fixed top navigation */
+.page {
+  padding-top: 80px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+  .top-navigation {
+    padding: 10px 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .cart-button {
+    padding: 10px 16px;
+    font-size: 12px;
+    gap: 8px;
+  }
+  
+  .cart-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .cart-count {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    top: -6px;
+    right: -6px;
+  }
+  
+  .cart-text {
+    display: none;
+  }
+  
   .language-switcher {
-    top: 10px;
-    right: 10px;
     padding: 6px;
+    gap: 6px;
   }
   
   .lang-btn {
     padding: 6px 12px;
     font-size: 12px;
   }
+  
+  .page {
+    padding-top: 70px;
+  }
 }
-{% render 'discount-modal' %}
+
+@media (max-width: 480px) {
+  .top-navigation {
+    padding: 8px 10px;
+  }
+  
+  .cart-button {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  
+  .cart-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .language-switcher {
+    padding: 4px;
+  }
+  
+  .lang-btn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+  
+  .page {
+    padding-top: 60px;
+  }
+}
+
+/* Animation for cart updates */
+.cart-button.updating {
+  animation: cartUpdate 0.5s ease-in-out;
+}
+
+@keyframes cartUpdate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Ensure proper stacking context */
+.top-navigation {
+  z-index: 1000;
+}
+
+.discount-modal {
+  z-index: 10000;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .cart-button,
+  .lang-btn {
+    border-width: 2px;
+  }
+  
+  .cart-count {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cart-button,
+  .lang-btn,
+  .cart-icon svg,
+  .cart-count {
+    transition: none;
+    animation: none;
+  }
+}
+</style>

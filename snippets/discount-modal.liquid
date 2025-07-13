@@ -1,396 +1,820 @@
-<!-- Kortingscode Modal - Alleen Nederlands -->
-<div id="discountModal" class="modal discount-modal">
-  <div class="modal-content discount-content">
-    <div class="modal-header discount-header">
-      <h2>🎵 Krijg 15% KORTING op je aankoop!</h2>
-      <span class="close discount-close">&times;</span>
-    </div>
-    <div class="modal-body discount-body">
-      <!-- Stap 1: E-mail Verzameling met Toestemming -->
-      <div id="discountEmailStep" class="discount-step active">
-        <p class="discount-description">
-          Voer je e-mailadres in om 15% korting te krijgen op je aangepaste liedjescreatie!
-        </p>
+{% comment %}
+  CORRECTED Discount Modal - Both Steps Included
+  Save this as: snippets/discount-modal.liquid
+{% endcomment %}
+
+<!-- Discount Modal -->
+<div id="discountModal" class="discount-modal" style="display: none;">
+  <div class="discount-modal-overlay">
+    <div class="modal-content">
+      <span class="discount-close">&times;</span>
+      
+      <!-- Email Step (Default visible) -->
+      <div class="discount-step" id="emailStep">
+        <h2>🎵 Get 15% OFF Your Purchase!</h2>
+        <p>Enter your email to unlock 15% off your custom song creation!</p>
         
-        <div class="discount-input-group">
-          <input type="email" id="discountEmail" placeholder="Voer je e-mailadres in" required>
-        </div>
-        
-        <!-- E-mail Toestemming Sectie -->
-        <div class="discount-consent-section">
-          <div class="discount-consent-checkbox" id="emailConsentCheckbox">
-            <input type="checkbox" id="emailConsent" name="emailConsent" required>
-            <label for="emailConsent">
-              Ik ga akkoord met het ontvangen van promotionele e-mails en speciale aanbiedingen van musicado. Je kunt je op elk moment uitschrijven.
+        <div class="email-form">
+          <input type="email" id="discountEmail" placeholder="Enter your email address" autocomplete="email">
+          
+          <div class="email-consent-section" id="emailConsentCheckbox">
+            <label class="consent-checkbox">
+              <input type="checkbox" id="emailConsent">
+              <span class="checkmark"></span>
+              I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.
             </label>
           </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 1.5rem;">
-          <button onclick="window.MusicadoApp ? window.MusicadoApp.submitDiscountEmail() : submitDiscountEmail()" class="btn discount-btn">
-            Krijg Mijn 15% Korting
+          
+          <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+            Get My 15% Discount
+          </button>
+          
+          <button type="button" id="showDiscountCode" class="btn discount-skip-btn">
+            Skip email, just give me the discount
           </button>
         </div>
         
-        <p class="discount-terms">
-          We respecteren je privacy. Geen spam, en je kunt je altijd uitschrijven.
-        </p>
+        <div class="privacy-note">
+          <small>We respect your privacy. No spam, and you can unsubscribe anytime.</small>
+        </div>
       </div>
 
-      <!-- Stap 2: Succes met Kortingscode -->
-      <div id="discountSuccessStep" class="discount-step">
-        <div class="discount-success">
-          <h3>🎉 Dank je wel!</h3>
-          <p class="discount-instructions">
-            Je korting is toegepast! Gebruik de onderstaande code bij het afrekenen:
-          </p>
-          
-          <div class="discount-code-display">
-            <span class="discount-code">15%MUSIC</span>
-            <button onclick="window.MusicadoApp ? window.MusicadoApp.copyDiscountCode() : copyDiscountCode()" class="copy-btn">
-              Kopieer Code
+      <!-- Code Step (Hidden by default) - THIS WAS MISSING! -->
+      <div class="discount-step" id="codeStep" style="display: none;">
+        <h2>🎉 Your Discount Code!</h2>
+        <p>Here's your 15% discount code. Copy it and use it at checkout:</p>
+        
+        <div class="discount-code-display">
+          <div class="code-box">
+            <span class="discount-code-text" id="discountCodeText">15%MUSIC</span>
+            <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+              <span class="copy-text">Copy Code</span>
+              <span class="copied-text" style="display: none;">Code Copied!</span>
             </button>
           </div>
-          
-          <p class="discount-instructions">
-            Deze code is 30 dagen geldig en is automatisch toegepast op je winkelwagen.
-          </p>
-          
-          <div style="text-align: center; margin-top: 1.5rem;">
-            <button onclick="window.MusicadoApp ? window.MusicadoApp.applyDiscountAndClose() : applyDiscountAndClose()" class="btn discount-continue">
-  Korting Toepassen & Sluiten
-</button>
-          </div>
         </div>
+        
+        <div class="code-validity-info">
+          <p><small>This code is valid for 30 days. Save it for your order!</small></p>
+        </div>
+        
+        <button type="button" class="btn continue-shopping-btn" onclick="closeDiscountModal()">
+          Close & Continue Shopping
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-//fallback DiscountandClose
-if (!window.applyDiscountAndClose) {
-  window.applyDiscountAndClose = function() {
-    console.log('Fallback: applyDiscountAndClose - DISCOUNT ONLY');
-    // ONLY apply discount, NO cart functionality
-    localStorage.setItem('discountAppliedViaModal', 'true');
-    const modal = document.getElementById('discountModal');
-    if (modal) {
-      modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-    }
-    alert('Korting van 15% toegepast! Ga verder met je bestelling om af te rekenen.');
-  };
+<!-- Full Album Contact Modal -->
+<div id="fullAlbumModal" class="discount-modal" style="display: none;">
+  <div class="discount-modal-overlay">
+    <div class="modal-content">
+      <span class="discount-close" id="fullAlbumClose">&times;</span>
+      <div class="discount-step">
+        <h2>🎵 Full Album Inquiry</h2>
+        <p>Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.</p>
+        
+        <form id="fullAlbumContactForm" class="full-album-form">
+          <div class="form-group">
+            <label for="fullAlbumEmail">Email Address *</label>
+            <input type="email" id="fullAlbumEmail" name="email" required placeholder="your@email.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="fullAlbumPhone">Mobile Phone *</label>
+            <input type="tel" id="fullAlbumPhone" name="phone" required placeholder="+31 6 12345678">
+          </div>
+          
+          <div class="form-group">
+            <label for="fullAlbumTopic">Topic</label>
+            <input type="text" id="fullAlbumTopic" name="topic" value="Interested in a full album please contact me">
+          </div>
+          
+          <div class="form-group">
+            <label for="fullAlbumNotes">Additional Notes (Optional)</label>
+            <textarea id="fullAlbumNotes" name="notes" rows="4" placeholder="Tell us more about your album vision..."></textarea>
+          </div>
+          
+          <button type="submit" class="btn full-album-submit-btn">
+            Submit Contact Request
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global functions for modal control
+function closeDiscountModal() {
+  const modal = document.getElementById('discountModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
 }
 
+function showCodeStep() {
+  const emailStep = document.getElementById('emailStep');
+  const codeStep = document.getElementById('codeStep');
+  
+  console.log('Switching to code step...', { emailStep: !!emailStep, codeStep: !!codeStep });
+  
+  if (emailStep) emailStep.style.display = 'none';
+  if (codeStep) codeStep.style.display = 'block';
+}
 
-<!-- Fallback JavaScript voor wanneer MusicadoApp niet geladen is -->
-<script>
-  // Fallback functies als MusicadoApp niet beschikbaar is
-  if (!window.submitDiscountEmail) {
-    window.submitDiscountEmail = function() {
-      console.log('Fallback: submitDiscountEmail');
-      alert('Probeer het opnieuw. Als het probleem aanhoudt, neem contact op met de ondersteuning.');
-    };
+function copyDiscountCode() {
+  const codeText = '15%MUSIC';
+  const copyBtn = document.getElementById('copyDiscountCode');
+  const copyTextSpan = copyBtn ? copyBtn.querySelector('.copy-text') : null;
+  const copiedTextSpan = copyBtn ? copyBtn.querySelector('.copied-text') : null;
+  
+  console.log('Copying code:', codeText);
+  
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(codeText).then(() => {
+      console.log('✅ Code copied successfully');
+      showCopySuccess();
+    }).catch((err) => {
+      console.log('❌ Modern copy failed, trying fallback');
+      fallbackCopy(codeText);
+    });
+  } else {
+    console.log('📋 Using fallback copy method');
+    fallbackCopy(codeText);
   }
   
-  if (!window.copyDiscountCode) {
-    window.copyDiscountCode = function() {
-      console.log('Fallback: copyDiscountCode');
-      const code = '15%MUSIC';
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(code).then(() => {
-          alert('Code gekopieerd: ' + code);
-        });
+  function showCopySuccess() {
+    // Show success state
+    if (copyTextSpan) copyTextSpan.style.display = 'none';
+    if (copiedTextSpan) copiedTextSpan.style.display = 'inline';
+    if (copyBtn) {
+      copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      copyBtn.style.color = 'white';
+    }
+    
+    // Show notification
+    showCopyNotification();
+    
+    // Reset button after 3 seconds
+    setTimeout(() => {
+      if (copyTextSpan) copyTextSpan.style.display = 'inline';
+      if (copiedTextSpan) copiedTextSpan.style.display = 'none';
+      if (copyBtn) {
+        copyBtn.style.background = '';
+        copyBtn.style.color = '';
+      }
+    }, 3000);
+  }
+  
+  function fallbackCopy(text) {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.top = '-9999px';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        console.log('✅ Fallback copy successful');
+        showCopySuccess();
       } else {
-        alert('Kopieer deze code: ' + code);
+        console.log('❌ Fallback copy failed');
+        alert('Copy the code: ' + text);
       }
-    };
+    } catch (err) {
+      console.log('❌ All copy methods failed:', err);
+      alert('Copy this code: ' + text);
+    }
+  }
+}
+
+function showCopyNotification() {
+  const notification = document.createElement('div');
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
+      <span>📋</span>
+      <span>Code copied to clipboard!</span>
+    </div>
+  `;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    z-index: 10001;
+    font-weight: 600;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 300px;
+    text-align: center;
+    line-height: 1.4;
+  `;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 3000);
+}
+
+// Initialize modal functionality when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('✅ Corrected discount modal initialized');
+  
+  // Verify both steps exist
+  const emailStep = document.getElementById('emailStep');
+  const codeStep = document.getElementById('codeStep');
+  console.log('📊 Modal steps check:', { 
+    emailStep: !!emailStep, 
+    codeStep: !!codeStep 
+  });
+  
+  // Close button functionality
+  const closeBtn = document.querySelector('.discount-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeDiscountModal);
   }
   
-  if (!window.applyDiscountAndClose) {
-    window.applyDiscountAndClose = function() {
-      console.log('Fallback: applyDiscountAndClose');
-      const modal = document.getElementById('discountModal');
-      if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+  // Email submit button
+  const submitEmailBtn = document.getElementById('submitDiscountEmail');
+  if (submitEmailBtn) {
+    submitEmailBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('📧 Email submit clicked');
+      
+      const emailInput = document.getElementById('discountEmail');
+      const consentCheckbox = document.getElementById('emailConsent');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const hasConsent = consentCheckbox ? consentCheckbox.checked : false;
+      
+      // Reset error states
+      if (emailInput) emailInput.style.borderColor = '';
+      const consentSection = document.getElementById('emailConsentCheckbox');
+      if (consentSection) consentSection.classList.remove('error');
+      
+      // Basic validation (only if email is provided)
+      if (email && !hasConsent) {
+        if (consentSection) consentSection.classList.add('error');
+        alert('You must agree to receive emails to get your discount code.');
+        return;
       }
-      alert('Korting toegepast! Je kunt nu doorgaan naar betaling.');
-    };
+      
+      // If email is provided, validate it
+      if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          if (emailInput) {
+            emailInput.style.borderColor = '#ef4444';
+            emailInput.focus();
+          }
+          alert('Please enter a valid email address.');
+          return;
+        }
+        
+        // Store email if provided
+        localStorage.setItem('discountEmail', email);
+        localStorage.setItem('emailConsent', 'true');
+        console.log('📧 Email stored:', email);
+      }
+      
+      // Show code step
+      showCodeStep();
+    });
   }
+  
+  // Skip email button
+  const skipBtn = document.getElementById('showDiscountCode');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('⏭️ Skip email clicked');
+      showCodeStep();
+    });
+  }
+  
+  // Copy code button
+  const copyBtn = document.getElementById('copyDiscountCode');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('📋 Copy code clicked');
+      copyDiscountCode();
+    });
+  }
+  
+  // Click outside to close
+  const modal = document.getElementById('discountModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeDiscountModal();
+      }
+    });
+  }
+  
+  // ESC key to close
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal && modal.style.display === 'block') {
+      closeDiscountModal();
+    }
+  });
+});
 </script>
 
 <style>
-  .discount-modal .modal-content {
-    max-width: 500px;
-    margin: 5% auto;
+/* Discount Modal Styles */
+.discount-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.discount-modal-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+}
+
+.discount-modal .modal-content {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
+  backdrop-filter: blur(25px) saturate(180%);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 
+    0 25px 60px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #e2e8f0;
+  animation: slideInUp 0.4s ease-out;
+}
+
+.discount-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  font-size: 2rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.discount-close:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: scale(1.1);
+}
+
+.discount-step h2 {
+  color: #06b6d4;
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.discount-step p {
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* Email Form Styles */
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.email-form input[type="email"] {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  color: #e2e8f0;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.email-form input[type="email"]:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(59, 130, 246, 0.2);
+  background: rgba(15, 23, 42, 0.8);
+  transform: translateY(-2px);
+}
+
+.email-form input[type="email"]::placeholder {
+  color: #94a3b8;
+}
+
+.email-consent-section {
+  margin: 1rem 0;
+}
+
+.consent-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+}
+
+.consent-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #3b82f6;
+  transform: scale(1.1);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.email-consent-section.error {
+  animation: shake 0.5s ease-in-out;
+}
+
+.email-consent-section.error .consent-checkbox {
+  color: #ef4444;
+}
+
+/* Discount Code Display */
+.discount-code-display {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.code-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 8px 25px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.discount-code-text {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+  letter-spacing: 2px;
+  flex: 1;
+  text-align: left;
+}
+
+.copy-code-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1e293b;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  min-width: 120px;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+}
+
+.copy-code-btn:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+}
+
+.code-validity-info {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.code-validity-info p {
+  margin: 0;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  min-height: 56px;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  transition: left 0.4s ease;
+  pointer-events: none;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.discount-submit-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  width: 100%;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.discount-submit-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+}
+
+.discount-skip-btn {
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  width: 100%;
+  font-weight: 600;
+}
+
+.discount-skip-btn:hover {
+  background: rgba(75, 85, 99, 0.9);
+  transform: translateY(-1px);
+}
+
+.continue-shopping-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  color: white;
+  width: 100%;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.continue-shopping-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+}
+
+.privacy-note {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.privacy-note small {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* Full Album Form Styles */
+.full-album-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  color: #e2e8f0;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(59, 130, 246, 0.2);
+  background: rgba(15, 23, 42, 0.8);
+  transform: translateY(-1px);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+.full-album-submit-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  width: 100%;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 1rem;
+}
+
+.full-album-submit-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-  
-  .discount-header {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: #1e293b;
+  to {
+    opacity: 1;
   }
-  
-  .discount-header h2 {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 700;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
   }
-  
-  .discount-step {
-    display: none;
-  }
-  
-  .discount-step.active {
-    display: block;
-  }
-  
-  .discount-description {
-    color: #cbd5e1;
-    font-size: 1.1rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
-  }
-  
-  .discount-input-group {
-    margin-bottom: 1rem;
-  }
-  
-  .discount-input-group input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    background: rgba(15, 23, 42, 0.4);
-    color: #e2e8f0;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-  }
-  
-  .discount-input-group input:focus {
-    outline: none;
-    border-color: #fbbf24;
-    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
-    background: rgba(15, 23, 42, 0.6);
-  }
-  
-  .discount-input-group input::placeholder {
-    color: #94a3b8;
-  }
-  
-  .discount-consent-section {
-    margin: 1.5rem 0;
-  }
-  
-  .discount-consent-checkbox {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1.2rem;
-    background: rgba(59, 130, 246, 0.05);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 12px;
-    transition: all 0.3s ease;
-  }
-  
-  .discount-consent-checkbox.error {
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.05);
-    animation: shake 0.5s ease-in-out;
-  }
-  
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-  }
-  
-  .discount-consent-checkbox input[type="checkbox"] {
-    margin: 0;
-    margin-top: 0.2rem;
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-  }
-  
-  .discount-consent-checkbox label {
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: #cbd5e1;
-    margin: 0;
-    cursor: pointer;
-  }
-  
-  .discount-btn {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: #1e293b;
-    padding: 14px 28px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-  }
-  
-  .discount-btn:hover {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
-  }
-  
-  .discount-btn:active {
+  to {
     transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .discount-modal-overlay {
+    padding: 10px;
   }
   
-  .discount-terms {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin-top: 1rem;
-    line-height: 1.4;
-    font-style: italic;
+  .discount-modal .modal-content {
+    padding: 2rem 1.5rem;
+    max-height: 95vh;
   }
   
-  .discount-success {
-    text-align: center;
+  .discount-step h2 {
+    font-size: 1.5rem;
   }
   
-  .discount-success h3 {
-    color: #10b981;
-    font-size: 1.6rem;
-    margin-bottom: 1rem;
-  }
-  
-  .discount-instructions {
-    color: #cbd5e1;
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
+  .discount-step p {
     font-size: 1rem;
   }
   
-  .discount-code-display {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .code-box {
+    flex-direction: column;
     gap: 1rem;
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background: rgba(15, 23, 42, 0.6);
-    border-radius: 12px;
-    border: 2px solid rgba(251, 191, 36, 0.3);
-    backdrop-filter: blur(10px);
+    text-align: center;
   }
   
-  .discount-code {
-    font-family: 'Courier New', monospace;
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    border: 1px solid rgba(251, 191, 36, 0.3);
+  .discount-code-text {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  
+  .copy-code-btn {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .discount-modal .modal-content {
+    padding: 1.5rem 1rem;
+    margin: 5px;
+    border-radius: 16px;
+  }
+  
+  .discount-step h2 {
+    font-size: 1.25rem;
+  }
+  
+  .discount-code-text {
+    font-size: 1.1rem;
     letter-spacing: 1px;
   }
   
-  .copy-btn {
-    background: #fbbf24;
-    color: #1e293b;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-    white-space: nowrap;
+  .btn {
+    padding: 14px 20px;
+    font-size: 15px;
+    min-height: 52px;
   }
-  
-  .copy-btn:hover {
-    background: #f59e0b;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(251, 191, 36, 0.3);
-  }
-  
-  .discount-continue {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    padding: 16px 32px;
-    font-size: 1.1rem;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  }
-  
-  .discount-continue:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-  }
-  
-  /* Mobiele aanpassingen */
-  @media (max-width: 768px) {
-    .discount-modal .modal-content {
-      width: 95%;
-      margin: 10px auto;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    
-    .discount-code-display {
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem;
-    }
-    
-    .discount-code {
-      font-size: 1.2rem;
-      padding: 0.5rem 1rem;
-    }
-    
-    .copy-btn {
-      width: 100%;
-      padding: 12px 20px;
-    }
-    
-    .discount-consent-checkbox {
-      padding: 1rem;
-    }
-    
-    .discount-header h2 {
-      font-size: 1.2rem;
-    }
-  }
-  
-  /* Animatie voor modal verschijning */
-  .discount-modal {
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  .discount-modal .modal-content {
-    animation: slideInDown 0.3s ease-out;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slideInDown {
-    from {
-      transform: translateY(-30px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
+}
 </style>

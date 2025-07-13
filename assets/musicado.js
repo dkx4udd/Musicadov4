@@ -1,1898 +1,2577 @@
-{% comment %}
-  Fixed Multilingual Cart Template - Language Persistence & Proper Styling
-  Save this as: templates/cart.liquid
-{% endcomment %}
+// Musicado Application JavaScript - COMPLETE with Language Persistence & Cart Translations
+(function() {
+    'use strict';
 
-<!-- Language Switcher (add this at the top) -->
-<div class="language-switcher">
-  <button class="lang-btn" data-lang="en">EN</button>
-  <button class="lang-btn" data-lang="nl">NL</button>
-</div>
-
-<div class="cart-page">
-  <div class="container">
-    <h1 data-translate="cartPageTitle" class="cart-title">Your Order</h1>
-    
-    {% if cart.item_count > 0 %}
-      <div class="cart-layout">
-        <!-- Order Summary Section -->
-        <div class="order-summary-section">
-          <div class="card">
-            <h2 data-translate="orderSummary">Order Summary</h2>
-            
-            {% for item in cart.items %}
-              <div class="order-item">
-                <div class="item-header">
-                  <h3>{{ item.product.title }}</h3>
-                  {% if item.variant.title != 'Default Title' %}
-                    <span class="variant-title">{{ item.variant.title }}</span>
-                  {% endif %}
-                  <div class="item-price">
-                    <span class="quantity">{{ item.quantity }}x</span>
-                    <span class="price">{{ item.final_line_price | money }}</span>
-                  </div>
-                </div>
-                
-                <!-- Display custom properties (music order details) -->
-                {% if item.properties %}
-                  <div class="order-details">
-                    {% for property in item.properties %}
-                      {% unless property.first contains '_' %}
-                        {% assign property_name = property.first %}
-                        {% assign property_value = property.last %}
-                        
-                        <!-- Special formatting for different property types -->
-                        {% if property_name contains 'Song' and property_name contains 'Words' %}
-                          <div class="detail-item words-detail">
-                            <strong>{{ property_name }}:</strong>
-                            <span class="words-list">{{ property_value }}</span>
-                          </div>
-                        {% elsif property_name == 'Custom Lyrics/Story' %}
-                          <div class="detail-item lyrics-detail">
-                            <strong>{{ property_name }}:</strong>
-                            <div class="lyrics-preview">{{ property_value | truncate: 200 }}</div>
-                          </div>
-                        {% else %}
-                          <div class="detail-item">
-                            <strong>{{ property_name }}:</strong> {{ property_value }}
-                          </div>
-                        {% endif %}
-                      {% endunless %}
-                    {% endfor %}
-                  </div>
-                {% endif %}
-                
-                <!-- Remove item link -->
-                <div class="item-actions">
-                  <a href="{{ item.url_to_remove }}" class="remove-item" data-translate="removeItem">
-                    Remove Item
-                  </a>
-                </div>
-              </div>
-            {% endfor %}
-            
-            <!-- Cart Total -->
-            <div class="cart-totals">
-              <div class="subtotal-row">
-                <span data-translate="subtotal">Subtotal:</span>
-                <span>{{ cart.items_subtotal_price | money }}</span>
-              </div>
-              
-              {% if cart.total_discount > 0 %}
-                <div class="discount-row">
-                  <span data-translate="discountApplied">Discount ({{ cart.discount_applications[0].title }}):</span>
-                  <span>-{{ cart.total_discount | money }}</span>
-                </div>
-              {% endif %}
-              
-              <div class="total-row">
-                <span data-translate="total">Total:</span>
-                <span>{{ cart.total_price | money }}</span>
-              </div>
-              
-              <div class="tax-note">
-                <small data-translate="taxNote">Taxes and shipping calculated at checkout</small>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Customer Details and Payment Section -->
-        <div class="checkout-section">
-          <!-- Customer Details Form -->
-          <div class="card">
-            <h3 data-translate="customerInformation">Customer Information</h3>
-            <form id="customerDetailsForm">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="firstName" data-translate="firstName">First Name *</label>
-                  <input type="text" id="firstName" name="firstName" required>
-                </div>
-                <div class="form-group">
-                  <label for="middleName" data-translate="middleName">Middle Name</label>
-                  <input type="text" id="middleName" name="middleName">
-                </div>
-                <div class="form-group">
-                  <label for="lastName" data-translate="lastName">Last Name *</label>
-                  <input type="text" id="lastName" name="lastName" required>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="customerEmail" data-translate="emailAddress">Email Address *</label>
-                  <input type="email" id="customerEmail" name="customerEmail" required>
-                </div>
-                <div class="form-group">
-                  <label for="mobilePhone" data-translate="phoneNumber">Phone Number *</label>
-                  <input type="tel" id="mobilePhone" name="mobilePhone" required data-translate-placeholder="phonePlaceholder">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <div class="delivery-info-box">
-                  <h4 data-translate="musicDeliveryTitle">📧 Music Delivery Information</h4>
-                  <p data-translate="musicDeliveryDescription">We will send you a link via email to your personal page where you can download your music within 24 hours.</p>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          <!-- Discount Code Section -->
-          <div class="card discount-card" id="discountCard">
-            <h3 data-translate="discountCodeTitle">Discount Code</h3>
-            <div class="discount-input-container">
-              <input 
-                type="text" 
-                id="discountCodeInput" 
-                name="discountCode" 
-                data-translate-placeholder="discountCodePlaceholder"
-                style="text-transform: uppercase;"
-              >
-              <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn" data-translate="applyDiscount">
-                Apply
-              </button>
-            </div>
-            <div id="discountMessage" class="discount-message" style="display: none;"></div>
-            
-            <div class="discount-help">
-              <p data-translate="discountHelp">💡 Have a discount code from our popup? Paste it here to save on your order!</p>
-            </div>
-            
-            <!-- Show applied discount -->
-            {% if cart.total_discount > 0 %}
-              <div class="applied-discount">
-                <div class="discount-success">
-                  <span class="success-icon">✅</span>
-                  <span data-translate="discountAppliedSuccess">Discount "{{ cart.discount_applications[0].title }}" applied!</span>
-                  <span class="discount-amount">-{{ cart.total_discount | money }}</span>
-                </div>
-              </div>
-            {% endif %}
-          </div>
-
-          <!-- Terms and Conditions -->
-          <div class="card">
-            <div class="terms-agreement">
-              <div class="terms-checkbox">
-                <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                <label for="agreeTerms">
-                  <span data-translate="agreeTerms">I agree with the terms and conditions and privacy policy</span>
-                  {% if settings.privacy_policy_url != blank %}
-                    - <a href="{{ settings.privacy_policy_url }}" target="_blank" class="privacy-link" data-translate="privacyPolicyLink">
-                      Read our privacy policy
-                    </a>
-                  {% endif %}
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Important Information -->
-          <div class="card">
-            <div class="info-box">
-              <h4 data-translate="importantInformation">Important Information</h4>
-              <ul class="info-list">
-                <li data-translate="deliveryInfo">You will receive an email link to download your music within 24 hours</li>
-                <li data-translate="personalUseInfo">Songs are for personal use only (contact us for commercial use)</li>
-                <li data-translate="spotifyInfo">We can publish your song on Spotify upon request</li>
-                <li data-translate="contactInfo">
-                  Any questions? Contact us at: 
-                  <a href="mailto:{{ settings.contact_email | default: 'contact@' | append: shop.domain }}" class="contact-link">
-                    {{ settings.contact_email | default: 'contact@' | append: shop.domain }}
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Checkout Actions -->
-          <div class="checkout-actions">
-            <button type="button" id="checkoutBtn" class="btn checkout-btn" data-processing="false">
-              <span class="button-text" data-translate="completeOrderPay">Complete Order & Pay</span>
-              <span class="button-loading" style="display: none;">
-                <span class="loading-spinner"></span>
-                <span data-translate="processing">Processing...</span>
-              </span>
-            </button>
-            
-            <a href="{{ routes.root_url }}" class="btn continue-shopping" data-translate="continueShopping">
-              Continue Shopping
-            </a>
-          </div>
-
-          <!-- Payment Error Display -->
-          <div id="paymentError" class="payment-error" style="display: none;">
-            <div class="error-icon">⚠️</div>
-            <p class="error-message"></p>
-            <button type="button" id="retryPaymentBtn" class="btn btn-secondary" data-translate="tryAgain">
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-      
-    {% else %}
-      <div class="empty-cart">
-        <div class="empty-cart-icon">🛒</div>
-        <h2 data-translate="emptyCartTitle">Your cart is empty</h2>
-        <p data-translate="emptyCartDescription">You haven't added any items to your cart yet.</p>
-        <a href="{{ routes.root_url }}" class="btn" data-translate="startShopping">Start Shopping</a>
-      </div>
-    {% endif %}
-  </div>
-</div>
-
-<!-- Include the main Musicado script -->
-<script src="{{ 'musicado.js' | asset_url }}" defer></script>
-
-<!-- FIXED cart JavaScript with proper language persistence -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Cart page initializing with language persistence...');
-  
-  // CRITICAL: Get saved language BEFORE initializing anything
-  const LANGUAGE_KEY = 'musicado_language';
-  
-  // Get saved language or detect from browser
-  function getSavedLanguage() {
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved) {
-      console.log('📱 Found saved language:', saved);
-      return saved;
-    }
-    
-    const detected = navigator.language.startsWith('nl') ? 'nl' : 'en';
-    console.log('🌐 Detected language:', detected);
-    return detected;
-  }
-  
-  // Save language preference
-  function saveLanguage(lang) {
-    localStorage.setItem(LANGUAGE_KEY, lang);
-    console.log('💾 Language saved:', lang);
-  }
-  
-  // Get the correct language to use
-  const currentLang = getSavedLanguage();
-  console.log('🎯 Using language:', currentLang);
-  
-  // Wait for MusicadoApp to be available
-  function waitForMusicadoApp() {
-    if (typeof MusicadoApp !== 'undefined') {
-      console.log('✅ MusicadoApp available, initializing cart...');
-      initializeCartPage();
-    } else {
-      console.log('⏳ Waiting for MusicadoApp...');
-      setTimeout(waitForMusicadoApp, 50);
-    }
-  }
-  
-  function initializeCartPage() {
-    // Form data preservation
-    const FORM_DATA_KEY = 'musicado_cart_form_data';
-    
-    // Payment processing state
-    let paymentProcessingState = {
-      isProcessing: false,
-      submissionToken: null,
-      timeoutId: null
+    // Product Variant IDs
+    const VARIANT_IDS = {
+        'one': '52062844846413',      // One song
+        'ep': '52062845796685',       // EP (4 songs)
+        'album': '52062847467853'     // Full album
     };
 
-    // Get current language from MusicadoApp or use saved
-    function getCurrentLanguage() {
-      if (typeof MusicadoApp !== 'undefined' && MusicadoApp.currentLanguage) {
-        return MusicadoApp.currentLanguage;
-      }
-      return currentLang;
+    // CRITICAL: Language persistence key
+    const LANGUAGE_KEY = 'musicado_language';
+
+    // Language persistence functions
+    function saveLanguagePreference(lang) {
+        localStorage.setItem(LANGUAGE_KEY, lang);
+        console.log('💾 Language preference saved:', lang);
     }
 
-    // Cart-specific translations
-    const cartTranslations = {
-      en: {
-        cartPageTitle: "Your Order",
-        orderSummary: "Order Summary", 
-        removeItem: "Remove Item",
-        subtotal: "Subtotal:",
-        discountApplied: "Discount",
-        total: "Total:",
-        taxNote: "Taxes and shipping calculated at checkout",
-        customerInformation: "Customer Information",
-        firstName: "First Name *",
-        middleName: "Middle Name",
-        lastName: "Last Name *",
-        emailAddress: "Email Address *",
-        phoneNumber: "Phone Number *",
-        phonePlaceholder: "+31 6 12345678",
-        musicDeliveryTitle: "📧 Music Delivery Information",
-        musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
-        discountCodeTitle: "Discount Code",
-        discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
-        applyDiscount: "Apply",
-        discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
-        discountAppliedSuccess: "Discount applied!",
-        agreeTerms: "I agree with the terms and conditions and privacy policy",
-        privacyPolicyLink: "Read our privacy policy",
-        importantInformation: "Important Information",
-        deliveryInfo: "You will receive an email link to download your music within 24 hours",
-        personalUseInfo: "Songs are for personal use only (contact us for commercial use)",
-        spotifyInfo: "We can publish your song on Spotify upon request",
-        contactInfo: "Any questions? Contact us at:",
-        completeOrderPay: "Complete Order & Pay",
-        processing: "Processing...",
-        continueShopping: "Continue Shopping",
-        tryAgain: "Try Again",
-        emptyCartTitle: "Your cart is empty",
-        emptyCartDescription: "You haven't added any items to your cart yet.",
-        startShopping: "Start Shopping",
+    function getSavedLanguagePreference() {
+        const saved = localStorage.getItem(LANGUAGE_KEY);
+        if (saved) {
+            console.log('📱 Found saved language preference:', saved);
+            return saved;
+        }
         
-        // Validation messages
-        pleaseComplete: "Please complete the following:",
-        validEmail: "Valid email address",
-        agreeToTerms: "Agreement with terms and conditions",
-        enterDiscountCode: "Please enter a discount code.",
-        invalidDiscountCode: "Invalid discount code. Please check and try again.",
-        agreeToEmails: "You must agree to receive emails to get your discount code.",
-        discountAlreadyApplied: "Discount already applied.",
-        discountAppliedMessage: "Discount applied! This will be applied at checkout.",
-        orderUpdated: "Order updated! Redirecting to checkout...",
-        processingError: "An error occurred. Please try again.",
-        updateError: "Failed to update order information. Please try again."
-      },
-      nl: {
-        cartPageTitle: "Uw Bestelling",
-        orderSummary: "Bestelling Overzicht",
-        removeItem: "Item Verwijderen", 
-        subtotal: "Subtotaal:",
-        discountApplied: "Korting",
-        total: "Totaal:",
-        taxNote: "Belastingen en verzendkosten worden berekend bij het afrekenen",
-        customerInformation: "Klantgegevens",
-        firstName: "Voornaam *",
-        middleName: "Tussenvoegsel",
-        lastName: "Achternaam *",
-        emailAddress: "E-mailadres *",
-        phoneNumber: "Telefoonnummer *",
-        phonePlaceholder: "+31 6 12345678",
-        musicDeliveryTitle: "📧 Muziek Levering Informatie",
-        musicDeliveryDescription: "We sturen u binnen 24 uur een link via e-mail naar uw persoonlijke pagina waar u uw muziek kunt downloaden.",
-        discountCodeTitle: "Kortingscode",
-        discountCodePlaceholder: "Voer kortingscode in (bijv. MUSIC15)",
-        applyDiscount: "Toepassen",
-        discountHelp: "💡 Heeft u een kortingscode van onze popup? Plak deze hier om te besparen op uw bestelling!",
-        discountAppliedSuccess: "Korting toegepast!",
-        agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
-        privacyPolicyLink: "Lees ons privacybeleid",
-        importantInformation: "Belangrijke Informatie",
-        deliveryInfo: "U ontvangt binnen 24 uur een e-mail link om uw muziek te downloaden",
-        personalUseInfo: "Liedjes zijn alleen voor persoonlijk gebruik (neem contact op voor commercieel gebruik)",
-        spotifyInfo: "We kunnen uw liedje op verzoek op Spotify publiceren",
-        contactInfo: "Vragen? Neem contact met ons op:",
-        completeOrderPay: "Bestelling Voltooien & Betalen",
-        processing: "Verwerken...",
-        continueShopping: "Verder Winkelen",
-        tryAgain: "Probeer Opnieuw",
-        emptyCartTitle: "Uw winkelwagen is leeg",
-        emptyCartDescription: "U heeft nog geen items aan uw winkelwagen toegevoegd.",
-        startShopping: "Begin met Winkelen",
-        
-        // Validation messages in Dutch
-        pleaseComplete: "Vul de volgende verplichte velden in:",
-        validEmail: "Geldig e-mailadres",
-        agreeToTerms: "Akkoord met algemene voorwaarden",
-        enterDiscountCode: "Voer een kortingscode in.",
-        invalidDiscountCode: "Ongeldige kortingscode. Controleer en probeer opnieuw.",
-        agreeToEmails: "U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.",
-        discountAlreadyApplied: "Korting al toegepast.",
-        discountAppliedMessage: "Korting toegepast! Dit wordt toegepast bij het afrekenen.",
-        orderUpdated: "Bestelling bijgewerkt! Doorverwijzen naar afrekenen...",
-        processingError: "Er is een fout opgetreden. Probeer het opnieuw.",
-        updateError: "Kan bestellingsinformatie niet bijwerken. Probeer het opnieuw."
-      }
+        const detected = navigator.language.startsWith('nl') ? 'nl' : 'en';
+        console.log('🌐 No saved preference, using detected language:', detected);
+        return detected;
+    }
+
+    // Get saved language for initialization
+    const savedLang = getSavedLanguagePreference();
+
+    // Centralized state management
+    const AppState = {
+        discount: {
+            applied: false,
+            code: null,
+            amount: 0,
+            source: null // 'modal' or 'manual'
+        },
+        ui: {
+            modalShown: false,
+            currentLanguage: savedLang // Use saved language
+        }
     };
 
-    // Apply cart translations
-    function applyCartTranslations(lang) {
-      console.log('🌐 Applying cart translations for:', lang);
-      const translations = cartTranslations[lang];
-      if (!translations) return;
-      
-      document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.dataset.translate;
-        if (translations[key]) {
-          element.textContent = translations[key];
-        }
-      });
-      
-      document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-        const key = element.dataset.translatePlaceholder;
-        if (translations[key]) {
-          element.placeholder = translations[key];
-        }
-      });
-      
-      console.log('✅ Cart translations applied');
-    }
+    // Unique token generation
+    const generateToken = () => Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 
-    // Get translation text
-    function getTranslation(key) {
-      const lang = getCurrentLanguage();
-      return cartTranslations[lang] && cartTranslations[lang][key] 
-        ? cartTranslations[lang][key] 
-        : cartTranslations.en[key] || key;
-    }
+    // COMPLETE Translations including cart-specific translations
+    const translations = {
+        en: {
+            intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.",
+            mainIntro: "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones.",
+            listenExamples: "Listen to our examples",
+            example1Title: "Loading...",
+            example1Description: "Random example from our collection",
+            example2Title: "Loading...", 
+            example2Description: "Random example from our collection",
+            playAnother: "🔄 Play Another Example",
+            audioNotSupported: "Your browser does not support the audio element.",
+            featuredTestimonial1: '"The quality blew me away! After hearing their examples, I knew I had to order. The final song was even better than I imagined - truly professional work!"',
+            featuredTestimonial2: '"I listened to their examples and immediately placed an order for my wedding. The song they created became the highlight of our ceremony. Absolutely perfect!"',
+            featuredTestimonial3: '"Perfect for my mom\'s birthday! The song captured all our family memories beautifully. She cried happy tears when she heard it. Such a personal and meaningful gift!"',
+            featuredTestimonial4: '"Amazing quality and super fast delivery! I ordered a surprise song for my girlfriend and it turned out incredible. The lyrics were exactly what I wanted to say."',
+            swipeHint: "← Swipe for more reviews →",
+            traditionalWay: "The Traditional Way",
+            instrument: "Instrument: €2000,-",
+            studioSession: "Studio session: €3000,-",
+            timeRequired: "Time: 20-40 hours",
+            traditionalTotal: "Total: €5000+ & weeks of work",
+            versus: "VS",
+            ourWay: "Our Way",
+            fewClicks: "A few clicks",
+            lovingMessage: "A loving message",
+            professionalQuality: "Professional quality",
+            ourTotal: "Starting at just €49 (Full Albums: Custom pricing)",
+            comparisonConclusion: "Why spend thousands when you can create something equally beautiful and personal for a fraction of the cost?",
+            customerReviews: "What our customers say",
+            testimonial1: '"Amazing! They created the perfect love song for my anniversary. My partner was in tears - it was exactly what we dreamed of. Highly recommended!"',
+            testimonial2: '"I ordered an EP for my mom\'s 60th birthday with family memories in the lyrics. The quality was outstanding and she plays it every day!"',
+            testimonial3: '"Professional service from start to finish. The rock album they made for our band sounds like it was produced in a major studio. Worth every euro!"',
+            basedOnReviews: "Based on 247+ reviews",
+            selectPackage: "Select your package:",
+            oneSong: "One Song",
+            ep: "EP (4 songs)",
+            fullAlbum: "Full Album:",
+            contactForPricing: "Contact us for custom pricing",
+            usageDisclaimer: "All songs created can be used for personal use only, for commercial use, please contact us. We can publish your song on Spotify on your demand.",
+            musicStyles: "Select your two favorite music styles:",
+            firstMusicStyle: "First Music Style *",
+            secondMusicStyle: "Second Music Style *",
+            selectOption: "-- Select an option --",
+            favoriteArtists: "Enter your favorite Artists:",
+            voiceSelection: "Select voice preference:",
+            maleVoice: "Male Voice",
+            femaleVoice: "Female Voice",
+            noVoicePreference: "No Preference",
+            reason: "Reason for this song:",
+            myself: "For myself",
+            love: "For my love",
+            friend: "For my friend",
+            mom: "For Mom",
+            dad: "For my dad",
+            sibling: "For my Brother or Sister",
+            other: "Other",
+            wordsNames: "What words or names would you like to have back in the songs:",
+            songLanguage: "What language do you want the songs to be:",
+            dutch: "Dutch",
+            english: "English",
+            french: "French",
+            german: "German",
+            spanish: "Spanish",
+            portuguese: "Portuguese",
+            songTitles: "Give the songs a title (leave blank for us to choose):",
+            ownLyrics: "Do you have your own lyrics or a story about the song: Enter here:",
+            addToCart: "Add to Cart",
+            discountTitle: "🎵 Get 15% OFF Your Purchase!",
+            discountEmailDescription: "Enter your email to unlock 15% off your custom song creation!",
+            discountEmailPlaceholder: "Enter your email address",
+            emailConsentText: "I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.",
+            getDiscount: "Get My 15% Discount",
+            discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
+            discountSuccessTitle: "🎉 Your Discount Code!",
+            discountSuccessMessage: "Here's your 15% discount code. Copy it and use it at checkout:",
+            discountValidityInfo: "This code is valid for 30 days. Save it for your order!",
+            copyCode: "Copy Code",
+            codeCopied: "Code Copied!",
+            continueToCheckout: "Close & Continue Shopping",
+            fullAlbumContactTitle: "🎵 Full Album Inquiry",
+            fullAlbumContactDescription: "Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.",
+            emailAddress: "Email Address *",
+            phoneNumber: "Mobile Phone *",
+            topic: "Topic",
+            additionalNotes: "Additional Notes (Optional)",
+            submitContact: "Submit Contact Request",
+            emailPlaceholder: "your@email.com",
+            phonePlaceholder: "+31 6 12345678",
+            notesPlaceholder: "Tell us more about your album vision...",
+            adminPanel: "Admin Panel",
+            backToCustomer: "Back to Customer",
+            exportRTF: "Export to RTF",
+            allOrders: "All Orders",
+            pending: "Pending",
+            completed: "Completed",
+            addNewOrder: "Add New Order Data",
+            customerName: "Customer Name",
+            customerEmail: "Customer Email",
+            orderStatus: "Order Status",
+            inProgress: "In Progress",
+            notes: "Notes",
+            addOrder: "Add Order",
+            orderHistory: "Order History",
+            date: "Date",
+            customer: "Customer",
+            package: "Package",
+            price: "Price",
+            status: "Status",
+            actions: "Actions",
 
-    // Save form data to localStorage
-    function saveFormData() {
-      const formData = {};
-      const form = document.getElementById('customerDetailsForm');
-      if (form) {
-        const inputs = form.querySelectorAll('input');
-        inputs.forEach(input => {
-          if (input.type !== 'submit' && input.type !== 'button') {
-            formData[input.name] = input.value;
-          }
-        });
-        
-        const termsCheckbox = document.getElementById('agreeTerms');
-        if (termsCheckbox) {
-          formData.agreeTerms = termsCheckbox.checked;
+            // CART-SPECIFIC TRANSLATIONS
+            cartPageTitle: "Your Order",
+            orderSummary: "Order Summary", 
+            removeItem: "Remove Item",
+            subtotal: "Subtotal:",
+            discountApplied: "Discount",
+            total: "Total:",
+            taxNote: "Taxes and shipping calculated at checkout",
+            customerInformation: "Customer Information",
+            firstName: "First Name *",
+            middleName: "Middle Name",
+            lastName: "Last Name *",
+            musicDeliveryTitle: "📧 Music Delivery Information",
+            musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
+            discountCodeTitle: "Discount Code",
+            discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
+            applyDiscount: "Apply",
+            discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
+            discountAppliedSuccess: "Discount applied!",
+            agreeTerms: "I agree with the terms and conditions and privacy policy",
+            privacyPolicyLink: "Read our privacy policy",
+            importantInformation: "Important Information",
+            deliveryInfo: "You will receive an email link to download your music within 24 hours",
+            personalUseInfo: "Songs are for personal use only (contact us for commercial use)",
+            spotifyInfo: "We can publish your song on Spotify upon request",
+            contactInfo: "Any questions? Contact us at:",
+            completeOrderPay: "Complete Order & Pay",
+            processing: "Processing...",
+            continueShopping: "Continue Shopping",
+            tryAgain: "Try Again",
+            emptyCartTitle: "Your cart is empty",
+            emptyCartDescription: "You haven't added any items to your cart yet.",
+            startShopping: "Start Shopping",
+            
+            // Validation messages
+            pleaseComplete: "Please complete the following:",
+            validEmail: "Valid email address",
+            agreeToTerms: "Agreement with terms and conditions",
+            enterDiscountCode: "Please enter a discount code.",
+            invalidDiscountCode: "Invalid discount code. Please check and try again.",
+            agreeToEmails: "You must agree to receive emails to get your discount code.",
+            discountAlreadyApplied: "Discount already applied.",
+            discountAppliedMessage: "Discount applied! This will be applied at checkout.",
+            orderUpdated: "Order updated! Redirecting to checkout...",
+            processingError: "An error occurred. Please try again.",
+            updateError: "Failed to update order information. Please try again."
+        },
+        nl: {
+            intro: "Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken.",
+            mainIntro: "Creëer moeiteloos uw eigen muziek in slechts een paar klikken: Kies elke stijl— van folk, hip-hop, pop of klassiek. Voeg uw eigen woorden of teksten toe, en deel uw unieke track met uw geliefden.",
+            listenExamples: "Luister naar onze voorbeelden",
+            example1Title: "Laden...",
+            example1Description: "Willekeurig voorbeeld uit onze collectie",
+            example2Title: "Laden...",
+            example2Description: "Willekeurig voorbeeld uit onze collectie", 
+            playAnother: "🔄 Speel Ander Voorbeeld",
+            audioNotSupported: "Uw browser ondersteunt het audio element niet.",
+            featuredTestimonial1: '"De kwaliteit was overweldigend! Na het horen van hun voorbeelden wist ik dat ik moest bestellen. Het uiteindelijke liedje was nog beter dan ik me had voorgesteld - echt professioneel werk!"',
+            featuredTestimonial2: '"Ik luisterde naar hun voorbeelden en plaatste meteen een bestelling voor onze bruiloft. Het liedje dat ze creëerden werd het hoogtepunt van onze ceremonie. Absoluut perfect!"',
+            featuredTestimonial3: '"Perfect voor mama\'s verjaardag! Het liedje vatte al onze familie herinneringen prachtig samen. Ze huilde tranen van geluk toen ze het hoorde. Zo\'n persoonlijk en betekenisvol cadeau!"',
+            featuredTestimonial4: '"Geweldige kwaliteit en super snelle levering! Ik bestelde een verrassingsliedje voor mijn vriendin en het werd ongelooflijk. De teksten waren precies wat ik wilde zeggen."',
+            swipeHint: "← Veeg voor meer reviews →",
+            traditionalWay: "De Traditionele Manier",
+            instrument: "Instrument: €2000,-",
+            studioSession: "Studiosessie: €3000,-",
+            timeRequired: "Tijd: 20-40 uur",
+            traditionalTotal: "Totaal: €5000+ & weken werk",
+            versus: "VS",
+            ourWay: "Onze Manier",
+            fewClicks: "Een paar klikken",
+            lovingMessage: "Een liefdevol bericht",
+            professionalQuality: "Professionele kwaliteit",
+            ourTotal: "Vanaf slechts €49 (Volledige Albums: Prijs op aanvraag)",
+            comparisonConclusion: "Waarom duizenden uitgeven als je iets even moois en persoonlijks kunt maken voor een fractie van de kosten?",
+            customerReviews: "Wat onze klanten zeggen",
+            testimonial1: '"Geweldig! Ze hebben het perfecte liefdesliedje voor onze verjaardag gemaakt. Mijn partner was in tranen - het was precies wat we droomden. Zeer aanbevolen!"',
+            testimonial2: '"Ik bestelde een EP voor mama\'s 60e verjaardag met familiherinneringen in de teksten. De kwaliteit was uitstekend en ze speelt het elke dag!"',
+            testimonial3: '"Professionele service van begin tot eind. Het rockalbum dat ze voor onze band maakten klinkt alsof het in een grote studio is geproduceerd. Elke euro waard!"',
+            basedOnReviews: "Gebaseerd op 247+ beoordelingen",
+            selectPackage: "Selecteer uw pakket:",
+            oneSong: "Één Liedje",
+            ep: "EP (4 liedjes)",
+            fullAlbum: "Volledig Album:",
+            contactForPricing: "Neem contact op voor prijs op aanvraag",
+            usageDisclaimer: "Alle gemaakte liedjes kunnen alleen voor persoonlijk gebruik worden gebruikt. Voor commercieel gebruik, neem contact met ons op. We kunnen uw liedje op verzoek op Spotify publiceren.",
+            musicStyles: "Selecteer uw twee favoriete muziekstijlen:",
+            firstMusicStyle: "Eerste Muziekstijl *",
+            secondMusicStyle: "Tweede Muziekstijl *",
+            selectOption: "-- Selecteer een optie --",
+            favoriteArtists: "Voer uw favoriete artiesten in:",
+            voiceSelection: "Selecteer stem voorkeur:",
+            maleVoice: "Mannelijke Stem",
+            femaleVoice: "Vrouwelijke Stem", 
+            noVoicePreference: "Geen Voorkeur",
+            reason: "Reden voor dit liedje:",
+            myself: "Voor mezelf",
+            love: "Voor mijn liefde",
+            friend: "Voor mijn vriend",
+            mom: "Voor mama",
+            dad: "Voor mijn vader",
+            sibling: "Voor mijn broer of zus",
+            other: "Anders",
+            wordsNames: "Welke woorden of namen wilt u terug hebben in de liedjes:",
+            songLanguage: "In welke taal wilt u dat de liedjes zijn:",
+            dutch: "Nederlands",
+            english: "Engels",
+            french: "Frans",
+            german: "Duits",
+            spanish: "Spaans",
+            portuguese: "Portugees",
+            songTitles: "Geef de liedjes een titel (laat leeg voor ons om te kiezen):",
+            ownLyrics: "Heeft u uw eigen teksten of een verhaal over het liedje: Voer hier in:",
+            addToCart: "Toevoegen aan Winkelwagen",
+            discountTitle: "🎵 Krijg 15% KORTING op uw aankoop!",
+            discountEmailDescription: "Voer uw e-mailadres in om 15% korting te krijgen op uw aangepaste liedjescreatie!",
+            discountEmailPlaceholder: "Voer uw e-mailadres in",
+            emailConsentText: "Ik ga akkoord met het ontvangen van promotionele e-mails en speciale aanbiedingen van musicado. U kunt zich op elk moment uitschrijven.",
+            getDiscount: "Krijg Mijn 15% Korting",
+            discountTermsPrivacy: "We respecteren uw privacy. Geen spam, en u kunt zich altijd uitschrijven.",
+            discountSuccessTitle: "🎉 Uw Kortingscode!",
+            discountSuccessMessage: "Hier is uw 15% kortingscode. Kopieer deze en gebruik hem bij het afrekenen:",
+            discountValidityInfo: "Deze code is 30 dagen geldig. Bewaar hem voor uw bestelling!",
+            copyCode: "Kopieer Code",
+            codeCopied: "Code Gekopieerd!",
+            continueToCheckout: "Sluiten & Verder Winkelen",
+            fullAlbumContactTitle: "🎵 Volledig Album Aanvraag",
+            fullAlbumContactDescription: "Geïnteresseerd in een volledig album? We maken graag iets geweldigs voor je! Laat je gegevens achter en we nemen binnen 24 uur contact met je op met een persoonlijke offerte.",
+            emailAddress: "E-mailadres *",
+            phoneNumber: "Mobiele Telefoon *",
+            topic: "Onderwerp",
+            additionalNotes: "Aanvullende Notities (Optioneel)",
+            submitContact: "Contact Verzoek Indienen",
+            emailPlaceholder: "jouw@email.nl",
+            phonePlaceholder: "+31 6 12345678",
+            notesPlaceholder: "Vertel ons meer over je albumvisie...",
+            adminPanel: "Beheerder Paneel",
+            backToCustomer: "Terug naar Klant",
+            exportRTF: "Exporteren naar RTF",
+            allOrders: "Alle Bestellingen",
+            pending: "In Behandeling",
+            completed: "Voltooid",
+            addNewOrder: "Nieuwe Bestelling Toevoegen",
+            customerName: "Klant Naam",
+            customerEmail: "Klant Email",
+            orderStatus: "Bestelling Status",
+            inProgress: "In Behandeling",
+            notes: "Opmerkingen",
+            addOrder: "Bestelling Toevoegen",
+            orderHistory: "Bestelling Geschiedenis",
+            date: "Datum",
+            customer: "Klant",
+            package: "Pakket",
+            price: "Prijs",
+            status: "Status",
+            actions: "Acties",
+
+            // CART-SPECIFIC TRANSLATIONS IN DUTCH
+            cartPageTitle: "Uw Bestelling",
+            orderSummary: "Bestelling Overzicht",
+            removeItem: "Item Verwijderen", 
+            subtotal: "Subtotaal:",
+            discountApplied: "Korting",
+            total: "Totaal:",
+            taxNote: "Belastingen en verzendkosten worden berekend bij het afrekenen",
+            customerInformation: "Klantgegevens",
+            firstName: "Voornaam *",
+            middleName: "Tussenvoegsel",
+            lastName: "Achternaam *",
+            musicDeliveryTitle: "📧 Muziek Levering Informatie",
+            musicDeliveryDescription: "We sturen u binnen 24 uur een link via e-mail naar uw persoonlijke pagina waar u uw muziek kunt downloaden.",
+            discountCodeTitle: "Kortingscode",
+            discountCodePlaceholder: "Voer kortingscode in (bijv. MUSIC15)",
+            applyDiscount: "Toepassen",
+            discountHelp: "💡 Heeft u een kortingscode van onze popup? Plak deze hier om te besparen op uw bestelling!",
+            discountAppliedSuccess: "Korting toegepast!",
+            agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
+            privacyPolicyLink: "Lees ons privacybeleid",
+            importantInformation: "Belangrijke Informatie",
+            deliveryInfo: "U ontvangt binnen 24 uur een e-mail link om uw muziek te downloaden",
+            personalUseInfo: "Liedjes zijn alleen voor persoonlijk gebruik (neem contact op voor commercieel gebruik)",
+            spotifyInfo: "We kunnen uw liedje op verzoek op Spotify publiceren",
+            contactInfo: "Vragen? Neem contact met ons op:",
+            completeOrderPay: "Bestelling Voltooien & Betalen",
+            processing: "Verwerken...",
+            continueShopping: "Verder Winkelen",
+            tryAgain: "Probeer Opnieuw",
+            emptyCartTitle: "Uw winkelwagen is leeg",
+            emptyCartDescription: "U heeft nog geen items aan uw winkelwagen toegevoegd.",
+            startShopping: "Begin met Winkelen",
+            
+            // Validation messages in Dutch
+            pleaseComplete: "Vul de volgende verplichte velden in:",
+            validEmail: "Geldig e-mailadres",
+            agreeToTerms: "Akkoord met algemene voorwaarden",
+            enterDiscountCode: "Voer een kortingscode in.",
+            invalidDiscountCode: "Ongeldige kortingscode. Controleer en probeer opnieuw.",
+            agreeToEmails: "U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.",
+            discountAlreadyApplied: "Korting al toegepast.",
+            discountAppliedMessage: "Korting toegepast! Dit wordt toegepast bij het afrekenen.",
+            orderUpdated: "Bestelling bijgewerkt! Doorverwijzen naar afrekenen...",
+            processingError: "Er is een fout opgetreden. Probeer het opnieuw.",
+            updateError: "Kan bestellingsinformatie niet bijwerken. Probeer het opnieuw."
         }
-        
-        localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
-      }
-    }
+    };
 
-    // Restore form data from localStorage
-    function restoreFormData() {
-      try {
-        const savedData = localStorage.getItem(FORM_DATA_KEY);
-        if (savedData) {
-          const formData = JSON.parse(savedData);
-          
-          Object.entries(formData).forEach(([name, value]) => {
-            if (name === 'agreeTerms') {
-              const termsCheckbox = document.getElementById('agreeTerms');
-              if (termsCheckbox && value) {
-                termsCheckbox.checked = value;
-              }
-            } else {
-              const input = document.querySelector(`[name="${name}"]`);
-              if (input && value) {
-                input.value = value;
-              }
+    // Global variables - UPDATED to use saved language
+    let currentLanguage = savedLang;
+    let formData = {};
+    let orders = JSON.parse(localStorage.getItem('musicOrders') || '[]');
+
+    // MP3 files - Updated with actual Shopify CDN URLs
+    const mp3Files = [
+        { 
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Wonderlijke_wereld_van_AI_-_Matelletam.mp3?v=1751830505", 
+            title: { en: "Wonderlijke wereld van AI - Matelletam", nl: "Wonderlijke wereld van AI - Matelletam" },
+            style: { en: "Electronic/Ambient style", nl: "Electronic/Ambient stijl" }
+        },
+        { 
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Wonderlijke_wereld_van_AI_-_RockyRocky.mp3?v=1751830504", 
+            title: { en: "Wonderlijke wereld van AI - RockyRocky", nl: "Wonderlijke wereld van AI - RockyRocky" },
+            style: { en: "Rock/Pop style", nl: "Rock/Pop stijl" }
+        },
+        { 
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Survivor_-_Eye_Of_The_Tiger_Official_HD_Video.mp3?v=1751830504", 
+            title: { en: "Survivor - Eye Of The Tiger", nl: "Survivor - Eye Of The Tiger" },
+            style: { en: "Classic Rock style", nl: "Klassieke Rock stijl" }
+        },
+        { 
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Music_for_vlogs_-_Birthday.mp3?v=1751830505", 
+            title: { en: "Birthday Celebration", nl: "Verjaardag Viering" },
+            style: { en: "Upbeat/Celebration style", nl: "Vrolijke/Viering stijl" }
+        }
+    ];
+
+    // Track which files are currently playing to avoid duplicates
+    let currentlyPlaying = [null, null];
+
+    // Subheadline arrays
+    const subheadlines = {
+        en: [
+            "Make Your Loved Ones Happy With Personal Songs",
+            "Make Your Loved Ones Happy With Personal Songs in Less than 3 minutes",
+            "It's music, but personal",
+            "Songs that will not only be stuck in their head, but in their hearts.",
+            "Your mom has enough perfume, but does she have a song?",
+            "It's not simply a song, it's an emotion.",
+            "Make Songs For Your Loved Ones, No Skills Required",
+            "Imagine your loved ones singing your songs in the shower",
+            "It's not simply music, it's a message",
+            "Imagine your favourite song but it's personal and will be remembered forever",
+            "You're going to THAT store again to buy the same gift as last year? Give something unique and create songs that make your loved ones smile",
+            "It's not a gift you give, it's a gift you feel.",
+            "Stop giving lame presents to the people you love, make unique songs that stick.",
+            "Remember your favourite song? It's that, but personal for the ones you love.",
+            "Remember the gift you got her last year? Neither does she. Try This Unforgettable gift and make your loved ones happy.",
+            "The greatest gifts are not wrapped, they're experienced.",
+            "Another generic bottle of wine? They have enough of those. Let's create some music that makes a party.",
+            "Tired of dull Gifts? You're not alone. Discover the most personal gift in the Netherlands.",
+            "It's like a giftcard, but 10 times cooler and it plays on spotify.",
+            "It could be played at a party, it could be played at a funeral. It's the gift that always works."
+        ],
+        nl: [
+            "Maak Je Geliefden Blij Met Persoonlijke Liedjes",
+            "Maak Je Geliefden Blij Met Persoonlijke Liedjes in Minder dan 3 minuten",
+            "Het is muziek, maar dan persoonlijk",
+            "Liedjes die niet alleen in hun hoofd blijven hangen, maar in hun hart.",
+            "Je moeder heeft genoeg parfum, maar heeft ze wel een liedje?",
+            "Het is niet zomaar een liedje, het is een emotie.",
+            "Maak Liedjes Voor Je Geliefden, Geen Vaardigheden Vereist",
+            "Stel je voor dat je geliefden jouw liedjes zingen onder de douche",
+            "Het is niet zomaar muziek, het is een boodschap",
+            "Stel je je favoriete liedje voor, maar dan persoonlijk en voor altijd herinnerd",
+            "Ga je weer naar DIE winkel om hetzelfde cadeau te kopen als vorig jaar? Geef iets unieks en creëer liedjes die je geliefden laten glimlachen",
+            "Het is geen cadeau dat je geeft, het is een cadeau dat je voelt.",
+            "Stop met saaie cadeaus geven aan mensen van wie je houdt, maak unieke liedjes die blijven plakken.",
+            "Weet je nog je favoriete liedje? Dit is dat, maar dan persoonlijk voor degenen van wie je houdt.",
+            "Weet je nog het cadeau dat je haar vorig jaar gaf? Zij ook niet. Probeer dit onvergetelijke cadeau en maak je geliefden blij.",
+            "De beste cadeaus worden niet ingepakt, ze worden ervaren.",
+            "Weer een gewoon flesje wijn? Ze hebben er genoeg van. Laten we wat muziek maken die een feestje wordt.",
+            "Moe van saaie cadeaus? Je bent niet alleen. Ontdek het meest persoonlijke cadeau van Nederland.",
+            "Het is als een cadeaubon, maar 10 keer cooler en het speelt op Spotify.",
+            "Het kan gespeeld worden op een feestje, het kan gespeeld worden op een begrafenis. Het is het cadeau dat altijd werkt."
+        ]
+    };
+
+    // State Management Functions
+    const StateManager = {
+        // Reset discount state
+        resetDiscountState: function() {
+            AppState.discount = {
+                applied: false,
+                code: null,
+                amount: 0,
+                source: null
+            };
+            
+            localStorage.removeItem('discountAppliedViaModal');
+            localStorage.removeItem('discountEmail');
+            localStorage.removeItem('emailConsent');
+        },
+
+        // Apply discount with centralized state
+        applyDiscount: function(code, source = 'manual') {
+            if (AppState.discount.applied) {
+                return { success: false, message: currentLanguage === 'nl' ? 'Korting al toegepast.' : 'Discount already applied.' };
             }
-          });
+
+            if (code !== 'MUSIC15') {
+                return { success: false, message: currentLanguage === 'nl' ? 'Ongeldige kortingscode.' : 'Invalid discount code.' };
+            }
+
+            AppState.discount = {
+                applied: true,
+                code: code,
+                amount: 0, // Will be calculated on cart page
+                source: source
+            };
+
+            if (source === 'modal') {
+                localStorage.setItem('discountAppliedViaModal', 'true');
+            }
+
+            return { 
+                success: true, 
+                message: currentLanguage === 'nl' ? 'Korting toegepast! Dit wordt toegepast bij het afrekenen.' : 'Discount applied! This will be applied at checkout.'
+            };
         }
-      } catch (error) {
-        console.error('Error restoring form data:', error);
-      }
-    }
+    };
 
-    // Clear saved form data
-    function clearFormData() {
-      localStorage.removeItem(FORM_DATA_KEY);
-    }
-
-    // Auto-save form data on input
-    function setupFormAutoSave() {
-      const form = document.getElementById('customerDetailsForm');
-      if (form) {
-        form.addEventListener('input', saveFormData);
-        form.addEventListener('change', saveFormData);
-      }
-      
-      const termsCheckbox = document.getElementById('agreeTerms');
-      if (termsCheckbox) {
-        termsCheckbox.addEventListener('change', saveFormData);
-      }
-    }
-
-    // Generate unique submission token
-    function generateSubmissionToken() {
-      return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-    }
-
-    // Reset payment processing state
-    function resetPaymentState() {
-      paymentProcessingState.isProcessing = false;
-      paymentProcessingState.submissionToken = null;
-      if (paymentProcessingState.timeoutId) {
-        clearTimeout(paymentProcessingState.timeoutId);
-        paymentProcessingState.timeoutId = null;
-      }
-      resetButtonState();
-    }
-
-    // Reset button state
-    function resetButtonState() {
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      if (checkoutBtn) {
-        checkoutBtn.disabled = false;
-        checkoutBtn.setAttribute('data-processing', 'false');
-        const textSpan = checkoutBtn.querySelector('.button-text');
-        const loadingSpan = checkoutBtn.querySelector('.button-loading');
-        if (textSpan) textSpan.style.display = 'inline';
-        if (loadingSpan) loadingSpan.style.display = 'none';
-      }
-    }
-
-    // Set button loading state
-    function setButtonLoading(isLoading) {
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      if (!checkoutBtn) return;
-
-      if (isLoading) {
-        checkoutBtn.disabled = true;
-        checkoutBtn.setAttribute('data-processing', 'true');
-        const textSpan = checkoutBtn.querySelector('.button-text');
-        const loadingSpan = checkoutBtn.querySelector('.button-loading');
-        if (textSpan) textSpan.style.display = 'none';
-        if (loadingSpan) loadingSpan.style.display = 'inline-flex';
-      } else {
-        resetButtonState();
-      }
-    }
-
-    // Validate customer details
-    function validateCustomerDetails() {
-      const requiredFields = ['firstName', 'lastName', 'customerEmail', 'mobilePhone'];
-      let isValid = true;
-      let missingFields = [];
-
-      requiredFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        if (!field || !field.value.trim()) {
-          isValid = false;
-          const label = getTranslation(fieldName);
-          missingFields.push(label);
-          if (field) {
-            field.style.borderColor = '#ef4444';
-            field.style.background = 'rgba(239, 68, 68, 0.1)';
-          }
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            // Modern clipboard API
+            return navigator.clipboard.writeText(text).then(() => {
+                return true;
+            }).catch(() => {
+                return fallbackCopyToClipboard(text);
+            });
         } else {
-          if (field) {
-            field.style.borderColor = '';
-            field.style.background = '';
-          }
+            // Fallback for older browsers
+            return Promise.resolve(fallbackCopyToClipboard(text));
         }
-      });
-
-      // Check terms agreement
-      const termsCheckbox = document.getElementById('agreeTerms');
-      const termsCard = document.querySelector('.terms-agreement');
-      if (!termsCheckbox || !termsCheckbox.checked) {
-        isValid = false;
-        missingFields.push(getTranslation('agreeToTerms'));
-        if (termsCard) {
-          termsCard.style.borderColor = '#ef4444';
-          termsCard.style.background = 'rgba(239, 68, 68, 0.05)';
-        }
-      } else {
-        if (termsCard) {
-          termsCard.style.borderColor = '';
-          termsCard.style.background = '';
-        }
-      }
-
-      // Validate email format
-      const emailField = document.getElementById('customerEmail');
-      if (emailField && emailField.value) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(emailField.value)) {
-          isValid = false;
-          missingFields.push(getTranslation('validEmail'));
-          emailField.style.borderColor = '#ef4444';
-          emailField.style.background = 'rgba(239, 68, 68, 0.1)';
-        }
-      }
-
-      if (!isValid) {
-        const message = getTranslation('pleaseComplete') + '\n• ' + missingFields.join('\n• ');
-        alert(message);
-        
-        // Scroll to first error field
-        const firstErrorField = document.querySelector('input[style*="border-color: rgb(239, 68, 68)"], .terms-agreement[style*="border-color: rgb(239, 68, 68)"]');
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-
-      return isValid;
     }
 
-    // Show payment error
-    function showPaymentError(message) {
-      const errorDiv = document.getElementById('paymentError');
-      const checkoutActions = document.querySelector('.checkout-actions');
-      
-      if (errorDiv && checkoutActions) {
-        errorDiv.querySelector('.error-message').textContent = message;
-        errorDiv.style.display = 'block';
-        checkoutActions.style.display = 'none';
-        
-        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      
-      resetPaymentState();
-    }
-
-    // Hide payment error
-    function hidePaymentError() {
-      const errorDiv = document.getElementById('paymentError');
-      const checkoutActions = document.querySelector('.checkout-actions');
-      
-      if (errorDiv) errorDiv.style.display = 'none';
-      if (checkoutActions) checkoutActions.style.display = 'block';
-      
-      resetPaymentState();
-    }
-
-    // Process checkout
-    function processCheckout() {
-      if (paymentProcessingState.isProcessing) {
-        console.log('Checkout already in progress, preventing duplicate submission');
-        return false;
-      }
-
-      if (!validateCustomerDetails()) {
-        return false;
-      }
-
-      paymentProcessingState.isProcessing = true;
-      paymentProcessingState.submissionToken = generateSubmissionToken();
-      
-      paymentProcessingState.timeoutId = setTimeout(() => {
-        console.warn('Checkout processing timeout - resetting state');
-        resetPaymentState();
-      }, 30000);
-
-      setButtonLoading(true);
-
-      try {
-        saveFormData();
-        
-        const customerForm = document.getElementById('customerDetailsForm');
-        const customerData = new FormData(customerForm);
-        const customerDetails = {};
-        for (let [key, value] of customerData.entries()) {
-          customerDetails[key] = value;
+    function fallbackCopyToClipboard(text) {
+        try {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '-9999px';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return successful;
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            return false;
         }
-
-        updateCartWithCustomerDetails(customerDetails);
-
-      } catch (error) {
-        console.error('Checkout processing error:', error);
-        showPaymentError(getTranslation('processingError'));
-        return false;
-      }
     }
 
-    // Update cart with customer details
-    function updateCartWithCustomerDetails(customerDetails) {
-      const customerNote = `Customer Details:
-Name: ${customerDetails.firstName} ${customerDetails.middleName || ''} ${customerDetails.lastName}
-Email: ${customerDetails.customerEmail}
-Phone: ${customerDetails.mobilePhone}
-Order Date: ${new Date().toLocaleString()}`;
+    // Main Application Object
+    const MusicadoApp = {
+        currentLanguage: currentLanguage, // Expose current language for cart page
 
-      fetch('/cart/update.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          note: customerNote
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Cart updated with customer details:', data);
-        
-        clearFormData();
-        showSuccessMessage(getTranslation('orderUpdated'));
-        
-        setTimeout(() => {
-          window.location.href = '/checkout';
-        }, 1500);
-      })
-      .catch(error => {
-        console.error('Error updating cart:', error);
-        showPaymentError(getTranslation('updateError'));
-      });
-    }
-
-    // Apply discount code
-    function applyDiscountCode() {
-      const codeInput = document.getElementById('discountCodeInput');
-      const messageDiv = document.getElementById('discountMessage');
-      const applyBtn = document.getElementById('applyDiscountBtn');
-      
-      if (!codeInput || !messageDiv || !applyBtn) return;
-      
-      const code = codeInput.value.trim().toUpperCase();
-      
-      messageDiv.className = 'discount-message';
-      messageDiv.style.display = 'none';
-      
-      if (!code) {
-        showDiscountMessage('error', getTranslation('enterDiscountCode'));
-        return;
-      }
-      
-      applyBtn.disabled = true;
-      applyBtn.textContent = getTranslation('processing');
-      
-      console.log('Applying discount code:', code);
-      
-      saveFormData();
-      
-      const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15'];
-      
-      if (validCodes.includes(code)) {
-        showDiscountMessage('success', getTranslation('processing'));
-        
-        applyDiscountViaCartUpdate(code).then(success => {
-          if (success) {
-            showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+        init: function() {
+            console.log('Musicado App Initializing with saved language:', currentLanguage);
+            
+            this.initializeLanguage();
+            this.setupEventListeners();
+            this.populateOrdersTable();
+            this.setRandomSubheadline();
+            
+            // Load random audio files for both players
+            this.loadRandomAudio(1);
+            this.loadRandomAudio(2);
+            
+            // Initialize words section
+            this.updateWordsSection();
+            
+            // Setup testimonial carousel
             setTimeout(() => {
-              location.reload();
-            }, 1000);
-          } else {
-            applyDiscountViaURL(code);
-          }
-        }).catch(error => {
-          console.error('Cart update method failed:', error);
-          applyDiscountViaURL(code);
-        });
-        
-      } else {
-        console.log('Invalid discount code:', code);
-        showDiscountMessage('error', getTranslation('invalidDiscountCode'));
-        applyBtn.disabled = false;
-        applyBtn.textContent = getTranslation('applyDiscount');
-      }
-    }
-
-    // Try to apply discount via cart update API
-    function applyDiscountViaCartUpdate(code) {
-      return fetch('/cart/update.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+                this.setupTestimonialCarousel();
+            }, 100);
+            
+            // Setup scroll trigger for discount popup
+            this.setupScrollTrigger();
+            
+            // CRITICAL: Ensure discount modal is properly initialized
+            this.initializeDiscountModal();
         },
-        body: JSON.stringify({
-          discount: code
-        })
-      })
-      .then(response => {
-        if (response.ok) {
-          return response.json().then(() => true);
+
+        // FIXED: Proper discount modal initialization
+        initializeDiscountModal: function() {
+            console.log('🎯 Initializing discount modal...');
+            
+            // Wait for DOM to be fully ready
+            setTimeout(() => {
+                const modal = document.getElementById('discountModal');
+                const modalContent = modal ? modal.querySelector('.modal-content') : null;
+                
+                console.log('📊 Modal elements check:', {
+                    modal: !!modal,
+                    modalContent: !!modalContent
+                });
+                
+                if (!modal || !modalContent) {
+                    console.warn('⚠️ Discount modal not found in DOM - creating fallback');
+                    this.createDiscountModalFallback();
+                    return;
+                }
+                
+                // Ensure static modal content is properly set up
+                this.setupStaticModalContent();
+                
+                // Setup modal event listeners
+                this.setupDiscountModalListeners();
+                
+                console.log('✅ Discount modal initialized successfully');
+                
+            }, 500);
+        },
+
+        // FIXED: Create modal fallback if not found
+        createDiscountModalFallback: function() {
+            console.log('🔧 Creating discount modal fallback...');
+            
+            const modalHTML = `
+                <div id="discountModal" class="discount-modal" style="display: none;">
+                    <div class="discount-modal-overlay">
+                        <div class="modal-content">
+                            <span class="discount-close">&times;</span>
+                            <div class="discount-step" id="emailStep">
+                                <h2>${translations[currentLanguage].discountTitle}</h2>
+                                <p>${translations[currentLanguage].discountEmailDescription}</p>
+                                
+                                <div class="email-form">
+                                    <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                                    
+                                    <div class="email-consent-section" id="emailConsentCheckbox">
+                                        <label class="consent-checkbox">
+                                            <input type="checkbox" id="emailConsent">
+                                            <span class="checkmark"></span>
+                                            ${translations[currentLanguage].emailConsentText}
+                                        </label>
+                                    </div>
+                                    
+                                    <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                                        ${translations[currentLanguage].getDiscount}
+                                    </button>
+                                </div>
+                                
+                                <div class="privacy-note">
+                                    <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="discount-step" id="codeStep" style="display: none;">
+                                <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                                <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                                
+                                <div class="discount-code-display">
+                                    <div class="code-box">
+                                        <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
+                                        <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                            <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                            <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="code-validity-info">
+                                    <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                                </div>
+                                
+                                <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                                    ${translations[currentLanguage].continueToCheckout}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Add required styles
+            this.addDiscountModalStyles();
+            
+            // Setup event listeners
+            this.setupDiscountModalListeners();
+            
+            console.log('✅ Discount modal fallback created');
+        },
+
+        // FIXED: Setup static modal content without overwriting
+        setupStaticModalContent: function() {
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            console.log('🔧 Setting up static modal content...', {
+                emailStep: !!emailStep,
+                codeStep: !!codeStep
+            });
+            
+            // If email step exists but content is missing, populate it
+            if (emailStep && !emailStep.querySelector('#submitDiscountEmail')) {
+                emailStep.innerHTML = `
+                    <h2>${translations[currentLanguage].discountTitle}</h2>
+                    <p>${translations[currentLanguage].discountEmailDescription}</p>
+                    
+                    <div class="email-form">
+                        <input type="email" id="discountEmail" placeholder="${translations[currentLanguage].discountEmailPlaceholder}" autocomplete="email">
+                        
+                        <div class="email-consent-section" id="emailConsentCheckbox">
+                            <label class="consent-checkbox">
+                                <input type="checkbox" id="emailConsent">
+                                <span class="checkmark"></span>
+                                ${translations[currentLanguage].emailConsentText}
+                            </label>
+                        </div>
+                        
+                        <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
+                            ${translations[currentLanguage].getDiscount}
+                        </button>
+                    </div>
+                    
+                    <div class="privacy-note">
+                        <small>${translations[currentLanguage].discountTermsPrivacy}</small>
+                    </div>
+                `;
+            }
+            
+            // Create code step if it doesn't exist
+            if (!codeStep) {
+                const modalContent = document.querySelector('#discountModal .modal-content');
+                if (modalContent) {
+                    const codeStepHTML = `
+                        <div class="discount-step" id="codeStep" style="display: none;">
+                            <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                            <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                            
+                            <div class="discount-code-display">
+                                <div class="code-box">
+                                    <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
+                                    <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                        <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                        <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="code-validity-info">
+                                <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                            </div>
+                            
+                            <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                                ${translations[currentLanguage].continueToCheckout}
+                            </button>
+                        </div>
+                    `;
+                    modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
+                }
+            }
+        },
+
+        // FIXED: Add modal styles if needed
+        addDiscountModalStyles: function() {
+            if (document.getElementById('discountModalStyles')) return;
+            
+            const styles = document.createElement('style');
+            styles.id = 'discountModalStyles';
+            styles.textContent = `
+                /* Discount Modal Styles */
+                .discount-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(8px);
+                    z-index: 10000;
+                    animation: fadeIn 0.3s ease-out;
+                }
+
+                .discount-modal-overlay {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    height: 100%;
+                    padding: 20px;
+                }
+
+                .discount-modal .modal-content {
+                    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
+                    backdrop-filter: blur(25px) saturate(180%);
+                    border-radius: 24px;
+                    padding: 2.5rem;
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    position: relative;
+                    box-shadow: 
+                        0 25px 60px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        0 0 0 1px rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    color: #e2e8f0;
+                    animation: slideInUp 0.4s ease-out;
+                }
+
+                .discount-close {
+                    position: absolute;
+                    top: 1rem;
+                    right: 1.5rem;
+                    font-size: 2rem;
+                    color: #94a3b8;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    z-index: 1;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                }
+
+                .discount-close:hover {
+                    color: #ef4444;
+                    background: rgba(239, 68, 68, 0.1);
+                    border-color: rgba(239, 68, 68, 0.3);
+                    transform: scale(1.1);
+                }
+
+                .discount-step h2 {
+                    color: #06b6d4;
+                    margin-bottom: 1rem;
+                    font-size: 1.75rem;
+                    font-weight: 700;
+                    text-align: center;
+                    text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+                }
+
+                .discount-step p {
+                    color: #cbd5e1;
+                    margin-bottom: 2rem;
+                    font-size: 1.1rem;
+                    line-height: 1.6;
+                    text-align: center;
+                }
+
+                .email-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem;
+                }
+
+                .email-form input[type="email"] {
+                    width: 100%;
+                    padding: 16px 20px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    font-size: 1rem;
+                    background: rgba(15, 23, 42, 0.6);
+                    backdrop-filter: blur(10px);
+                    color: #e2e8f0;
+                    transition: all 0.3s ease;
+                    box-shadow: 
+                        inset 0 1px 3px rgba(0, 0, 0, 0.2),
+                        0 1px 0 rgba(255, 255, 255, 0.05);
+                }
+
+                .email-form input[type="email"]:focus {
+                    outline: none;
+                    border-color: rgba(59, 130, 246, 0.6);
+                    box-shadow: 
+                        0 0 0 3px rgba(59, 130, 246, 0.1),
+                        inset 0 1px 3px rgba(0, 0, 0, 0.2),
+                        0 0 20px rgba(59, 130, 246, 0.2);
+                    background: rgba(15, 23, 42, 0.8);
+                    transform: translateY(-2px);
+                }
+
+                .email-form input[type="email"]::placeholder {
+                    color: #94a3b8;
+                }
+
+                .email-consent-section {
+                    margin: 1rem 0;
+                }
+
+                .consent-checkbox {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    cursor: pointer;
+                    color: #cbd5e1;
+                    font-size: 0.9rem;
+                    line-height: 1.5;
+                    transition: all 0.3s ease;
+                }
+
+                .consent-checkbox input[type="checkbox"] {
+                    width: 20px;
+                    height: 20px;
+                    margin: 0;
+                    cursor: pointer;
+                    accent-color: #3b82f6;
+                    transform: scale(1.1);
+                    flex-shrink: 0;
+                    margin-top: 2px;
+                }
+
+                .email-consent-section.error {
+                    animation: shake 0.5s ease-in-out;
+                }
+
+                .email-consent-section.error .consent-checkbox {
+                    color: #ef4444;
+                }
+
+                .discount-code-display {
+                    margin: 2rem 0;
+                    text-align: center;
+                }
+
+                .code-box {
+                    background: rgba(15, 23, 42, 0.8);
+                    border: 2px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 
+                        0 8px 25px rgba(59, 130, 246, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                }
+
+                .discount-code-text {
+                    font-family: 'Courier New', monospace;
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #fbbf24;
+                    text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+                    letter-spacing: 2px;
+                    flex: 1;
+                    text-align: left;
+                }
+
+                .copy-code-btn {
+                    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                    color: #1e293b;
+                    border: none;
+                    border-radius: 10px;
+                    padding: 12px 20px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-size: 0.9rem;
+                    white-space: nowrap;
+                    min-width: 120px;
+                    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+                }
+
+                .copy-code-btn:hover {
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+                }
+
+                .code-validity-info {
+                    background: rgba(59, 130, 246, 0.1);
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin: 1.5rem 0;
+                    text-align: center;
+                }
+
+                .code-validity-info p {
+                    margin: 0;
+                    color: #94a3b8;
+                    font-style: italic;
+                }
+
+                .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 16px 24px;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-decoration: none;
+                    transition: all 0.3s ease;
+                    backdrop-filter: blur(10px);
+                    position: relative;
+                    overflow: hidden;
+                    min-height: 56px;
+                }
+
+                .btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, 
+                        transparent, 
+                        rgba(255, 255, 255, 0.2), 
+                        transparent);
+                    transition: left 0.4s ease;
+                    pointer-events: none;
+                }
+
+                .btn:hover::before {
+                    left: 100%;
+                }
+
+                .discount-submit-btn {
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    width: 100%;
+                    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                }
+
+                .discount-submit-btn:hover {
+                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+                }
+
+                .continue-shopping-btn {
+                    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+                    color: white;
+                    width: 100%;
+                    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                }
+
+                .continue-shopping-btn:hover {
+                    background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+                }
+
+                .privacy-note {
+                    text-align: center;
+                    margin-top: 1.5rem;
+                    padding-top: 1rem;
+                    border-top: 1px solid rgba(59, 130, 246, 0.2);
+                }
+
+                .privacy-note small {
+                    color: #94a3b8;
+                    font-style: italic;
+                    font-size: 0.85rem;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes slideInUp {
+                    from {
+                        transform: translateY(50px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                }
+
+                @media (max-width: 768px) {
+                    .discount-modal-overlay {
+                        padding: 10px;
+                    }
+                    
+                    .discount-modal .modal-content {
+                        padding: 2rem 1.5rem;
+                        max-height: 95vh;
+                    }
+                    
+                    .code-box {
+                        flex-direction: column;
+                        gap: 1rem;
+                        text-align: center;
+                    }
+                    
+                    .discount-code-text {
+                        font-size: 1.25rem;
+                        text-align: center;
+                    }
+                    
+                    .copy-code-btn {
+                        width: 100%;
+                        min-width: unset;
+                    }
+                }
+            `;
+            document.head.appendChild(styles);
+        },
+
+        // UPDATED: Initialize language with saved preference
+        initializeLanguage: function() {
+            // Use saved language preference
+            const savedLang = getSavedLanguagePreference();
+            console.log('🎯 Initializing with saved language:', savedLang);
+            
+            this.setLanguage(savedLang);
+            const activeBtn = document.querySelector(`[data-lang="${savedLang}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                console.log('✅ Active language button set for:', savedLang);
+            }
+        },
+
+        setupEventListeners: function() {
+            // Language switcher - UPDATED with saving
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    this.setLanguage(e.target.dataset.lang);
+                });
+            });
+
+            // Package selection
+            document.querySelectorAll('input[name="package"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    this.updateSongTitles();
+                    this.updateWordsSection();
+                    document.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+                    e.target.closest('.radio-option').classList.add('selected');
+                    
+                    // Show full album modal if "contact" package is selected
+                    if (e.target.value === 'contact') {
+                        this.showFullAlbumModal();
+                        // Reset selection to prevent form issues
+                        e.target.checked = false;
+                        e.target.closest('.radio-option').classList.remove('selected');
+                    }
+                });
+            });
+
+            // Voice selection
+            document.querySelectorAll('input[name="voiceType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    document.querySelectorAll('input[name="voiceType"]').forEach(r => {
+                        r.closest('.radio-option').classList.remove('selected');
+                    });
+                    e.target.closest('.radio-option').classList.add('selected');
+                });
+            });
+
+            // Reason selection
+            const reasonSelect = document.getElementById('reason');
+            if (reasonSelect) {
+                reasonSelect.addEventListener('change', (e) => {
+                    const otherField = document.getElementById('otherReason');
+                    if (e.target.value === 'other') {
+                        otherField.style.display = 'block';
+                        otherField.required = true;
+                    } else {
+                        otherField.style.display = 'none';
+                        otherField.required = false;
+                    }
+                });
+            }
+
+            // Form submission goes directly to cart
+            const selectionForm = document.getElementById('selectionForm');
+            if (selectionForm) {
+                selectionForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (this.validateForm()) {
+                        this.collectFormData();
+                        this.addToCartAndRedirect();
+                    }
+                });
+            }
+
+            // Admin form
+            const adminForm = document.getElementById('adminForm');
+            if (adminForm) {
+                adminForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addNewOrder();
+                });
+            }
+
+            // Admin access (double-click logo)
+            const logo = document.querySelector('.logo');
+            if (logo) {
+                logo.addEventListener('dblclick', () => {
+                    this.showPage('adminPage');
+                });
+            }
+
+            // Setup newsletter form
+            this.setupNewsletterForm();
+
+            // Setup full album modal listeners
+            this.setupFullAlbumModalListeners();
+
+            // Privacy modal functionality
+            this.setupPrivacyModal();
+
+            // Setup centralized button event handlers
+            this.setupButtonEventHandlers();
+        },
+
+        setupButtonEventHandlers: function() {
+            const buttonHandlers = {
+                'loadRandomAudio1': () => this.loadRandomAudio(1),
+                'loadRandomAudio2': () => this.loadRandomAudio(2)
+            };
+
+            Object.entries(buttonHandlers).forEach(([id, handler]) => {
+                const button = document.getElementById(id);
+                if (button) {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        handler();
+                    });
+                }
+            });
+
+            // Setup audio refresh buttons
+            document.querySelectorAll('[onclick*="loadRandomAudio"]').forEach(button => {
+                const playerNumber = button.onclick.toString().match(/loadRandomAudio\((\d+)\)/)?.[1];
+                if (playerNumber) {
+                    button.removeAttribute('onclick');
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.loadRandomAudio(parseInt(playerNumber));
+                    });
+                }
+            });
+        },
+
+        // UPDATED: setLanguage function with persistence
+        setLanguage: function(lang) {
+            currentLanguage = lang;
+            this.currentLanguage = lang; // Update the exposed property for cart page
+            AppState.ui.currentLanguage = lang;
+            
+            // CRITICAL: Save language preference for persistence across pages
+            saveLanguagePreference(lang);
+            
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.dataset.translate;
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            // Handle placeholder translations
+            document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+                const key = element.dataset.translatePlaceholder;
+                if (translations[lang] && translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Update random subheadline for new language
+            this.setRandomSubheadline();
+            
+            console.log('✅ Language set and saved:', lang);
+        },
+
+        setRandomSubheadline: function() {
+            const headlines = subheadlines[currentLanguage];
+            const randomIndex = Math.floor(Math.random() * headlines.length);
+            const selectedHeadline = headlines[randomIndex];
+            
+            const subheadlineElement = document.getElementById('randomSubheadline');
+            if (subheadlineElement) {
+                subheadlineElement.textContent = selectedHeadline;
+                
+                // Add a subtle animation
+                subheadlineElement.style.opacity = '0';
+                setTimeout(() => {
+                    subheadlineElement.style.opacity = '1';
+                }, 100);
+            }
+        },
+
+        // Audio Management Functions
+        loadRandomAudio: function(playerNumber) {
+            if (mp3Files.length === 0) {
+                console.error('No MP3 files available');
+                return;
+            }
+
+            let availableFiles = mp3Files.slice(); // Copy the array
+            
+            // Remove currently playing file from the other player to avoid duplicates
+            const otherPlayerIndex = playerNumber === 1 ? 2 : 1;
+            if (currentlyPlaying[otherPlayerIndex - 1] !== null) {
+                availableFiles = availableFiles.filter((_, index) => index !== currentlyPlaying[otherPlayerIndex - 1]);
+            }
+
+            // If only one file available and it's playing on the other player, allow duplicate
+            if (availableFiles.length === 0) {
+                availableFiles = mp3Files.slice();
+            }
+
+            // Select random file
+            const randomIndex = Math.floor(Math.random() * availableFiles.length);
+            const selectedFile = availableFiles[randomIndex];
+            const originalIndex = mp3Files.indexOf(selectedFile);
+
+            // Update tracking
+            currentlyPlaying[playerNumber - 1] = originalIndex;
+
+            // Update audio player
+            const audioPlayer = document.getElementById(`audioPlayer${playerNumber}`);
+            const audioTitle = document.getElementById(`audioTitle${playerNumber}`);
+            const audioDesc = document.getElementById(`audioDesc${playerNumber}`);
+
+            if (!audioPlayer || !audioTitle || !audioDesc) return;
+
+            // Clear previous source
+            audioPlayer.innerHTML = '';
+            
+            // Create new source element with the CDN URL
+            const source = document.createElement('source');
+            source.src = selectedFile.url;
+            source.type = 'audio/mpeg';
+            audioPlayer.appendChild(source);
+
+            // Add fallback text
+            const fallback = document.createElement('span');
+            fallback.setAttribute('data-translate', 'audioNotSupported');
+            fallback.textContent = translations[currentLanguage].audioNotSupported;
+            audioPlayer.appendChild(fallback);
+
+            // Update title and description
+            audioTitle.textContent = selectedFile.title[currentLanguage];
+            audioDesc.textContent = selectedFile.style[currentLanguage];
+
+            // Load the new audio
+            audioPlayer.load();
+
+            // Add loading animation
+            audioTitle.style.opacity = '0.6';
+            audioDesc.style.opacity = '0.6';
+            
+            // Reset opacity when loaded
+            audioPlayer.addEventListener('loadeddata', function() {
+                audioTitle.style.opacity = '1';
+                audioDesc.style.opacity = '1';
+            }, { once: true });
+
+            // Handle loading errors
+            audioPlayer.addEventListener('error', function(e) {
+                console.error(`Error loading audio file: ${selectedFile.url}`, e);
+                audioTitle.textContent = currentLanguage === 'nl' ? 'Fout bij laden' : 'Loading Error';
+                audioDesc.textContent = currentLanguage === 'nl' ? 
+                    'Bestand niet gevonden. Probeer een ander voorbeeld.' : 
+                    'File not found. Try another example.';
+                audioTitle.style.opacity = '1';
+                audioDesc.style.opacity = '1';
+            }, { once: true });
+        },
+
+        getVariantId: function(packageType) {
+            return VARIANT_IDS[packageType] || null;
+        },
+
+        // Add to cart and redirect
+        addToCartAndRedirect: function() {
+            console.log('Adding to cart and redirecting...');
+
+            try {
+                // Handle contact us option differently
+                if (formData.package === 'contact') {
+                    this.handleContactRequest();
+                    return;
+                }
+
+                // For actual products, integrate with Shopify cart
+                this.addToShopifyCart();
+
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                alert(currentLanguage === 'nl' ? 
+                    'Er is een fout opgetreden. Probeer het opnieuw.' : 
+                    'An error occurred. Please try again.');
+            }
+        },
+
+        // Handle contact request
+        handleContactRequest: function() {
+            try {
+                const message = currentLanguage === 'nl' ? 
+                    'Bedankt voor uw interesse! We nemen binnen 24 uur contact met u op via e-mail voor een persoonlijk gesprek.' : 
+                    'Thank you for your interest! We will contact you within 24 hours via email for a personal consultation.';
+                
+                // Save contact request locally
+                const contactRequest = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString(),
+                    customerName: 'Full Album Inquiry',
+                    package: 'Full Album Request',
+                    status: 'contact_request',
+                    orderData: formData
+                };
+                
+                orders.push(contactRequest);
+                localStorage.setItem('musicOrders', JSON.stringify(orders));
+                
+                // Show success message
+                alert(message);
+                
+                // Reset form and redirect to home
+                this.resetForm();
+                
+            } catch (error) {
+                console.error('Contact request error:', error);
+                alert(currentLanguage === 'nl' ? 
+                    'Er is een fout opgetreden bij het verzenden van uw verzoek.' : 
+                    'An error occurred while sending your request.');
+            }
+        },
+
+        // Add to Shopify cart with complete order data
+        addToShopifyCart: function() {
+            const variantId = this.getVariantId(formData.package);
+            
+            if (!variantId) {
+                console.error('No variant ID found for package:', formData.package);
+                alert('Product configuration error. Please contact support.');
+                return;
+            }
+
+            console.log('Adding to cart with variant ID:', variantId);
+
+            // Prepare cart data with all order information
+            const cartData = {
+                items: [{
+                    id: variantId,
+                    quantity: 1,
+                    properties: {
+                        'Package': this.getPackageDisplayName(formData.package),
+                        'Music Style 1': formData.musicStyle1,
+                        'Music Style 2': formData.musicStyle2,
+                        'Voice Type': formData.voiceType,
+                        'Language': formData.songLanguage,
+                        'Reason': formData.reason
+                    }
+                }]
+            };
+
+            // Add optional properties
+            if (formData.artist1 || formData.artist2 || formData.artist3) {
+                const artists = [formData.artist1, formData.artist2, formData.artist3].filter(a => a);
+                cartData.items[0].properties['Favorite Artists'] = artists.join(', ');
+            }
+
+            // Include custom lyrics/story if provided
+            if (formData.ownLyrics && formData.ownLyrics.trim()) {
+                cartData.items[0].properties['Custom Lyrics/Story'] = formData.ownLyrics;
+            }
+
+            // Add words/names based on package
+            if (formData.package === 'ep') {
+                for (let song = 1; song <= 4; song++) {
+                    const songWords = [];
+                    for (let word = 1; word <= 3; word++) {
+                        const wordValue = formData[`song${song}_word${word}`];
+                        if (wordValue && wordValue.trim()) {
+                            songWords.push(wordValue.trim());
+                        }
+                    }
+                    if (songWords.length > 0) {
+                        cartData.items[0].properties[`Song ${song} Words`] = songWords.join(', ');
+                    }
+                }
+            } else if (formData.package === 'one') {
+                const words = [formData.word1, formData.word2, formData.word3].filter(w => w && w.trim());
+                if (words.length > 0) {
+                    cartData.items[0].properties['Words/Names'] = words.join(', ');
+                }
+            }
+
+            // Store order data in localStorage for cart page
+            localStorage.setItem('musicOrderData', JSON.stringify(formData));
+
+            // Add to cart via Shopify API
+            fetch('/cart/add.js', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cartData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Successfully added to cart:', data);
+                
+                // Show success message
+                const successMessage = currentLanguage === 'nl' ? 
+                    'Product toegevoegd aan winkelwagen! U wordt doorgestuurd...' :
+                    'Product added to cart! Redirecting...';
+                
+                // Show brief success notification
+                this.showSuccessNotification(successMessage);
+                
+                // Redirect to cart after short delay
+                setTimeout(() => {
+                    window.location.href = '/cart';
+                }, 1500);
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                
+                // Show user-friendly error
+                if (error.message.includes('404')) {
+                    alert(currentLanguage === 'nl' ? 
+                        'Product niet gevonden. Controleer de product configuratie.' : 
+                        'Product not found. Please check product configuration.');
+                } else if (error.message.includes('422')) {
+                    alert(currentLanguage === 'nl' ? 
+                        'Product niet beschikbaar. Probeer het later opnieuw.' : 
+                        'Product unavailable. Please try again later.');
+                } else {
+                    alert(currentLanguage === 'nl' ? 
+                        'Er was een fout bij het toevoegen aan winkelwagen. Probeer het opnieuw.' : 
+                        'There was an error adding to cart. Please try again.');
+                }
+            });
+        },
+
+        showSuccessNotification: function(message) {
+            // Create success notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease-out;
+                max-width: 300px;
+                text-align: center;
+                line-height: 1.4;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove notification after delay
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        },
+
+        getPackageDisplayName: function(packageType) {
+            const names = {
+                'one': currentLanguage === 'nl' ? 'Één Liedje' : 'One Song',
+                'ep': currentLanguage === 'nl' ? 'EP (4 liedjes)' : 'EP (4 songs)',
+                'album': currentLanguage === 'nl' ? 'Volledig Album' : 'Full Album'
+            };
+            return names[packageType] || packageType;
+        },
+
+        updateSongTitles: function() {
+            const selectedPackage = document.querySelector('input[name="package"]:checked');
+            const titleContainer = document.getElementById('titleFields');
+            const songTitlesSection = document.getElementById('songTitles');
+            
+            if (!titleContainer || !songTitlesSection) return;
+            
+            if (!selectedPackage || selectedPackage.value === 'contact') {
+                songTitlesSection.classList.remove('show');
+                return;
+            }
+
+            let numSongs;
+            switch(selectedPackage.value) {
+                case 'one': numSongs = 1; break;
+                case 'ep': numSongs = 4; break;
+                default: numSongs = 0;
+            }
+
+            titleContainer.innerHTML = '';
+            for (let i = 1; i <= numSongs; i++) {
+                const titleField = document.createElement('div');
+                titleField.className = 'title-field';
+                titleField.innerHTML = `<input type="text" name="songTitle${i}" placeholder="Song ${i} Title">`;
+                titleContainer.appendChild(titleField);
+            }
+
+            songTitlesSection.classList.add('show');
+        },
+
+        updateWordsSection: function() {
+            const selectedPackage = document.querySelector('input[name="package"]:checked');
+            const wordsContainer = document.getElementById('wordsContainer');
+            
+            if (!wordsContainer) return;
+            
+            if (!selectedPackage || selectedPackage.value === 'contact') {
+                wordsContainer.innerHTML = '';
+                return;
+            }
+
+            wordsContainer.innerHTML = '';
+
+            if (selectedPackage.value === 'ep') {
+                // EP: 4 songs with 3 words each
+                for (let song = 1; song <= 4; song++) {
+                    const songSection = document.createElement('div');
+                    songSection.className = 'song-words-section';
+                    
+                    const songTitle = document.createElement('div');
+                    songTitle.className = 'song-words-title';
+                    songTitle.textContent = `Song ${song} - Words/Names:`;
+                    songSection.appendChild(songTitle);
+                    
+                    const wordsRow = document.createElement('div');
+                    wordsRow.className = 'words-row';
+                    
+                    for (let word = 1; word <= 3; word++) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.name = `song${song}_word${word}`;
+                        input.placeholder = `Word/Name ${word}`;
+                        input.className = 'word-input';
+                        wordsRow.appendChild(input);
+                    }
+                    
+                    songSection.appendChild(wordsRow);
+                    wordsContainer.appendChild(songSection);
+                }
+            } else {
+                // Single song: 3 words
+                const wordsRow = document.createElement('div');
+                wordsRow.className = 'words-row';
+                
+                for (let i = 1; i <= 3; i++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.name = `word${i}`;
+                    input.placeholder = `Word/Name ${i}`;
+                    input.style.marginBottom = '10px';
+                    wordsRow.appendChild(input);
+                }
+                
+                wordsContainer.appendChild(wordsRow);
+            }
+        },
+
+        validateForm: function() {
+            let isValid = true;
+            let missingFields = [];
+
+            // Check package selection (radio buttons)
+            const packageSelected = document.querySelector('input[name="package"]:checked');
+            if (!packageSelected) {
+                isValid = false;
+                missingFields.push(currentLanguage === 'nl' ? 'Pakket selectie' : 'Package selection');
+                document.querySelectorAll('input[name="package"]').forEach(radio => {
+                    radio.closest('.radio-option').style.borderColor = '#ef4444';
+                });
+            } else {
+                document.querySelectorAll('input[name="package"]').forEach(radio => {
+                    radio.closest('.radio-option').style.borderColor = '#475569';
+                });
+            }
+
+            // Check other required fields
+            const requiredFields = [
+                { name: 'musicStyle1', label: currentLanguage === 'nl' ? 'Eerste Muziekstijl' : 'First Music Style' },
+                { name: 'musicStyle2', label: currentLanguage === 'nl' ? 'Tweede Muziekstijl' : 'Second Music Style' },
+                { name: 'reason', label: currentLanguage === 'nl' ? 'Reden' : 'Reason' },
+                { name: 'songLanguage', label: currentLanguage === 'nl' ? 'Liedje taal' : 'Song Language' }
+            ];
+
+            // Check voice selection (radio buttons)
+            const voiceSelected = document.querySelector('input[name="voiceType"]:checked');
+            if (!voiceSelected) {
+                isValid = false;
+                missingFields.push(currentLanguage === 'nl' ? 'Stem voorkeur' : 'Voice preference');
+                document.querySelectorAll('input[name="voiceType"]').forEach(radio => {
+                    radio.closest('.radio-option').style.borderColor = '#ef4444';
+                });
+            } else {
+                document.querySelectorAll('input[name="voiceType"]').forEach(radio => {
+                    radio.closest('.radio-option').style.borderColor = '#475569';
+                });
+            }
+
+            requiredFields.forEach(field => {
+                const element = document.querySelector(`[name="${field.name}"]`);
+                if (!element || !element.value) {
+                    isValid = false;
+                    missingFields.push(field.label);
+                    if (element) {
+                        element.style.borderColor = '#ef4444';
+                    }
+                } else {
+                    if (element) {
+                        element.style.borderColor = '#475569';
+                    }
+                }
+            });
+
+            // Check if "other" reason is selected but not specified
+            const reasonSelect = document.querySelector('[name="reason"]');
+            const otherReasonField = document.getElementById('otherReason');
+            if (reasonSelect && reasonSelect.value === 'other' && otherReasonField && (!otherReasonField.value || otherReasonField.value.trim() === '')) {
+                isValid = false;
+                missingFields.push(currentLanguage === 'nl' ? 'Andere reden specificatie' : 'Other reason specification');
+                otherReasonField.style.borderColor = '#ef4444';
+            }
+
+            if (!isValid) {
+                const message = currentLanguage === 'nl' ? 
+                    'Vul de volgende verplichte velden in:\n• ' + missingFields.join('\n• ') :
+                    'Please fill in the following required fields:\n• ' + missingFields.join('\n• ');
+                alert(message);
+            }
+
+            return isValid;
+        },
+
+        collectFormData: function() {
+            const form = document.getElementById('selectionForm');
+            if (!form) return;
+            
+            formData = {};
+            
+            // Get package selection (radio button)
+            const selectedPackage = document.querySelector('input[name="package"]:checked');
+            if (selectedPackage) {
+                formData.package = selectedPackage.value;
+                formData.price = selectedPackage.dataset.price;
+            }
+            
+            // Get all other form data
+            const formDataObj = new FormData(form);
+            for (let [key, value] of formDataObj.entries()) {
+                if (key !== 'package') { // We already handled package above
+                    formData[key] = value;
+                }
+            }
+        },
+
+        resetForm: function() {
+            const form = document.getElementById('selectionForm');
+            if (form) {
+                form.reset();
+                
+                // Reset radio button styles
+                document.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Reset words section
+                this.updateWordsSection();
+                
+                // Hide song titles section
+                const songTitlesSection = document.getElementById('songTitles');
+                if (songTitlesSection) {
+                    songTitlesSection.classList.remove('show');
+                }
+                
+                // Hide other reason field
+                const otherReasonField = document.getElementById('otherReason');
+                if (otherReasonField) {
+                    otherReasonField.style.display = 'none';
+                    otherReasonField.required = false;
+                }
+            }
+        },
+
+        showPage: function(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+        },
+
+        // DISCOUNT MODAL FUNCTIONS
+        showDiscountModal: function() {
+            console.log('🎯 Showing discount modal...');
+            
+            // Don't show modal if already shown
+            if (AppState.ui.modalShown) {
+                console.log('📝 Modal already shown, skipping');
+                return;
+            }
+            
+            const modal = document.getElementById('discountModal');
+            if (!modal) {
+                console.warn('⚠️ Discount modal not found, creating fallback');
+                this.createDiscountModalFallback();
+                return;
+            }
+            
+            // Show the modal
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            AppState.ui.modalShown = true;
+            
+            // Ensure email step is visible and code step is hidden
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            if (emailStep) emailStep.style.display = 'block';
+            if (codeStep) codeStep.style.display = 'none';
+            
+            console.log('✅ Discount modal shown successfully');
+        },
+
+        // Switch to code step
+        showDiscountCodeStep: function() {
+            console.log('🔄 Switching to code step...');
+            
+            const emailStep = document.getElementById('emailStep');
+            const codeStep = document.getElementById('codeStep');
+            
+            console.log('📊 Step elements:', { 
+                emailStep: !!emailStep, 
+                codeStep: !!codeStep 
+            });
+            
+            if (emailStep) {
+                emailStep.style.display = 'none';
+                console.log('✅ Email step hidden');
+            }
+            
+            if (codeStep) {
+                codeStep.style.display = 'block';
+                console.log('✅ Code step shown');
+            } else {
+                console.warn('⚠️ Code step not found, creating it...');
+                this.createCodeStep();
+            }
+        },
+
+        // Create code step dynamically if missing
+        createCodeStep: function() {
+            const modal = document.getElementById('discountModal');
+            const modalContent = modal ? modal.querySelector('.modal-content') : null;
+            
+            if (!modalContent) {
+                console.error('❌ Modal content not found');
+                return;
+            }
+            
+            const codeStepHTML = `
+                <div class="discount-step" id="codeStep" style="display: block;">
+                    <h2>${translations[currentLanguage].discountSuccessTitle}</h2>
+                    <p>${translations[currentLanguage].discountSuccessMessage}</p>
+                    
+                    <div class="discount-code-display">
+                        <div class="code-box">
+                            <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
+                            <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
+                                <span class="copy-text">${translations[currentLanguage].copyCode}</span>
+                                <span class="copied-text" style="display: none;">${translations[currentLanguage].codeCopied}</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="code-validity-info">
+                        <p><small>${translations[currentLanguage].discountValidityInfo}</small></p>
+                    </div>
+                    
+                    <button type="button" class="btn continue-shopping-btn" onclick="MusicadoApp.closeDiscountModal()">
+                        ${translations[currentLanguage].continueToCheckout}
+                    </button>
+                </div>
+            `;
+            
+            modalContent.insertAdjacentHTML('beforeend', codeStepHTML);
+            
+            // Re-setup event listeners for new elements
+            this.setupDiscountModalListeners();
+            
+            console.log('✅ Code step created successfully');
+        },
+
+        // Submit discount email
+        submitDiscountEmail: function() {
+            console.log('📧 Submitting discount email...');
+            
+            const emailInput = document.getElementById('discountEmail');
+            const consentCheckbox = document.getElementById('emailConsent');
+            
+            const email = emailInput ? emailInput.value.trim() : '';
+            const hasConsent = consentCheckbox ? consentCheckbox.checked : false;
+            
+            console.log('📊 Email submission data:', { 
+                email: email ? '***@***.***' : 'empty', 
+                hasConsent 
+            });
+            
+            // Reset error states
+            if (emailInput) emailInput.style.borderColor = '';
+            const consentSection = document.getElementById('emailConsentCheckbox');
+            if (consentSection) consentSection.classList.remove('error');
+            
+            // Validate email is required
+            if (!email) {
+                if (emailInput) {
+                    emailInput.style.borderColor = '#ef4444';
+                    emailInput.focus();
+                }
+                alert(currentLanguage === 'nl' ? 
+                    'Voer uw e-mailadres in om uw kortingscode te ontvangen.' : 
+                    'Please enter your email address to receive your discount code.');
+                return;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                if (emailInput) {
+                    emailInput.style.borderColor = '#ef4444';
+                    emailInput.focus();
+                }
+                alert(currentLanguage === 'nl' ? 
+                    'Voer een geldig e-mailadres in.' : 
+                    'Please enter a valid email address.');
+                return;
+            }
+            
+            // Validate consent is required
+            if (!hasConsent) {
+                if (consentSection) consentSection.classList.add('error');
+                alert(currentLanguage === 'nl' ? 
+                    'U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.' : 
+                    'You must agree to receive emails to get your discount code.');
+                return;
+            }
+            
+            // Store email and consent
+            localStorage.setItem('discountEmail', email);
+            localStorage.setItem('emailConsent', 'true');
+            console.log('📧 Email stored successfully');
+            
+            // Show the discount code step
+            this.showDiscountCodeStep();
+        },
+
+        // Show discount code directly without email
+        showDiscountCodeDirectly: function() {
+            console.log('⏭️ Showing discount code directly...');
+            this.showDiscountCodeStep();
+        },
+
+        // Copy discount code to clipboard
+        copyDiscountCode: function() {
+            console.log('📋 Copying discount code...');
+            
+            const codeText = 'MUSIC15';
+            const copyBtn = document.getElementById('copyDiscountCode');
+            const copyTextSpan = copyBtn ? copyBtn.querySelector('.copy-text') : null;
+            const copiedTextSpan = copyBtn ? copyBtn.querySelector('.copied-text') : null;
+            
+            copyToClipboard(codeText).then((success) => {
+                if (success) {
+                    console.log('✅ Code copied successfully');
+                    
+                    // Show success state
+                    if (copyTextSpan) copyTextSpan.style.display = 'none';
+                    if (copiedTextSpan) copiedTextSpan.style.display = 'inline';
+                    if (copyBtn) {
+                        copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                        copyBtn.style.color = 'white';
+                    }
+                    
+                    // Show success notification
+                    this.showCopySuccessNotification();
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        if (copyTextSpan) copyTextSpan.style.display = 'inline';
+                        if (copiedTextSpan) copiedTextSpan.style.display = 'none';
+                        if (copyBtn) {
+                            copyBtn.style.background = '';
+                            copyBtn.style.color = '';
+                        }
+                    }, 3000);
+                } else {
+                    console.log('❌ Copy failed, showing fallback');
+                    alert(currentLanguage === 'nl' ? 
+                        'Kopieer deze code: ' + codeText : 
+                        'Copy this code: ' + codeText);
+                }
+            });
+        },
+
+        // Show copy success notification
+        showCopySuccessNotification: function() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                z-index: 10001;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease-out;
+                max-width: 300px;
+                text-align: center;
+                line-height: 1.4;
+            `;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                    <span>📋</span>
+                    <span>${currentLanguage === 'nl' ? 'Code gekopieerd naar klembord!' : 'Code copied to clipboard!'}</span>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            // Remove notification after delay
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        },
+
+        closeDiscountModal: function() {
+            console.log('❌ Closing discount modal...');
+            
+            const modal = document.getElementById('discountModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                console.log('✅ Modal closed');
+            }
+        },
+
+        // Setup discount modal event listeners
+        setupDiscountModalListeners: function() {
+            console.log('🔧 Setting up discount modal listeners...');
+            
+            // Wait a bit to ensure DOM is ready
+            setTimeout(() => {
+                // Close button
+                const discountCloseBtn = document.querySelector('.discount-close');
+                if (discountCloseBtn) {
+                    discountCloseBtn.removeEventListener('click', this.closeDiscountModal);
+                    discountCloseBtn.addEventListener('click', () => this.closeDiscountModal());
+                    console.log('✅ Close button listener added');
+                }
+
+                // Click outside modal to close
+                const discountModal = document.getElementById('discountModal');
+                if (discountModal) {
+                    discountModal.removeEventListener('click', this.handleModalOutsideClick);
+                    discountModal.addEventListener('click', (e) => {
+                        if (e.target === discountModal) {
+                            this.closeDiscountModal();
+                        }
+                    });
+                    console.log('✅ Outside click listener added');
+                }
+
+                // ESC key to close modal
+                document.removeEventListener('keydown', this.handleModalEscKey);
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && discountModal && discountModal.style.display === 'block') {
+                        this.closeDiscountModal();
+                    }
+                });
+
+                // Submit email button
+                const submitEmailBtn = document.getElementById('submitDiscountEmail');
+                if (submitEmailBtn) {
+                    submitEmailBtn.removeEventListener('click', this.submitDiscountEmail);
+                    submitEmailBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.submitDiscountEmail();
+                    });
+                    console.log('✅ Submit email button listener added');
+                }
+
+                // Copy code button
+                const copyCodeBtn = document.getElementById('copyDiscountCode');
+                if (copyCodeBtn) {
+                    copyCodeBtn.removeEventListener('click', this.copyDiscountCode);
+                    copyCodeBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.copyDiscountCode();
+                    });
+                    console.log('✅ Copy code button listener added');
+                }
+                
+                console.log('✅ All discount modal listeners set up');
+                
+            }, 100);
+        },
+
+        // Full Album Modal Functions
+        showFullAlbumModal: function() {
+            const modal = document.getElementById('fullAlbumModal');
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        },
+
+        closeFullAlbumModal: function() {
+            const modal = document.getElementById('fullAlbumModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                
+                // Reset form
+                const form = document.getElementById('fullAlbumContactForm');
+                if (form) {
+                    form.reset();
+                    const topicField = document.getElementById('fullAlbumTopic');
+                    if (topicField) {
+                        topicField.value = 'Interested in a full album please contact me';
+                    }
+                }
+            }
+        },
+
+        handleFullAlbumContactSubmission: function() {
+            const form = document.getElementById('fullAlbumContactForm');
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            
+            const email = formData.get('email');
+            const phone = formData.get('phone');
+            const topic = formData.get('topic');
+            const notes = formData.get('notes');
+
+            // Basic validation
+            if (!email || !phone) {
+                alert(currentLanguage === 'nl' ? 
+                    'Vul alle verplichte velden in.' : 
+                    'Please fill in all required fields.');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert(currentLanguage === 'nl' ? 
+                    'Voer een geldig e-mailadres in.' : 
+                    'Please enter a valid email address.');
+                return;
+            }
+
+            // Save the contact request
+            const contactRequest = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                customerName: 'Full Album Inquiry',
+                customerEmail: email,
+                customerPhone: phone,
+                package: 'Full Album Contact Request',
+                originalPrice: 'Contact',
+                finalPrice: 'Contact',
+                status: 'contact_request',
+                topic: topic,
+                notes: notes || '',
+                source: 'full_album_modal'
+            };
+            
+            orders.push(contactRequest);
+            localStorage.setItem('musicOrders', JSON.stringify(orders));
+
+            // Show success message
+            alert(currentLanguage === 'nl' ? 
+                'Bedankt voor uw interesse! We nemen binnen 24 uur contact met u op via e-mail voor een persoonlijk gesprek over uw volledige album.' : 
+                'Thank you for your interest! We will contact you within 24 hours via email for a personal consultation about your full album.');
+
+            // Close modal
+            this.closeFullAlbumModal();
+        },
+
+        setupFullAlbumModalListeners: function() {
+            // Full album modal functionality
+            const fullAlbumModal = document.getElementById('fullAlbumModal');
+            const fullAlbumCloseBtn = document.getElementById('fullAlbumClose');
+            const fullAlbumForm = document.getElementById('fullAlbumContactForm');
+
+            // Close button
+            if (fullAlbumCloseBtn) {
+                fullAlbumCloseBtn.addEventListener('click', () => this.closeFullAlbumModal());
+            }
+
+            // Click outside modal to close
+            if (fullAlbumModal) {
+                fullAlbumModal.addEventListener('click', (e) => {
+                    if (e.target === fullAlbumModal) {
+                        this.closeFullAlbumModal();
+                    }
+                });
+            }
+
+            // Form submission
+            if (fullAlbumForm) {
+                fullAlbumForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFullAlbumContactSubmission();
+                });
+            }
+
+            // ESC key to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && fullAlbumModal && fullAlbumModal.style.display === 'block') {
+                    this.closeFullAlbumModal();
+                }
+            });
+        },
+
+        setupPrivacyModal: function() {
+            const modal = document.getElementById('privacyModal');
+            const link = document.getElementById('fullPrivacyLink');
+            const closeBtn = document.querySelector('.close');
+
+            if (link && modal && closeBtn) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                });
+
+                window.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
+        },
+
+        // Scroll trigger for discount popup
+        setupScrollTrigger: function() {
+            // PAGE DETECTION - Only show popup on homepage
+            const isHomepage = window.location.pathname === '/' || 
+                              window.location.pathname === '/index' ||
+                              window.location.pathname.includes('/index') ||
+                              document.body.classList.contains('template-index') ||
+                              document.body.classList.contains('index') ||
+                              document.querySelector('body[class*="index"]') !== null;
+            
+            if (!isHomepage) {
+                console.log('Not on homepage - skipping discount popup');
+                return; // Exit early, no popup on cart/other pages
+            }
+            
+            console.log('On homepage - setting up discount popup trigger');
+            
+            // Wait a bit for DOM to be fully ready
+            setTimeout(() => {
+                const pricingSection = document.querySelector('.radio-group');
+                
+                if (pricingSection) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting && !AppState.ui.modalShown) {
+                                console.log('🎯 Pricing section visible, showing discount modal');
+                                this.showDiscountModal();
+                            }
+                        });
+                    }, { 
+                        threshold: 0.5,
+                        rootMargin: '-50px 0px -50px 0px'
+                    });
+
+                    observer.observe(pricingSection);
+                } else {
+                    // Fallback: show modal after 3 seconds if pricing section not found
+                    setTimeout(() => {
+                        if (!AppState.ui.modalShown) {
+                            console.log('🎯 Fallback: showing discount modal after timeout');
+                            this.showDiscountModal();
+                        }
+                    }, 3000);
+                }
+            }, 500);
+        },
+
+        // Testimonial Carousel Functions
+        setupTestimonialCarousel: function() {
+            const carousel = document.getElementById('featuredTestimonials');
+            const dots = document.querySelectorAll('.dot');
+            let currentSlide = 0;
+            let startX = 0;
+            let isDragging = false;
+
+            if (!carousel || dots.length === 0) return;
+
+            // Dot navigation
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentSlide = index;
+                    updateCarousel();
+                });
+            });
+
+            // Touch events for swiping
+            carousel.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                carousel.style.transition = 'none';
+            });
+
+            carousel.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+            });
+
+            carousel.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                const endX = e.changedTouches[0].clientX;
+                const diffX = startX - endX;
+                const threshold = 50;
+
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0 && currentSlide < dots.length - 1) {
+                        // Swipe left - next slide
+                        currentSlide++;
+                    } else if (diffX < 0 && currentSlide > 0) {
+                        // Swipe right - previous slide
+                        currentSlide--;
+                    }
+                }
+                updateCarousel();
+            });
+
+            function updateCarousel() {
+                // Only apply carousel on mobile
+                if (window.innerWidth <= 768) {
+                    const translateX = -currentSlide * 25;
+                    carousel.style.transform = `translateX(${translateX}%)`;
+                    carousel.style.transition = 'transform 0.3s ease';
+                } else {
+                    // Reset for desktop
+                    carousel.style.transform = 'none';
+                    carousel.style.transition = 'none';
+                }
+
+                // Update dots
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentSlide);
+                });
+            }
+
+            // Initialize and handle window resize
+            updateCarousel();
+            
+            window.addEventListener('resize', () => {
+                updateCarousel();
+            });
+
+            // Auto-hide swipe hint after first interaction
+            let hintHidden = false;
+            const hideHint = () => {
+                if (!hintHidden) {
+                    const hint = document.querySelector('.swipe-hint');
+                    if (hint) {
+                        hint.style.opacity = '0.4';
+                        hint.style.fontSize = '0.75rem';
+                    }
+                    hintHidden = true;
+                }
+            };
+
+            carousel.addEventListener('touchend', hideHint);
+            dots.forEach(dot => dot.addEventListener('click', hideHint));
+        },
+
+        // Newsletter Functions
+        setupNewsletterForm: function() {
+            const newsletterForm = document.getElementById('newsletterForm');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleNewsletterSubmission();
+                });
+            }
+        },
+
+        handleNewsletterSubmission: function() {
+            const emailInput = document.getElementById('newsletterEmail');
+            if (!emailInput) return;
+            
+            const email = emailInput.value;
+            
+            if (!email || !email.includes('@')) {
+                alert(currentLanguage === 'nl' ? 'Voer een geldig e-mailadres in.' : 'Please enter a valid email address.');
+                return;
+            }
+
+            // Submit email to newsletter system
+            this.submitEmailToNewsletter(email);
+            
+            // Show success message
+            const button = document.querySelector('.newsletter-btn');
+            if (button) {
+                const originalText = button.textContent;
+                button.textContent = currentLanguage === 'nl' ? 'Aangemeld! ✓' : 'Subscribed! ✓';
+                button.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                button.disabled = true;
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)';
+                    button.disabled = false;
+                    emailInput.value = '';
+                }, 3000);
+            }
+        },
+
+        submitEmailToNewsletter: function(email) {
+            console.log('Submitting email to newsletter:', email);
+            this.submitEmailToShopify(email, 'newsletter');
+        },
+
+        submitEmailToShopify: function(email, source = 'discount_banner') {
+            console.log('Submitting email to Shopify as lead:', email, 'Source:', source);
+        },
+
+        // Admin Functions
+        addNewOrder: function() {
+            const form = document.getElementById('adminForm');
+            if (!form) return;
+            
+            const formDataObj = new FormData(form);
+            
+            const order = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                customerName: formDataObj.get('customerName'),
+                customerEmail: formDataObj.get('customerEmail'),
+                package: 'Custom',
+                price: '0',
+                status: formDataObj.get('orderStatus'),
+                notes: formDataObj.get('notes')
+            };
+            
+            orders.push(order);
+            localStorage.setItem('musicOrders', JSON.stringify(orders));
+            this.populateOrdersTable();
+            form.reset();
+            
+            alert(currentLanguage === 'nl' ? 'Bestelling toegevoegd!' : 'Order added!');
+        },
+
+        populateOrdersTable: function() {
+            const tbody = document.getElementById('ordersTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.date}</td>
+                    <td>${order.customerName}</td>
+                    <td>${order.package}</td>
+                    <td>€${order.price}</td>
+                    <td>${order.status}</td>
+                    <td>
+                        <button onclick="deleteOrder(${order.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                            ${currentLanguage === 'nl' ? 'Verwijderen' : 'Delete'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        },
+
+        deleteOrder: function(id) {
+            if (confirm(currentLanguage === 'nl' ? 'Weet je zeker dat je deze bestelling wilt verwijderen?' : 'Are you sure you want to delete this order?')) {
+                orders = orders.filter(order => order.id !== id);
+                localStorage.setItem('musicOrders', JSON.stringify(orders));
+                this.populateOrdersTable();
+            }
+        },
+
+        exportToRTF: function() {
+            let rtfContent = '{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}';
+            rtfContent += '\\f0\\fs24 MUSIC SERVICE ORDERS EXPORT\\par\\par';
+            
+            orders.forEach(order => {
+                rtfContent += `Date: ${order.date}\\par`;
+                rtfContent += `Customer: ${order.customerName}\\par`;
+                rtfContent += `Email: ${order.customerEmail}\\par`;
+                rtfContent += `Package: ${order.package}\\par`;
+                rtfContent += `Price: €${order.price}\\par`;
+                rtfContent += `Status: ${order.status}\\par`;
+                if (order.notes) {
+                    rtfContent += `Notes: ${order.notes}\\par`;
+                }
+                rtfContent += '\\par\\par';
+            });
+            
+            rtfContent += '}';
+            
+            const blob = new Blob([rtfContent], { type: 'application/rtf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'music_orders_export.rtf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
-        return false;
-      })
-      .catch(() => false);
-    }
+    };
 
-    // Fallback: Apply discount via URL redirect
-    function applyDiscountViaURL(code) {
-      const encodedCode = encodeURIComponent(code);
-      console.log('Using URL method for discount:', encodedCode);
-      window.location.href = `/discount/${encodedCode}?redirect=/cart`;
-    }
+    // Export only essential functions to global scope
+    window.MusicadoApp = MusicadoApp;
+    window.StateManager = StateManager;
 
-    // Show discount message
-    function showDiscountMessage(type, message) {
-      const messageDiv = document.getElementById('discountMessage');
-      if (messageDiv) {
-        messageDiv.className = `discount-message ${type}`;
-        messageDiv.textContent = message;
-        messageDiv.style.display = 'block';
-      }
-    }
-
-    // Show success message
-    function showSuccessMessage(message) {
-      const notification = document.createElement('div');
-      notification.className = 'success-notification';
-      notification.innerHTML = `
-        <div class="success-icon">✅</div>
-        <div class="success-text">${message}</div>
-      `;
-      
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-weight: 600;
-        animation: slideInRight 0.3s ease-out;
-        max-width: 300px;
-      `;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
+    // Export helper functions for backward compatibility
+    window.loadRandomAudio = (playerNumber) => MusicadoApp.loadRandomAudio(playerNumber);
+    window.showPage = (pageId) => MusicadoApp.showPage(pageId);
+    window.deleteOrder = (id) => MusicadoApp.deleteOrder(id);
+    window.exportToRTF = () => MusicadoApp.exportToRTF();
+    
+    // Export discount functions for global access
+    window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
+    window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
+    
+    // Ensure the discount modal functions work with onclick handlers
+    window.MusicadoApp.submitDiscountEmail = MusicadoApp.submitDiscountEmail.bind(MusicadoApp);
+    window.MusicadoApp.copyDiscountCode = MusicadoApp.copyDiscountCode.bind(MusicadoApp);
+    window.MusicadoApp.closeDiscountModal = MusicadoApp.closeDiscountModal.bind(MusicadoApp);
+    
+    // Legacy function for manual discount application (unchanged)
+    window.applyDiscountCode = (code) => {
+        const result = StateManager.applyDiscount(code || 'MUSIC15', 'manual');
+        if (result.success) {
+            alert(result.message);
+        } else {
+            alert(result.message);
         }
-      }, 3000);
-    }
-
-    // Setup event listeners
-    function setupEventListeners() {
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      const applyDiscountBtn = document.getElementById('applyDiscountBtn');
-      const retryPaymentBtn = document.getElementById('retryPaymentBtn');
-      const discountInput = document.getElementById('discountCodeInput');
-
-      if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          processCheckout();
-        });
-      }
-
-      if (applyDiscountBtn) {
-        applyDiscountBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          applyDiscountCode();
-        });
-      }
-
-      if (retryPaymentBtn) {
-        retryPaymentBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          hidePaymentError();
-        });
-      }
-
-      if (discountInput) {
-        discountInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            applyDiscountCode();
-          }
-        });
-      }
-
-      // Auto-clear validation errors on input
-      const formInputs = document.querySelectorAll('#customerDetailsForm input');
-      formInputs.forEach(input => {
-        input.addEventListener('input', function() {
-          if (this.style.borderColor === 'rgb(239, 68, 68)') {
-            this.style.borderColor = '';
-            this.style.background = '';
-          }
-        });
-      });
-
-      // Clear terms validation error on check
-      const termsCheckbox = document.getElementById('agreeTerms');
-      if (termsCheckbox) {
-        termsCheckbox.addEventListener('change', function() {
-          const termsCard = document.querySelector('.terms-agreement');
-          if (this.checked && termsCard) {
-            termsCard.style.borderColor = '';
-            termsCard.style.background = '';
-          }
-        });
-      }
-
-      // FIXED: Language switcher for cart page with proper persistence
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const selectedLang = e.target.dataset.lang;
-          console.log('🔄 Language switched to:', selectedLang);
-          
-          // Update UI immediately
-          document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          
-          // Save language preference
-          saveLanguage(selectedLang);
-          
-          // Update MusicadoApp language if available
-          if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
-            MusicadoApp.setLanguage(selectedLang);
-          }
-          
-          // Apply cart translations
-          applyCartTranslations(selectedLang);
-          
-          console.log('✅ Language change complete');
-        });
-      });
-    }
-
-    // Initialize everything
-    function initializeAll() {
-      console.log('🎯 Initializing cart with language:', currentLang);
-      
-      // CRITICAL: Set language in MusicadoApp FIRST
-      if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
-        console.log('🔧 Setting MusicadoApp language to:', currentLang);
-        MusicadoApp.setLanguage(currentLang);
-      }
-      
-      // Set active language button
-      const activeBtn = document.querySelector(`[data-lang="${currentLang}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        console.log('✅ Active language button set');
-      }
-      
-      // Apply initial translations
-      applyCartTranslations(currentLang);
-      
-      // Setup form handling
-      setupFormAutoSave();
-      restoreFormData();
-      setupEventListeners();
-      
-      // Check for discount URL parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('discount')) {
-        const discountCode = urlParams.get('discount');
-        showDiscountMessage('success', getTranslation('discountAppliedSuccess'));
+    };
+    
+    // Debug function to test if functions are working
+    window.testDiscountFunctions = () => {
+        console.log('Testing discount functions...');
+        console.log('submitDiscountEmail:', typeof window.submitDiscountEmail);
+        console.log('copyDiscountCode:', typeof window.copyDiscountCode);
+        console.log('MusicadoApp available:', typeof window.MusicadoApp);
         
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-      
-      console.log('🎉 Cart page initialization complete with language:', currentLang);
+        // Test modal creation
+        MusicadoApp.showDiscountModal();
+    };
+
+    // Auto-initialize if DOM is already loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => MusicadoApp.init());
+    } else {
+        MusicadoApp.init();
     }
 
-    // Start initialization
-    initializeAll();
-  }
-
-  // Start the initialization process
-  waitForMusicadoApp();
-});
-</script>
-
-<!-- FIXED styles with proper title styling -->
-<style>
-.language-switcher {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  display: flex;
-  gap: 8px;
-  background: rgba(30, 41, 59, 0.9);
-  padding: 8px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.lang-btn {
-  padding: 8px 16px;
-  background: rgba(75, 85, 99, 0.8);
-  color: #e2e8f0;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.lang-btn:hover {
-  background: rgba(59, 130, 246, 0.8);
-  border-color: rgba(59, 130, 246, 0.6);
-  transform: translateY(-1px);
-}
-
-.lang-btn.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  border-color: rgba(59, 130, 246, 0.8);
-  color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-/* FIXED: Cart title styling - make it white and visible */
-.cart-page {
-  padding: 80px 0 40px 0;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-  min-height: 70vh;
-  position: relative;
-}
-
-.cart-page::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* CRITICAL: Cart title styling fix */
-.cart-title,
-.cart-page h1 {
-  text-align: center;
-  margin-bottom: 40px;
-  font-size: 2.5rem;
-  color: #e2e8f0 !important; /* Force white color */
-  font-weight: 700;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
-  background: none !important; /* Ensure no background interference */
-  opacity: 1 !important; /* Ensure full opacity */
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.cart-layout {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 40px;
-}
-
-.card {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(25px) saturate(180%);
-  border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 
-    0 20px 50px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.card h2, .card h3 {
-  color: #06b6d4;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.card h2::before {
-  content: "📋";
-  font-size: 1.2em;
-}
-
-.card h3::before {
-  content: "👤";
-  font-size: 1.2em;
-}
-
-.discount-card h3::before {
-  content: "🎫";
-  font-size: 1.2em;
-}
-
-.order-item {
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-  transition: all 0.3s ease;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.order-item:hover {
-  background: rgba(59, 130, 246, 0.05);
-  border-radius: 12px;
-  padding: 20px 15px;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.item-header h3 {
-  color: #06b6d4;
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  flex: 1;
-}
-
-.item-header h3::before {
-  content: "🎵";
-  margin-right: 0.5rem;
-}
-
-.variant-title {
-  color: #94a3b8;
-  font-weight: 500;
-  margin-left: 10px;
-  font-size: 0.9rem;
-}
-
-.item-price {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.quantity {
-  color: #94a3b8;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.price {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #06b6d4;
-  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
-}
-
-.order-details {
-  background: rgba(59, 130, 246, 0.1);
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  margin-bottom: 15px;
-  backdrop-filter: blur(10px);
-}
-
-.detail-item {
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  color: #cbd5e1;
-  line-height: 1.5;
-}
-
-.detail-item:last-child {
-  margin-bottom: 0;
-}
-
-.detail-item strong {
-  color: #e2e8f0;
-  font-weight: 600;
-}
-
-.words-detail {
-  background: rgba(6, 182, 212, 0.1);
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(6, 182, 212, 0.2);
-  margin: 8px 0;
-}
-
-.words-list {
-  background: rgba(6, 182, 212, 0.2);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-style: italic;
-  font-weight: 500;
-}
-
-.lyrics-detail {
-  background: rgba(251, 191, 36, 0.1);
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  margin: 8px 0;
-}
-
-.lyrics-preview {
-  background: rgba(15, 23, 42, 0.6);
-  padding: 10px;
-  border-radius: 8px;
-  border-left: 3px solid #fbbf24;
-  font-style: italic;
-  line-height: 1.5;
-  margin-top: 8px;
-  color: #f1f5f9;
-  font-size: 0.9rem;
-}
-
-.item-actions {
-  text-align: right;
-  margin-top: 10px;
-}
-
-.remove-item {
-  color: #ef4444;
-  font-size: 0.9rem;
-  text-decoration: underline;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.remove-item:hover {
-  color: #dc2626;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
-}
-
-.cart-totals {
-  background: rgba(15, 23, 42, 0.6);
-  padding: 20px;
-  border-radius: 16px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  margin-top: 20px;
-  backdrop-filter: blur(15px);
-}
-
-.subtotal-row, .discount-row, .total-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  font-size: 1rem;
-}
-
-.discount-row {
-  color: #10b981;
-  font-weight: 600;
-}
-
-.discount-row::before {
-  content: "💰";
-  margin-right: 0.5rem;
-}
-
-.total-row {
-  border-top: 2px solid rgba(59, 130, 246, 0.3);
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #06b6d4;
-  margin-top: 10px;
-  padding-top: 15px;
-  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
-}
-
-.tax-note {
-  text-align: center;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.tax-note small {
-  color: #94a3b8;
-  font-style: italic;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #f1f5f9;
-  font-size: 0.95rem;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(10px);
-  color: #e2e8f0;
-  box-shadow: 
-    inset 0 1px 3px rgba(0, 0, 0, 0.2),
-    0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: rgba(59, 130, 246, 0.6);
-  box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    inset 0 1px 3px rgba(0, 0, 0, 0.2),
-    0 0 20px rgba(59, 130, 246, 0.2);
-  background: rgba(15, 23, 42, 0.6);
-  transform: translateY(-1px);
-}
-
-.form-group input::placeholder {
-  color: #94a3b8;
-}
-
-.delivery-info-box {
-  background: rgba(59, 130, 246, 0.1);
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.delivery-info-box:hover {
-  background: rgba(59, 130, 246, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-}
-
-.delivery-info-box h4 {
-  color: #06b6d4;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.delivery-info-box p {
-  color: #e2e8f0;
-  font-size: 1rem;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.discount-input-container {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.discount-input-container input {
-  flex: 1;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.discount-apply-btn {
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  border-radius: 12px;
-  color: #1e293b;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  min-width: 100px;
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
-}
-
-.discount-apply-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
-}
-
-.discount-apply-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.discount-message {
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.discount-message.success {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #10b981;
-}
-
-.discount-message.success::before {
-  content: "✅";
-}
-
-.discount-message.error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-.discount-message.error::before {
-  content: "❌";
-}
-
-.discount-help {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(251, 191, 36, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(251, 191, 36, 0.1);
-}
-
-.discount-help p {
-  color: #94a3b8;
-  font-size: 0.85rem;
-  margin: 0;
-  text-align: center;
-  font-style: italic;
-}
-
-/* Applied discount display */
-.applied-discount {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 2px solid rgba(16, 185, 129, 0.3);
-  border-radius: 12px;
-}
-
-.discount-success {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #10b981;
-  font-weight: 600;
-}
-
-.success-icon {
-  font-size: 1.2em;
-}
-
-.discount-amount {
-  margin-left: auto;
-  font-size: 1.1em;
-  font-weight: 700;
-}
-
-.terms-agreement {
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 2px solid rgba(59, 130, 246, 0.2);
-  transition: all 0.3s ease;
-}
-
-.terms-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  cursor: pointer;
-}
-
-.terms-checkbox input[type="checkbox"] {
-  width: auto;
-  min-width: 20px;
-  height: 20px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: #3b82f6;
-  transform: scale(1.1);
-}
-
-.terms-checkbox label {
-  margin: 0;
-  color: #e2e8f0;
-  line-height: 1.5;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.privacy-link {
-  color: #06b6d4;
-  text-decoration: underline;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.privacy-link:hover {
-  color: #0284c7;
-}
-
-.info-box {
-  background: rgba(6, 182, 212, 0.1);
-  border: 2px solid rgba(6, 182, 212, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.info-box:hover {
-  background: rgba(6, 182, 212, 0.15);
-  transform: translateY(-2px);
-}
-
-.info-box h4 {
-  color: #06b6d4;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.info-box h4::before {
-  content: "ℹ️";
-  margin-right: 0.5rem;
-}
-
-.info-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.info-list li {
-  padding: 0.5rem 0;
-  color: #cbd5e1;
-  line-height: 1.5;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.info-list li::before {
-  content: "✓";
-  color: #10b981;
-  font-weight: bold;
-  font-size: 1.1em;
-  margin-top: 0.1rem;
-  flex-shrink: 0;
-}
-
-.contact-link {
-  color: #06b6d4;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.contact-link:hover {
-  text-decoration: underline;
-  color: #0284c7;
-}
-
-.checkout-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 2rem;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.2), 
-    transparent);
-  transition: left 0.4s ease;
-  pointer-events: none;
-}
-
-.btn:hover::before {
-  left: 100%;
-}
-
-.checkout-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  font-size: 18px;
-  padding: 18px 24px;
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-  min-height: 60px;
-}
-
-.checkout-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-}
-
-.checkout-btn:disabled {
-  opacity: 0.8;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
-}
-
-.button-loading {
-  display: none;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.continue-shopping {
-  background: rgba(107, 114, 128, 0.8);
-  color: white;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-}
-
-.continue-shopping:hover {
-  background: rgba(75, 85, 99, 0.9);
-  transform: translateY(-1px);
-}
-
-.payment-error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.error-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.payment-error .error-message {
-  color: #ef4444;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  font-size: 1.1rem;
-}
-
-.btn-secondary {
-  background: rgba(107, 114, 128, 0.8);
-  color: white;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-}
-
-.btn-secondary:hover {
-  background: rgba(75, 85, 99, 0.9);
-  transform: translateY(-1px);
-}
-
-.empty-cart {
-  text-align: center;
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(25px) saturate(180%);
-  padding: 60px 40px;
-  border-radius: 24px;
-  box-shadow: 
-    0 20px 50px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.empty-cart-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-  opacity: 0.7;
-}
-
-.empty-cart h2 {
-  margin-bottom: 16px;
-  color: #e2e8f0;
-  font-size: 2rem;
-  font-weight: 600;
-}
-
-.empty-cart p {
-  margin-bottom: 24px;
-  color: #cbd5e1;
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-.empty-cart .btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  color: white;
-  padding: 16px 32px;
-  font-size: 1.1rem;
-}
-
-.empty-cart .btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
-  transform: translateY(-2px);
-}
-
-/* Success notification animation */
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 1024px) {
-  .cart-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .checkout-section {
-    order: -1;
-  }
-}
-
-@media (max-width: 768px) {
-  .cart-page {
-    padding-top: 70px;
-    padding-bottom: 20px;
-  }
-  
-  .cart-title,
-  .cart-page h1 {
-    font-size: 2rem;
-    margin-bottom: 30px;
-  }
-  
-  .card {
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  
-  .item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .item-price {
-    align-items: flex-start;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .empty-cart {
-    padding: 40px 20px;
-  }
-  
-  .empty-cart h2 {
-    font-size: 1.5rem;
-  }
-  
-  .discount-input-container {
-    flex-direction: column;
-  }
-  
-  .discount-apply-btn {
-    min-width: unset;
-    width: 100%;
-  }
-  
-  .language-switcher {
-    top: 10px;
-    right: 10px;
-    padding: 6px;
-  }
-  
-  .lang-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 10px;
-  }
-  
-  .card {
-    padding: 1rem;
-  }
-  
-  .cart-title,
-  .cart-page h1 {
-    font-size: 1.75rem;
-    margin-bottom: 20px;
-  }
-  
-  .checkout-btn {
-    font-size: 16px;
-    padding: 16px 20px;
-    min-height: 56px;
-  }
-  
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    padding: 12px;
-  }
-}
-</style>
+})();

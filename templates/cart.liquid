@@ -4,10 +4,16 @@
 {% endcomment %}
 
 <!-- Language Switcher (add this at the top) -->
-<div class="language-switcher">
-  <button class="lang-btn" data-lang="en">EN</button>
-  <button class="lang-btn" data-lang="nl">NL</button>
-</div>
+<script>
+window.shopifyCustomerData = {
+  {% if customer %}
+    countryCode: {{ customer.default_address.country_code | default: 'unknown' | json }},
+  {% else %}
+    countryCode: 'unknown',
+  {% endif %}
+  requestLocale: {{ request.locale.iso_code | json }}
+};
+</script>
 
 <div class="cart-page">
   <div class="container">
@@ -254,18 +260,48 @@ document.addEventListener('DOMContentLoaded', function() {
   // CRITICAL: Get saved language BEFORE initializing anything
   const LANGUAGE_KEY = 'musicado_language';
   
-  // Get saved language or detect from browser
-  function getSavedLanguage() {
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    if (saved) {
-      console.log('📱 Found saved language:', saved);
-      return saved;
+ function getSavedLanguage() {
+  const LANGUAGE_KEY = 'musicado_language';
+  
+  // Check saved preference first
+  const saved = localStorage.getItem(LANGUAGE_KEY);
+  if (saved) {
+    console.log('📱 Found saved language:', saved);
+    return saved;
+  }
+  
+  // Enhanced Dutch detection
+  function isDutchCustomer() {
+    // 1. Shopify customer check
+    if (typeof Shopify !== 'undefined' && Shopify.customer) {
+      const customer = Shopify.customer;
+      if (customer.default_address && customer.default_address.country_code === 'NL') {
+        console.log('🇳🇱 Dutch customer via Shopify data');
+        return true;
+      }
     }
     
-    const detected = navigator.language.startsWith('nl') ? 'nl' : 'en';
-    console.log('🌐 Detected language:', detected);
-    return detected;
+    // 2. Browser language check
+    const languages = navigator.languages || [navigator.language];
+    for (const lang of languages) {
+      if (lang.toLowerCase().startsWith('nl')) {
+        console.log('🇳🇱 Dutch language detected:', lang);
+        return true;
+      }
+    }
+    
+    // 3. Timezone check
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezone === 'Europe/Amsterdam') {
+      console.log('🇳🇱 Dutch timezone detected');
+      return true;
+    }
+    
+    return false;
   }
+  
+  return isDutchCustomer() ? 'nl' : 'en';
+}
   
   // Save language preference
   function saveLanguage(lang) {
@@ -915,32 +951,9 @@ Order Date: ${new Date().toLocaleString()}`;
         });
       }
 
-      // FIXED: Language switcher for cart page with proper persistence
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const selectedLang = e.target.dataset.lang;
-          console.log('🔄 Language switched to:', selectedLang);
-          
-          // Update UI immediately
-          document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          
-          // Save language preference
-          saveLanguage(selectedLang);
-          
-          // Update MusicadoApp language if available
-          if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
-            MusicadoApp.setLanguage(selectedLang);
-          }
-          
-          // Apply cart translations
-          applyCartTranslations(selectedLang);
-          
-          console.log('✅ Language change complete');
-        });
-      });
-    }
-
+// Language switching is handled by the main header language selector
+// No additional language switcher needed on cart page
+      
     // Initialize everything
     function initializeAll() {
       console.log('🎯 Initializing cart with language:', currentLang);
@@ -952,7 +965,7 @@ Order Date: ${new Date().toLocaleString()}`;
       }
       
       // Set active language button
-      const activeBtn = document.querySelector(`[data-lang="${currentLang}"]`);
+      const activeBtn = document.querySelector(`header [data-lang="${currentLang}"]`);
       if (activeBtn) {
         activeBtn.classList.add('active');
         console.log('✅ Active language button set');
@@ -990,44 +1003,6 @@ Order Date: ${new Date().toLocaleString()}`;
 
 <!-- FIXED styles with proper title styling -->
 <style>
-.language-switcher {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  display: flex;
-  gap: 8px;
-  background: rgba(30, 41, 59, 0.9);
-  padding: 8px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.lang-btn {
-  padding: 8px 16px;
-  background: rgba(75, 85, 99, 0.8);
-  color: #e2e8f0;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.lang-btn:hover {
-  background: rgba(59, 130, 246, 0.8);
-  border-color: rgba(59, 130, 246, 0.6);
-  transform: translateY(-1px);
-}
-
-.lang-btn.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  border-color: rgba(59, 130, 246, 0.8);
-  color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
 
 /* FIXED: Cart title styling - make it white and visible */
 .cart-page {
@@ -1855,17 +1830,7 @@ Order Date: ${new Date().toLocaleString()}`;
     min-width: unset;
     width: 100%;
   }
-  
-  .language-switcher {
-    top: 10px;
-    right: 10px;
-    padding: 6px;
-  }
-  
-  .lang-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
+ 
 }
 
 @media (max-width: 480px) {

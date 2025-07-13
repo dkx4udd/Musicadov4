@@ -1,5 +1,26 @@
 <!-- Single Page Order Form - No Summary Page -->
+<!-- Language Detection Data -->
+<script>
+window.shopifyCustomerData = {
+  {% if customer %}
+    isLoggedIn: true,
+    countryCode: {{ customer.default_address.country_code | default: 'unknown' | json }},
+    {% if customer.orders.size > 0 %}
+    lastOrderCountry: {{ customer.orders.first.billing_address.country_code | default: 'unknown' | json }},
+    {% endif %}
+  {% else %}
+    isLoggedIn: false,
+    countryCode: 'unknown',
+  {% endif %}
+  requestLocale: {{ request.locale.iso_code | json }},
+  {% assign accept_lang = request.headers['Accept-Language'] | default: '' %}
+  browserLanguageHeader: {{ accept_lang | json }}
+};
+console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCustomerData);
+</script>
 <div class="page active" id="page1">
+
+ 
   <div class="container">
     <div class="banner">
       {% if settings.banner_image %}
@@ -395,4 +416,203 @@
 </div>
 
 <!-- Include Discount Modal -->
+<!-- Enhanced Language Detection for Index Page -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Index page initializing with Dutch customer detection...');
+  
+  const LANGUAGE_KEY = 'musicado_language';
+  
+  // Enhanced Dutch customer detection
+  function detectCustomerLanguage() {
+    // Check saved preference first
+    const saved = localStorage.getItem(LANGUAGE_KEY);
+    if (saved) {
+      console.log('📱 Using saved language:', saved);
+      return saved;
+    }
+    
+    // Use Shopify customer data if available
+    if (window.shopifyCustomerData) {
+      const data = window.shopifyCustomerData;
+      
+      // Check customer's country
+      if (data.countryCode === 'NL' || data.lastOrderCountry === 'NL') {
+        console.log('🇳🇱 Dutch customer from Shopify data');
+        return 'nl';
+      }
+      
+      // Check request locale
+      if (data.requestLocale && data.requestLocale.startsWith('nl')) {
+        console.log('🇳🇱 Dutch locale from Shopify');
+        return 'nl';
+      }
+      
+      // Check browser language header
+      if (data.browserLanguageHeader && data.browserLanguageHeader.toLowerCase().includes('nl')) {
+        console.log('🇳🇱 Dutch language from headers');
+        return 'nl';
+      }
+    }
+    
+    // Enhanced browser language detection
+    const languages = navigator.languages || [navigator.language];
+    for (const lang of languages) {
+      const normalizedLang = lang.toLowerCase();
+      if (normalizedLang.startsWith('nl') || normalizedLang === 'nl-nl' || normalizedLang === 'nl-be') {
+        console.log('🇳🇱 Dutch browser language detected:', lang);
+        return 'nl';
+      }
+    }
+    
+    // Check timezone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezone === 'Europe/Amsterdam') {
+      console.log('🇳🇱 Dutch timezone detected');
+      return 'nl';
+    }
+    
+    // Check URL for Dutch indicators
+    const url = window.location.href.toLowerCase();
+    if (url.includes('/nl/') || url.includes('.nl/') || window.location.hostname.endsWith('.nl')) {
+      console.log('🇳🇱 Dutch URL detected');
+      return 'nl';
+    }
+    
+    // Default to English
+    console.log('🇬🇧 Defaulting to English');
+    return 'en';
+  }
+  
+  // Save language preference
+  function saveLanguage(lang) {
+    localStorage.setItem(LANGUAGE_KEY, lang);
+    console.log('💾 Language saved:', lang);
+  }
+  
+  // Apply language to UI
+  function applyLanguage(lang) {
+    // Update language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    
+    // Update MusicadoApp if available
+    if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
+      console.log('🔧 Setting MusicadoApp language to:', lang);
+      MusicadoApp.setLanguage(lang);
+    }
+    
+    // Apply translations if function exists
+    if (typeof applyTranslations === 'function') {
+      applyTranslations(lang);
+    }
+    
+    console.log('✅ Language applied to index page:', lang);
+  }
+  
+  // Setup language switcher event listeners
+  function setupLanguageSwitcher() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const selectedLang = e.target.dataset.lang;
+        console.log('🔄 Index page - Language switched to:', selectedLang);
+        
+        // Update UI
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // Save preference
+        saveLanguage(selectedLang);
+        
+        // Apply language
+        applyLanguage(selectedLang);
+      });
+    });
+  }
+  
+  // Wait for MusicadoApp to be available
+  function waitForMusicadoApp() {
+    if (typeof MusicadoApp !== 'undefined') {
+      console.log('✅ MusicadoApp available on index page');
+      initializeLanguageDetection();
+    } else {
+      console.log('⏳ Waiting for MusicadoApp on index page...');
+      setTimeout(waitForMusicadoApp, 50);
+    }
+  }
+  
+  // Initialize language detection
+  function initializeLanguageDetection() {
+    const detectedLanguage = detectCustomerLanguage();
+    
+    // Save the detected language
+    saveLanguage(detectedLanguage);
+    
+    // Apply the language
+    applyLanguage(detectedLanguage);
+    
+    // Setup language switcher
+    setupLanguageSwitcher();
+    
+    console.log('🎉 Index page language detection complete:', detectedLanguage);
+  }
+  
+  // Start the process
+  waitForMusicadoApp();
+});
+</script>
+/* Language Switcher for Index Page */
+.language-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.9);
+  padding: 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.lang-btn {
+  padding: 8px 16px;
+  background: rgba(75, 85, 99, 0.8);
+  color: #e2e8f0;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.lang-btn:hover {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-1px);
+}
+
+.lang-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  border-color: rgba(59, 130, 246, 0.8);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .language-switcher {
+    top: 10px;
+    right: 10px;
+    padding: 6px;
+  }
+  
+  .lang-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
 {% render 'discount-modal' %}

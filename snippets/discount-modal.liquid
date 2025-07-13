@@ -1,5 +1,5 @@
 {% comment %}
-  UPDATED Discount Modal - Skip Button Removed
+  Multilingual Discount Modal - Supports Dutch & English
   Save this as: snippets/discount-modal.liquid
 {% endcomment %}
 
@@ -11,51 +11,51 @@
       
       <!-- Email Step (Default visible) -->
       <div class="discount-step" id="emailStep">
-        <h2>🎵 Get 15% OFF Your Purchase!</h2>
-        <p>Enter your email to unlock 15% off your custom song creation!</p>
+        <h2 data-translate="discountTitle">🎵 Get 15% OFF Your Purchase!</h2>
+        <p data-translate="discountEmailDescription">Enter your email to unlock 15% off your custom song creation!</p>
         
         <div class="email-form">
-          <input type="email" id="discountEmail" placeholder="Enter your email address" autocomplete="email">
+          <input type="email" id="discountEmail" data-translate-placeholder="discountEmailPlaceholder" placeholder="Enter your email address" autocomplete="email">
           
           <div class="email-consent-section" id="emailConsentCheckbox">
             <label class="consent-checkbox">
               <input type="checkbox" id="emailConsent">
               <span class="checkmark"></span>
-              I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.
+              <span data-translate="emailConsentText">I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.</span>
             </label>
           </div>
           
           <button type="button" id="submitDiscountEmail" class="btn discount-submit-btn">
-            Get My 15% Discount
+            <span data-translate="getDiscount">Get My 15% Discount</span>
           </button>
         </div>
         
         <div class="privacy-note">
-          <small>We respect your privacy. No spam, and you can unsubscribe anytime.</small>
+          <small data-translate="discountTermsPrivacy">We respect your privacy. No spam, and you can unsubscribe anytime.</small>
         </div>
       </div>
 
       <!-- Code Step (Hidden by default) -->
       <div class="discount-step" id="codeStep" style="display: none;">
-        <h2>🎉 Your Discount Code!</h2>
-        <p>Here's your 15% discount code. Copy it and use it at checkout:</p>
+        <h2 data-translate="discountSuccessTitle">🎉 Your Discount Code!</h2>
+        <p data-translate="discountSuccessMessage">Here's your 15% discount code. Copy it and use it at checkout:</p>
         
         <div class="discount-code-display">
           <div class="code-box">
             <span class="discount-code-text" id="discountCodeText">MUSIC15</span>
             <button type="button" id="copyDiscountCode" class="btn copy-code-btn">
-              <span class="copy-text">Copy Code</span>
-              <span class="copied-text" style="display: none;">Code Copied!</span>
+              <span class="copy-text" data-translate="copyCode">Copy Code</span>
+              <span class="copied-text" data-translate="codeCopied" style="display: none;">Code Copied!</span>
             </button>
           </div>
         </div>
         
         <div class="code-validity-info">
-          <p><small>This code is valid for 30 days. Save it for your order!</small></p>
+          <p><small data-translate="discountValidityInfo">This code is valid for 30 days. Save it for your order!</small></p>
         </div>
         
         <button type="button" class="btn continue-shopping-btn" onclick="closeDiscountModal()">
-          Close & Continue Shopping
+          <span data-translate="continueToCheckout">Close & Continue Shopping</span>
         </button>
       </div>
     </div>
@@ -68,32 +68,32 @@
     <div class="modal-content">
       <span class="discount-close" id="fullAlbumClose">&times;</span>
       <div class="discount-step">
-        <h2>🎵 Full Album Inquiry</h2>
-        <p>Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.</p>
+        <h2 data-translate="fullAlbumContactTitle">🎵 Full Album Inquiry</h2>
+        <p data-translate="fullAlbumContactDescription">Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.</p>
         
         <form id="fullAlbumContactForm" class="full-album-form">
           <div class="form-group">
-            <label for="fullAlbumEmail">Email Address *</label>
-            <input type="email" id="fullAlbumEmail" name="email" required placeholder="your@email.com">
+            <label for="fullAlbumEmail" data-translate="emailAddress">Email Address *</label>
+            <input type="email" id="fullAlbumEmail" name="email" required data-translate-placeholder="emailPlaceholder" placeholder="your@email.com">
           </div>
           
           <div class="form-group">
-            <label for="fullAlbumPhone">Mobile Phone *</label>
-            <input type="tel" id="fullAlbumPhone" name="phone" required placeholder="+31 6 12345678">
+            <label for="fullAlbumPhone" data-translate="phoneNumber">Mobile Phone *</label>
+            <input type="tel" id="fullAlbumPhone" name="phone" required data-translate-placeholder="phonePlaceholder" placeholder="+31 6 12345678">
           </div>
           
           <div class="form-group">
-            <label for="fullAlbumTopic">Topic</label>
+            <label for="fullAlbumTopic" data-translate="topic">Topic</label>
             <input type="text" id="fullAlbumTopic" name="topic" value="Interested in a full album please contact me">
           </div>
           
           <div class="form-group">
-            <label for="fullAlbumNotes">Additional Notes (Optional)</label>
-            <textarea id="fullAlbumNotes" name="notes" rows="4" placeholder="Tell us more about your album vision..."></textarea>
+            <label for="fullAlbumNotes" data-translate="additionalNotes">Additional Notes (Optional)</label>
+            <textarea id="fullAlbumNotes" name="notes" rows="4" data-translate-placeholder="notesPlaceholder" placeholder="Tell us more about your album vision..."></textarea>
           </div>
           
           <button type="submit" class="btn full-album-submit-btn">
-            Submit Contact Request
+            <span data-translate="submitContact">Submit Contact Request</span>
           </button>
         </form>
       </div>
@@ -102,7 +102,7 @@
 </div>
 
 <script>
-// Global functions for modal control
+// Enhanced modal functions with proper translations
 function closeDiscountModal() {
   const modal = document.getElementById('discountModal');
   if (modal) {
@@ -194,11 +194,17 @@ function copyDiscountCode() {
 }
 
 function showCopyNotification() {
+  // Get current language for notification text
+  const currentLang = navigator.language.startsWith('nl') ? 'nl' : 'en';
+  const notificationText = currentLang === 'nl' ? 
+    'Code gekopieerd naar klembord!' : 
+    'Code copied to clipboard!';
+    
   const notification = document.createElement('div');
   notification.innerHTML = `
     <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
       <span>📋</span>
-      <span>Code copied to clipboard!</span>
+      <span>${notificationText}</span>
     </div>
   `;
   notification.style.cssText = `
@@ -228,7 +234,21 @@ function showCopyNotification() {
 
 // Initialize modal functionality when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('✅ Updated discount modal initialized (no skip button)');
+  console.log('✅ Multilingual discount modal initialized');
+  
+  // Detect current language
+  const currentLang = navigator.language.startsWith('nl') ? 'nl' : 'en';
+  console.log('🌍 Detected language:', currentLang);
+  
+  // Apply translations to modal elements
+  function applyModalTranslations() {
+    if (typeof window.MusicadoApp !== 'undefined' && window.MusicadoApp.setLanguage) {
+      window.MusicadoApp.setLanguage(currentLang);
+    }
+  }
+  
+  // Apply translations after a short delay to ensure MusicadoApp is loaded
+  setTimeout(applyModalTranslations, 100);
   
   // Verify both steps exist
   const emailStep = document.getElementById('emailStep');
@@ -256,6 +276,22 @@ document.addEventListener('DOMContentLoaded', function() {
       const email = emailInput ? emailInput.value.trim() : '';
       const hasConsent = consentCheckbox ? consentCheckbox.checked : false;
       
+      // Get error messages in current language
+      const errorMessages = {
+        en: {
+          emailRequired: 'Please enter your email address to receive your discount code.',
+          emailInvalid: 'Please enter a valid email address.',
+          consentRequired: 'You must agree to receive emails to get your discount code.'
+        },
+        nl: {
+          emailRequired: 'Voer uw e-mailadres in om uw kortingscode te ontvangen.',
+          emailInvalid: 'Voer een geldig e-mailadres in.',
+          consentRequired: 'U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.'
+        }
+      };
+      
+      const messages = errorMessages[currentLang] || errorMessages.en;
+      
       // Reset error states
       if (emailInput) emailInput.style.borderColor = '';
       const consentSection = document.getElementById('emailConsentCheckbox');
@@ -267,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
           emailInput.style.borderColor = '#ef4444';
           emailInput.focus();
         }
-        alert('Please enter your email address to receive your discount code.');
+        alert(messages.emailRequired);
         return;
       }
       
@@ -278,14 +314,14 @@ document.addEventListener('DOMContentLoaded', function() {
           emailInput.style.borderColor = '#ef4444';
           emailInput.focus();
         }
-        alert('Please enter a valid email address.');
+        alert(messages.emailInvalid);
         return;
       }
       
       // REQUIRE CONSENT
       if (!hasConsent) {
         if (consentSection) consentSection.classList.add('error');
-        alert('You must agree to receive emails to get your discount code.');
+        alert(messages.consentRequired);
         return;
       }
       
@@ -329,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Discount Modal Styles - Updated without skip button styles */
+/* Discount Modal Styles - Same as before but enhanced for translations */
 .discount-modal {
   position: fixed;
   top: 0;

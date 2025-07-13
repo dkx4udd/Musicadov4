@@ -1,4 +1,4 @@
-// Musicado Application JavaScript - Simplified Flow: Order → Cart → Finalize
+// Musicado Application JavaScript - Complete New Version with Simplified Discount Flow
 (function() {
     'use strict';
 
@@ -26,7 +26,7 @@
     // Unique token generation
     const generateToken = () => Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 
-    // Translations (keeping existing translations)
+    // Translations
     const translations = {
         en: {
             intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.",
@@ -100,6 +100,7 @@
             emailConsentText: "I agree to receive promotional emails and special offers from musicado. You can unsubscribe at any time.",
             getDiscount: "Get My 15% Discount",
             discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
+            skipEmailDiscount: "Skip email, just give me the discount",
             discountSuccessTitle: "🎉 Thank You!",
             discountSuccessMessage: "Your discount has been applied! Use the code below at checkout:",
             discountValidityInfo: "This code is valid for 30 days and has been automatically applied to your cart.",
@@ -208,6 +209,7 @@
             emailConsentText: "Ik ga akkoord met het ontvangen van promotionele e-mails en speciale aanbiedingen van musicado. U kunt zich op elk moment uitschrijven.",
             getDiscount: "Krijg Mijn 15% Korting",
             discountTermsPrivacy: "We respecteren uw privacy. Geen spam, en u kunt zich altijd uitschrijven.",
+            skipEmailDiscount: "E-mail overslaan, geef me gewoon de korting",
             discountSuccessTitle: "🎉 Dank je wel!",
             discountSuccessMessage: "Uw korting is toegepast! Gebruik de onderstaande code bij het afrekenen:",
             discountValidityInfo: "Deze code is 30 dagen geldig en is automatisch toegepast op uw winkelwagen.",
@@ -457,7 +459,7 @@
                 });
             }
 
-            // SIMPLIFIED: Form submission goes directly to cart
+            // Form submission goes directly to cart
             const selectionForm = document.getElementById('selectionForm');
             if (selectionForm) {
                 selectionForm.addEventListener('submit', (e) => {
@@ -506,9 +508,8 @@
             const buttonHandlers = {
                 'loadRandomAudio1': () => this.loadRandomAudio(1),
                 'loadRandomAudio2': () => this.loadRandomAudio(2),
-                'copyDiscountCode': () => this.copyDiscountCode(),
-                'applyDiscountAndClose': () => this.applyDiscountAndClose(),
-                'submitDiscountEmail': () => this.submitDiscountEmail()
+                'submitDiscountEmail': () => this.submitDiscountEmail(),
+                'applyDiscountSimple': () => this.applyDiscountAndCloseSimple()
             };
 
             Object.entries(buttonHandlers).forEach(([id, handler]) => {
@@ -531,6 +532,20 @@
                         this.loadRandomAudio(parseInt(playerNumber));
                     });
                 }
+            });
+
+            // Handle discount buttons by onclick attribute as well (for backward compatibility)
+            document.querySelectorAll('[onclick*="submitDiscountEmail"], [onclick*="applyDiscountAndCloseSimple"]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (button.onclick && button.onclick.toString().includes('submitDiscountEmail')) {
+                        this.submitDiscountEmail();
+                    } else if (button.onclick && button.onclick.toString().includes('applyDiscountAndCloseSimple')) {
+                        this.applyDiscountAndCloseSimple();
+                    }
+                });
             });
         },
 
@@ -657,7 +672,7 @@
             return VARIANT_IDS[packageType] || null;
         },
 
-        // SIMPLIFIED: Add to cart and redirect (no summary page)
+        // Add to cart and redirect
         addToCartAndRedirect: function() {
             console.log('Adding to cart and redirecting...');
 
@@ -1086,7 +1101,7 @@
             }
         },
 
-        // Discount Modal Functions
+        // SIMPLIFIED DISCOUNT MODAL FUNCTIONS
         showDiscountModal: function() {
             // Don't show modal if already shown or discount already applied
             if (AppState.ui.modalShown || AppState.discount.applied) {
@@ -1095,117 +1110,107 @@
             
             const modal = document.getElementById('discountModal');
             if (modal) {
-                // Reset to first step
-                this.showDiscountStep('discountEmailStep');
+                // Show single discount step
                 modal.style.display = 'block';
                 document.body.style.overflow = 'hidden';
                 AppState.ui.modalShown = true;
             }
         },
 
-        showDiscountStep: function(stepId) {
-            // Hide all steps
-            document.querySelectorAll('.discount-step').forEach(step => {
-                step.classList.remove('active');
-            });
-            
-            // Show the specified step
-            const targetStep = document.getElementById(stepId);
-            if (targetStep) {
-                targetStep.classList.add('active');
-            }
-        },
-
+        // Simplified discount application - just close modal and set discount code
         submitDiscountEmail: function() {
             const emailInput = document.getElementById('discountEmail');
             const consentCheckbox = document.getElementById('emailConsent');
-            const consentSection = document.getElementById('emailConsentCheckbox');
             
-            if (!emailInput || !consentCheckbox || !consentSection) return;
+            if (!emailInput || !consentCheckbox) {
+                // If form elements don't exist, just apply discount directly
+                this.applyDiscountAndCloseSimple();
+                return;
+            }
             
             const email = emailInput.value.trim();
             const hasConsent = consentCheckbox.checked;
             
             // Reset error states
             emailInput.style.borderColor = '';
-            consentSection.classList.remove('error');
+            const consentSection = document.getElementById('emailConsentCheckbox');
+            if (consentSection) consentSection.classList.remove('error');
             
-            // Validate email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailRegex.test(email)) {
-                emailInput.style.borderColor = '#ef4444';
-                emailInput.focus();
-                alert(currentLanguage === 'nl' ? 
-                    'Voer een geldig e-mailadres in.' : 
-                    'Please enter a valid email address.');
-                return;
-            }
-            
-            // Validate consent
-            if (!hasConsent) {
-                consentSection.classList.add('error');
+            // Basic validation (only if email is provided)
+            if (email && !hasConsent) {
+                if (consentSection) consentSection.classList.add('error');
                 alert(currentLanguage === 'nl' ? 
                     'U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.' : 
                     'You must agree to receive emails to get your discount code.');
                 return;
             }
             
-            // Store email and consent
-            localStorage.setItem('discountEmail', email);
-            localStorage.setItem('emailConsent', 'true');
-            
-            // Submit to email service
-            this.submitEmailToShopify(email, 'discount_modal_consent');
-            
-            // Apply discount using centralized state
-            const result = StateManager.applyDiscount('15%MUSIC', 'modal');
-            if (result.success) {
-                // Show success step
-                this.showDiscountStep('discountSuccessStep');
-            } else {
-                console.error('Failed to apply discount from modal:', result.message);
+            // If email is provided, store it
+            if (email) {
+                // Validate email format if provided
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    emailInput.style.borderColor = '#ef4444';
+                    emailInput.focus();
+                    alert(currentLanguage === 'nl' ? 
+                        'Voer een geldig e-mailadres in.' : 
+                        'Please enter a valid email address.');
+                    return;
+                }
+                
+                localStorage.setItem('discountEmail', email);
+                localStorage.setItem('emailConsent', 'true');
+                this.submitEmailToShopify(email, 'discount_modal_consent');
             }
+            
+            // Apply discount and close modal
+            this.applyDiscountAndCloseSimple();
         },
 
-        applyDiscountAndClose: function() {
-            // Apply discount
+        // New simplified function to apply discount and close
+        applyDiscountAndCloseSimple: function() {
+            // Store discount code for cart page
+            localStorage.setItem('pendingDiscountCode', '15%MUSIC');
+            localStorage.setItem('discountSource', 'modal');
+            
+            // Apply discount to internal state
             const result = StateManager.applyDiscount('15%MUSIC', 'modal');
             
-            if (result.success) {
-                // Close the modal
-                this.closeDiscountModal();
-                
-                // Show confirmation message
-                const confirmMsg = currentLanguage === 'nl' ? 
-                    '✅ 15% korting toegepast! Vul je bestelling in en voeg toe aan winkelwagen.' : 
-                    '✅ 15% discount applied! Complete your order and add to cart.';
-                
-                // Create temporary notification
-                const notification = document.createElement('div');
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                    color: #1e293b;
-                    padding: 1rem 1.5rem;
-                    border-radius: 12px;
-                    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
-                    z-index: 10000;
-                    font-weight: 600;
-                    animation: slideInRight 0.3s ease-out;
-                    max-width: 300px;
-                    text-align: center;
-                    line-height: 1.4;
-                `;
-                notification.textContent = confirmMsg;
-                document.body.appendChild(notification);
-                
-                // Remove notification after 3 seconds
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-            }
+            // Close the modal
+            this.closeDiscountModal();
+            
+            // Show confirmation message
+            const confirmMsg = currentLanguage === 'nl' ? 
+                '✅ 15% korting wordt toegepast bij de winkelwagen!' : 
+                '✅ 15% discount will be applied in your cart!';
+            
+            // Create temporary notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                color: #1e293b;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease-out;
+                max-width: 320px;
+                text-align: center;
+                line-height: 1.4;
+            `;
+            notification.textContent = confirmMsg;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 4 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 4000);
         },
 
         closeDiscountModal: function() {
@@ -1214,7 +1219,7 @@
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 
-                // Reset form
+                // Reset form (optional)
                 const emailInput = document.getElementById('discountEmail');
                 const consentCheckbox = document.getElementById('emailConsent');
                 const consentSection = document.getElementById('emailConsentCheckbox');
@@ -1223,52 +1228,6 @@
                 if (consentCheckbox) consentCheckbox.checked = false;
                 if (consentSection) consentSection.classList.remove('error');
             }
-        },
-
-        copyDiscountCode: function() {
-            const code = '15%MUSIC';
-            
-            // Try to copy to clipboard
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(code).then(() => {
-                    const button = document.querySelector('.copy-btn');
-                    if (button) {
-                        const originalText = button.textContent;
-                        button.textContent = currentLanguage === 'nl' ? 'Gekopieerd!' : 'Copied!';
-                        button.style.background = '#10b981';
-                        
-                        setTimeout(() => {
-                            button.textContent = originalText;
-                            button.style.background = '#fbbf24';
-                        }, 2000);
-                    }
-                }).catch(() => {
-                    this.fallbackCopyTextToClipboard(code);
-                });
-            } else {
-                this.fallbackCopyTextToClipboard(code);
-            }
-        },
-
-        fallbackCopyTextToClipboard: function(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                alert(currentLanguage === 'nl' ? 'Code gekopieerd naar klembord!' : 'Code copied to clipboard!');
-            } catch (err) {
-                alert(currentLanguage === 'nl' ? 'Kon niet kopiëren, selecteer de code handmatig' : 'Could not copy, please select the code manually');
-            }
-            
-            document.body.removeChild(textArea);
         },
 
         // Full Album Modal Functions
@@ -1445,6 +1404,21 @@
 
         // Scroll trigger for discount popup
         setupScrollTrigger: function() {
+            // PAGE DETECTION - Only show popup on homepage
+            const isHomepage = window.location.pathname === '/' || 
+                              window.location.pathname === '/index' ||
+                              window.location.pathname.includes('/index') ||
+                              document.body.classList.contains('template-index') ||
+                              document.body.classList.contains('index') ||
+                              document.querySelector('body[class*="index"]') !== null;
+            
+            if (!isHomepage) {
+                console.log('Not on homepage - skipping discount popup');
+                return; // Exit early, no popup on cart/other pages
+            }
+            
+            console.log('On homepage - setting up discount popup trigger');
+            
             // Wait a bit for DOM to be fully ready
             setTimeout(() => {
                 const pricingSection = document.querySelector('.radio-group');
@@ -1710,15 +1684,21 @@
     window.MusicadoApp = MusicadoApp;
     window.StateManager = StateManager;
 
-// Export helper functions for backward compatibility
+    // Export helper functions for backward compatibility
     window.loadRandomAudio = (playerNumber) => MusicadoApp.loadRandomAudio(playerNumber);
     window.showPage = (pageId) => MusicadoApp.showPage(pageId);
     window.deleteOrder = (id) => MusicadoApp.deleteOrder(id);
     window.exportToRTF = () => MusicadoApp.exportToRTF();
     
-    // Export discount modal functions
+    // Export simplified discount functions for global access
     window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
-    window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
+    window.applyDiscountAndCloseSimple = () => MusicadoApp.applyDiscountAndCloseSimple();
+    
+    // Ensure the discount modal functions work with onclick handlers
+    window.MusicadoApp.submitDiscountEmail = MusicadoApp.submitDiscountEmail.bind(MusicadoApp);
+    window.MusicadoApp.applyDiscountAndCloseSimple = MusicadoApp.applyDiscountAndCloseSimple.bind(MusicadoApp);
+    
+    // Legacy function for manual discount application
     window.applyDiscountCode = (code) => {
         const result = StateManager.applyDiscount(code || '15%MUSIC', 'manual');
         if (result.success) {
@@ -1732,9 +1712,8 @@
     window.testDiscountFunctions = () => {
         console.log('Testing discount functions...');
         console.log('submitDiscountEmail:', typeof window.submitDiscountEmail);
-        console.log('copyDiscountCode:', typeof window.copyDiscountCode);
-        console.log('applyDiscountAndClose:', typeof window.applyDiscountAndClose);
-        console.log('continueToCheckout:', typeof window.continueToCheckout);
+        console.log('applyDiscountAndCloseSimple:', typeof window.applyDiscountAndCloseSimple);
+        console.log('MusicadoApp available:', typeof window.MusicadoApp);
     };
 
     // Auto-initialize if DOM is already loaded

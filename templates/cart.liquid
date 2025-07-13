@@ -1,5 +1,5 @@
 {% comment %}
-  Updated Cart Template - Manual Discount Code Entry Only
+  Improved Cart Template - Preserves Form Data & Better Discount Handling
   Save this as: templates/cart.liquid
 {% endcomment %}
 
@@ -74,7 +74,7 @@
               
               {% if cart.total_discount > 0 %}
                 <div class="discount-row">
-                  <span>Discount:</span>
+                  <span>Discount ({{ cart.discount_applications[0].title }}):</span>
                   <span>-{{ cart.total_discount | money }}</span>
                 </div>
               {% endif %}
@@ -132,7 +132,7 @@
             </form>
           </div>
 
-          <!-- Discount Code Section - Manual Entry Only -->
+          <!-- Discount Code Section - IMPROVED -->
           <div class="card discount-card" id="discountCard">
             <h3>Discount Code</h3>
             <div class="discount-input-container">
@@ -140,7 +140,7 @@
                 type="text" 
                 id="discountCodeInput" 
                 name="discountCode" 
-                placeholder="Enter discount code (e.g. 15%MUSIC)"
+                placeholder="Enter discount code (e.g. MUSIC15)"
                 style="text-transform: uppercase;"
               >
               <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn">
@@ -152,6 +152,17 @@
             <div class="discount-help">
               <p>💡 Have a discount code from our popup? Paste it here to save on your order!</p>
             </div>
+            
+            <!-- Show applied discount -->
+            {% if cart.total_discount > 0 %}
+              <div class="applied-discount">
+                <div class="discount-success">
+                  <span class="success-icon">✅</span>
+                  <span>Discount "{{ cart.discount_applications[0].title }}" applied!</span>
+                  <span class="discount-amount">-{{ cart.total_discount | money }}</span>
+                </div>
+              </div>
+            {% endif %}
           </div>
 
           <!-- Terms and Conditions -->
@@ -226,12 +237,13 @@
   </div>
 </div>
 
-<!-- Enhanced cart JavaScript with manual discount code only -->
+<!-- IMPROVED cart JavaScript with form data preservation -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Cart page initialized');
+  console.log('Improved cart page initialized');
   
-  // Enhanced cart functionality with customer details and payment
+  // Form data preservation
+  const FORM_DATA_KEY = 'musicado_cart_form_data';
   
   // Payment processing state
   let paymentProcessingState = {
@@ -239,6 +251,75 @@ document.addEventListener('DOMContentLoaded', function() {
     submissionToken: null,
     timeoutId: null
   };
+
+  // Save form data to localStorage
+  function saveFormData() {
+    const formData = {};
+    const form = document.getElementById('customerDetailsForm');
+    if (form) {
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach(input => {
+        if (input.type !== 'submit' && input.type !== 'button') {
+          formData[input.name] = input.value;
+        }
+      });
+      
+      // Also save terms checkbox
+      const termsCheckbox = document.getElementById('agreeTerms');
+      if (termsCheckbox) {
+        formData.agreeTerms = termsCheckbox.checked;
+      }
+      
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+      console.log('Form data saved:', formData);
+    }
+  }
+
+  // Restore form data from localStorage
+  function restoreFormData() {
+    try {
+      const savedData = localStorage.getItem(FORM_DATA_KEY);
+      if (savedData) {
+        const formData = JSON.parse(savedData);
+        console.log('Restoring form data:', formData);
+        
+        Object.entries(formData).forEach(([name, value]) => {
+          if (name === 'agreeTerms') {
+            const termsCheckbox = document.getElementById('agreeTerms');
+            if (termsCheckbox && value) {
+              termsCheckbox.checked = value;
+            }
+          } else {
+            const input = document.querySelector(`[name="${name}"]`);
+            if (input && value) {
+              input.value = value;
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring form data:', error);
+    }
+  }
+
+  // Clear saved form data
+  function clearFormData() {
+    localStorage.removeItem(FORM_DATA_KEY);
+  }
+
+  // Auto-save form data on input
+  function setupFormAutoSave() {
+    const form = document.getElementById('customerDetailsForm');
+    if (form) {
+      form.addEventListener('input', saveFormData);
+      form.addEventListener('change', saveFormData);
+    }
+    
+    const termsCheckbox = document.getElementById('agreeTerms');
+    if (termsCheckbox) {
+      termsCheckbox.addEventListener('change', saveFormData);
+    }
+  }
 
   // Generate unique submission token
   function generateSubmissionToken() {
@@ -408,6 +489,9 @@ document.addEventListener('DOMContentLoaded', function() {
     setButtonLoading(true);
 
     try {
+      // Save form data before processing
+      saveFormData();
+      
       // Collect customer details and add as cart note
       const customerForm = document.getElementById('customerDetailsForm');
       const customerData = new FormData(customerForm);
@@ -452,6 +536,9 @@ Order Date: ${new Date().toLocaleString()}`;
     .then(data => {
       console.log('Cart updated with customer details:', data);
       
+      // Clear saved form data since we're proceeding
+      clearFormData();
+      
       // Show success message briefly
       showSuccessMessage('Order updated! Redirecting to checkout...');
       
@@ -466,7 +553,7 @@ Order Date: ${new Date().toLocaleString()}`;
     });
   }
 
-  // Apply discount code - Manual entry only
+  // IMPROVED: Apply discount code without page reload
   function applyDiscountCode() {
     const codeInput = document.getElementById('discountCodeInput');
     const messageDiv = document.getElementById('discountMessage');
@@ -489,16 +576,74 @@ Order Date: ${new Date().toLocaleString()}`;
     applyBtn.disabled = true;
     applyBtn.textContent = 'Applying...';
     
-    // Apply discount through Shopify's discount URL redirect
-    if (code === '15%MUSIC' || code === 'WELCOME15' || code === 'SAVE15') {
-      // Redirect to cart with discount code applied
-      window.location.href = `/discount/${code}?redirect=/cart`;
+    console.log('Applying discount code:', code);
+    
+    // IMPROVED: Save form data before applying discount
+    saveFormData();
+    
+    // Valid discount codes for this demo
+    const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15'];
+    
+    if (validCodes.includes(code)) {
+      // Show loading feedback
+      showDiscountMessage('success', 'Applying discount code...');
+      
+      // Method 1: Try to apply via Shopify's cart update with discount
+      applyDiscountViaCartUpdate(code).then(success => {
+        if (success) {
+          // Discount applied successfully
+          showDiscountMessage('success', `Discount "${code}" applied successfully!`);
+          
+          // Reload page to show updated totals, but preserve form data
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } else {
+          // Fallback to URL method
+          applyDiscountViaURL(code);
+        }
+      }).catch(error => {
+        console.error('Cart update method failed:', error);
+        // Fallback to URL method
+        applyDiscountViaURL(code);
+      });
+      
     } else {
-      // Error for invalid codes
+      // Handle invalid codes
+      console.log('Invalid discount code:', code);
       showDiscountMessage('error', 'Invalid discount code. Please check and try again.');
       applyBtn.disabled = false;
       applyBtn.textContent = 'Apply';
     }
+  }
+
+  // Try to apply discount via cart update API
+  function applyDiscountViaCartUpdate(code) {
+    return fetch('/cart/update.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        discount: code
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json().then(() => true);
+      }
+      return false;
+    })
+    .catch(() => false);
+  }
+
+  // Fallback: Apply discount via URL redirect (preserves form data)
+  function applyDiscountViaURL(code) {
+    const encodedCode = encodeURIComponent(code);
+    console.log('Using URL method for discount:', encodedCode);
+    
+    // Redirect to apply discount - form data will be restored on return
+    window.location.href = `/discount/${encodedCode}?redirect=/cart`;
   }
 
   // Show discount message
@@ -589,15 +734,6 @@ Order Date: ${new Date().toLocaleString()}`;
     });
   }
 
-  // Page unload prevention during processing
-  window.addEventListener('beforeunload', function(e) {
-    if (paymentProcessingState.isProcessing) {
-      e.preventDefault();
-      e.returnValue = 'Your order is being processed. Are you sure you want to leave?';
-      return e.returnValue;
-    }
-  });
-
   // Auto-clear validation errors on input
   const formInputs = document.querySelectorAll('#customerDetailsForm input');
   formInputs.forEach(input => {
@@ -621,7 +757,22 @@ Order Date: ${new Date().toLocaleString()}`;
     });
   }
 
-  console.log('Cart JavaScript initialization complete');
+  // Initialize form data handling
+  setupFormAutoSave();
+  restoreFormData();
+
+  // Check if we came back from a discount application
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('discount')) {
+    const discountCode = urlParams.get('discount');
+    showDiscountMessage('success', `Discount "${discountCode}" has been applied!`);
+    
+    // Clear the URL parameter
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+
+  console.log('Improved cart JavaScript initialization complete');
 });
 </script>
 
@@ -1067,6 +1218,33 @@ Order Date: ${new Date().toLocaleString()}`;
   margin: 0;
   text-align: center;
   font-style: italic;
+}
+
+/* Applied discount display */
+.applied-discount {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+}
+
+.discount-success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.success-icon {
+  font-size: 1.2em;
+}
+
+.discount-amount {
+  margin-left: auto;
+  font-size: 1.1em;
+  font-weight: 700;
 }
 
 .terms-agreement {

@@ -1,9 +1,9 @@
 {% comment %}
-  Fixed Multilingual Cart Template - Language Persistence & Proper Styling
+  Fixed Multilingual Cart Template - Working Discount Codes & Checkout
   Save this as: templates/cart.liquid
 {% endcomment %}
 
-<!-- Language Switcher (add this at the top) -->
+<!-- Language Detection Script -->
 <script>
 window.shopifyCustomerData = {
   {% if customer %}
@@ -86,7 +86,7 @@ window.shopifyCustomerData = {
               
               {% if cart.total_discount > 0 %}
                 <div class="discount-row">
-                  <span data-translate="discountApplied">Discount ({{ cart.discount_applications[0].title }}):</span>
+                  <span data-translate="discountApplied">Discount:</span>
                   <span>-{{ cart.total_discount | money }}</span>
                 </div>
               {% endif %}
@@ -153,6 +153,7 @@ window.shopifyCustomerData = {
                 id="discountCodeInput" 
                 name="discountCode" 
                 data-translate-placeholder="discountCodePlaceholder"
+                placeholder="Enter discount code (e.g. MUSIC15)"
                 style="text-transform: uppercase;"
               >
               <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn" data-translate="applyDiscount">
@@ -170,7 +171,7 @@ window.shopifyCustomerData = {
               <div class="applied-discount">
                 <div class="discount-success">
                   <span class="success-icon">✅</span>
-                  <span data-translate="discountAppliedSuccess">Discount "{{ cart.discount_applications[0].title }}" applied!</span>
+                  <span data-translate="discountAppliedSuccess">Discount applied!</span>
                   <span class="discount-amount">-{{ cart.total_discount | money }}</span>
                 </div>
               </div>
@@ -184,11 +185,9 @@ window.shopifyCustomerData = {
                 <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
                 <label for="agreeTerms">
                   <span data-translate="agreeTerms">I agree with the terms and conditions and privacy policy</span>
-                  {% if settings.privacy_policy_url != blank %}
-                    - <a href="{{ settings.privacy_policy_url }}" target="_blank" class="privacy-link" data-translate="privacyPolicyLink">
-                      Read our privacy policy
-                    </a>
-                  {% endif %}
+                  <a href="#" id="privacyPolicyLink" class="privacy-link" data-translate="privacyPolicyLink">
+                    Read our privacy policy
+                  </a>
                 </label>
               </div>
             </div>
@@ -204,8 +203,8 @@ window.shopifyCustomerData = {
                 <li data-translate="spotifyInfo">We can publish your song on Spotify upon request</li>
                 <li data-translate="contactInfo">
                   Any questions? Contact us at: 
-                  <a href="mailto:{{ settings.contact_email | default: 'contact@' | append: shop.domain }}" class="contact-link">
-                    {{ settings.contact_email | default: 'contact@' | append: shop.domain }}
+                  <a href="mailto:contact@{{ shop.domain }}" class="contact-link">
+                    contact@{{ shop.domain }}
                   </a>
                 </li>
               </ul>
@@ -252,759 +251,564 @@ window.shopifyCustomerData = {
 <!-- Include the main Musicado script -->
 <script src="{{ 'musicado.js' | asset_url }}" defer></script>
 
-<!-- FIXED cart JavaScript with proper language persistence -->
+<!-- FIXED cart JavaScript with working discount codes and checkout -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Cart page initializing with language persistence...');
+  console.log('🚀 Cart page initializing...');
   
-  // CRITICAL: Get saved language BEFORE initializing anything
+  // Language management
   const LANGUAGE_KEY = 'musicado_language';
+  const FORM_DATA_KEY = 'musicado_cart_form_data';
   
- function getSavedLanguage() {
-  const LANGUAGE_KEY = 'musicado_language';
-  
-  // Check saved preference first
-  const saved = localStorage.getItem(LANGUAGE_KEY);
-  if (saved) {
-    console.log('📱 Found saved language:', saved);
-    return saved;
-  }
-  
-  // Enhanced Dutch detection
-  function isDutchCustomer() {
-    // 1. Shopify customer check
-    if (typeof Shopify !== 'undefined' && Shopify.customer) {
-      const customer = Shopify.customer;
-      if (customer.default_address && customer.default_address.country_code === 'NL') {
-        console.log('🇳🇱 Dutch customer via Shopify data');
+  // Get saved language
+  function getSavedLanguage() {
+    const saved = localStorage.getItem(LANGUAGE_KEY);
+    if (saved) {
+      console.log('📱 Found saved language:', saved);
+      return saved;
+    }
+    
+    // Enhanced Dutch detection
+    function isDutchCustomer() {
+      // Browser language check
+      const languages = navigator.languages || [navigator.language];
+      for (const lang of languages) {
+        if (lang.toLowerCase().startsWith('nl')) {
+          console.log('🇳🇱 Dutch language detected:', lang);
+          return true;
+        }
+      }
+      
+      // Timezone check
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (timezone === 'Europe/Amsterdam') {
+        console.log('🇳🇱 Dutch timezone detected');
         return true;
       }
+      
+      return false;
     }
     
-    // 2. Browser language check
-    const languages = navigator.languages || [navigator.language];
-    for (const lang of languages) {
-      if (lang.toLowerCase().startsWith('nl')) {
-        console.log('🇳🇱 Dutch language detected:', lang);
-        return true;
-      }
-    }
-    
-    // 3. Timezone check
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone === 'Europe/Amsterdam') {
-      console.log('🇳🇱 Dutch timezone detected');
-      return true;
-    }
-    
-    return false;
+    return isDutchCustomer() ? 'nl' : 'en';
   }
   
-  return isDutchCustomer() ? 'nl' : 'en';
-}
-  
-  // Save language preference
-  function saveLanguage(lang) {
-    localStorage.setItem(LANGUAGE_KEY, lang);
-    console.log('💾 Language saved:', lang);
-  }
-  
-  // Get the correct language to use
   const currentLang = getSavedLanguage();
   console.log('🎯 Using language:', currentLang);
   
-  // Wait for MusicadoApp to be available
-  function waitForMusicadoApp() {
-    if (typeof MusicadoApp !== 'undefined') {
-      console.log('✅ MusicadoApp available, initializing cart...');
-      initializeCartPage();
-    } else {
-      console.log('⏳ Waiting for MusicadoApp...');
-      setTimeout(waitForMusicadoApp, 50);
+  // Cart-specific translations
+  const cartTranslations = {
+    en: {
+      cartPageTitle: "Your Order",
+      orderSummary: "Order Summary", 
+      removeItem: "Remove Item",
+      subtotal: "Subtotal:",
+      discountApplied: "Discount:",
+      total: "Total:",
+      taxNote: "Taxes and shipping calculated at checkout",
+      customerInformation: "Customer Information",
+      firstName: "First Name *",
+      middleName: "Middle Name",
+      lastName: "Last Name *",
+      emailAddress: "Email Address *",
+      phoneNumber: "Phone Number *",
+      phonePlaceholder: "+31 6 12345678",
+      musicDeliveryTitle: "📧 Music Delivery Information",
+      musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
+      discountCodeTitle: "Discount Code",
+      discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
+      applyDiscount: "Apply",
+      discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
+      discountAppliedSuccess: "Discount applied!",
+      agreeTerms: "I agree with the terms and conditions and privacy policy",
+      privacyPolicyLink: "Read our privacy policy",
+      importantInformation: "Important Information",
+      deliveryInfo: "You will receive an email link to download your music within 24 hours",
+      personalUseInfo: "Songs are for personal use only (contact us for commercial use)",
+      spotifyInfo: "We can publish your song on Spotify upon request",
+      contactInfo: "Any questions? Contact us at:",
+      completeOrderPay: "Complete Order & Pay",
+      processing: "Processing...",
+      continueShopping: "Continue Shopping",
+      tryAgain: "Try Again",
+      emptyCartTitle: "Your cart is empty",
+      emptyCartDescription: "You haven't added any items to your cart yet.",
+      startShopping: "Start Shopping",
+      
+      // Validation and error messages
+      pleaseComplete: "Please complete the following:",
+      validEmail: "Valid email address",
+      agreeToTerms: "Agreement with terms and conditions",
+      enterDiscountCode: "Please enter a discount code.",
+      invalidDiscountCode: "Invalid discount code. Please check and try again.",
+      discountAppliedMessage: "Discount applied successfully!",
+      processingError: "An error occurred. Please try again.",
+      redirectingToCheckout: "Redirecting to checkout..."
+    },
+    nl: {
+      cartPageTitle: "Uw Bestelling",
+      orderSummary: "Bestelling Overzicht",
+      removeItem: "Item Verwijderen", 
+      subtotal: "Subtotaal:",
+      discountApplied: "Korting:",
+      total: "Totaal:",
+      taxNote: "Belastingen en verzendkosten worden berekend bij het afrekenen",
+      customerInformation: "Klantgegevens",
+      firstName: "Voornaam *",
+      middleName: "Tussenvoegsel",
+      lastName: "Achternaam *",
+      emailAddress: "E-mailadres *",
+      phoneNumber: "Telefoonnummer *",
+      phonePlaceholder: "+31 6 12345678",
+      musicDeliveryTitle: "📧 Muziek Levering Informatie",
+      musicDeliveryDescription: "We sturen u binnen 24 uur een link via e-mail naar uw persoonlijke pagina waar u uw muziek kunt downloaden.",
+      discountCodeTitle: "Kortingscode",
+      discountCodePlaceholder: "Voer kortingscode in (bijv. MUSIC15)",
+      applyDiscount: "Toepassen",
+      discountHelp: "💡 Heeft u een kortingscode van onze popup? Plak deze hier om te besparen op uw bestelling!",
+      discountAppliedSuccess: "Korting toegepast!",
+      agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
+      privacyPolicyLink: "Lees ons privacybeleid",
+      importantInformation: "Belangrijke Informatie",
+      deliveryInfo: "U ontvangt binnen 24 uur een e-mail link om uw muziek te downloaden",
+      personalUseInfo: "Liedjes zijn alleen voor persoonlijk gebruik (neem contact op voor commercieel gebruik)",
+      spotifyInfo: "We kunnen uw liedje op verzoek op Spotify publiceren",
+      contactInfo: "Vragen? Neem contact met ons op:",
+      completeOrderPay: "Bestelling Voltooien & Betalen",
+      processing: "Verwerken...",
+      continueShopping: "Verder Winkelen",
+      tryAgain: "Probeer Opnieuw",
+      emptyCartTitle: "Uw winkelwagen is leeg",
+      emptyCartDescription: "U heeft nog geen items aan uw winkelwagen toegevoegd.",
+      startShopping: "Begin met Winkelen",
+      
+      // Validation and error messages in Dutch
+      pleaseComplete: "Vul de volgende verplichte velden in:",
+      validEmail: "Geldig e-mailadres",
+      agreeToTerms: "Akkoord met algemene voorwaarden",
+      enterDiscountCode: "Voer een kortingscode in.",
+      invalidDiscountCode: "Ongeldige kortingscode. Controleer en probeer opnieuw.",
+      discountAppliedMessage: "Korting succesvol toegepast!",
+      processingError: "Er is een fout opgetreden. Probeer het opnieuw.",
+      redirectingToCheckout: "Doorverwijzen naar afrekenen..."
+    }
+  };
+
+  // Apply translations
+  function applyTranslations(lang) {
+    console.log('🌐 Applying cart translations for:', lang);
+    const translations = cartTranslations[lang];
+    if (!translations) return;
+    
+    document.querySelectorAll('[data-translate]').forEach(element => {
+      const key = element.dataset.translate;
+      if (translations[key]) {
+        element.textContent = translations[key];
+      }
+    });
+    
+    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+      const key = element.dataset.translatePlaceholder;
+      if (translations[key]) {
+        element.placeholder = translations[key];
+      }
+    });
+  }
+
+  // Get translation
+  function getTranslation(key) {
+    const translations = cartTranslations[currentLang];
+    return translations && translations[key] ? translations[key] : cartTranslations.en[key] || key;
+  }
+
+  // Form data management
+  function saveFormData() {
+    const formData = {};
+    const form = document.getElementById('customerDetailsForm');
+    if (form) {
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach(input => {
+        if (input.type !== 'submit' && input.type !== 'button') {
+          formData[input.name] = input.value;
+        }
+      });
+      
+      const termsCheckbox = document.getElementById('agreeTerms');
+      if (termsCheckbox) {
+        formData.agreeTerms = termsCheckbox.checked;
+      }
+      
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
     }
   }
-  
-  function initializeCartPage() {
-    // Form data preservation
-    const FORM_DATA_KEY = 'musicado_cart_form_data';
-    
-    // Payment processing state
-    let paymentProcessingState = {
-      isProcessing: false,
-      submissionToken: null,
-      timeoutId: null
-    };
 
-    // Get current language from MusicadoApp or use saved
-    function getCurrentLanguage() {
-      if (typeof MusicadoApp !== 'undefined' && MusicadoApp.currentLanguage) {
-        return MusicadoApp.currentLanguage;
-      }
-      return currentLang;
-    }
-
-    // Cart-specific translations
-    const cartTranslations = {
-      en: {
-        cartPageTitle: "Your Order",
-        orderSummary: "Order Summary", 
-        removeItem: "Remove Item",
-        subtotal: "Subtotal:",
-        discountApplied: "Discount",
-        total: "Total:",
-        taxNote: "Taxes and shipping calculated at checkout",
-        customerInformation: "Customer Information",
-        firstName: "First Name *",
-        middleName: "Middle Name",
-        lastName: "Last Name *",
-        emailAddress: "Email Address *",
-        phoneNumber: "Phone Number *",
-        phonePlaceholder: "+31 6 12345678",
-        musicDeliveryTitle: "📧 Music Delivery Information",
-        musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
-        discountCodeTitle: "Discount Code",
-        discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
-        applyDiscount: "Apply",
-        discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
-        discountAppliedSuccess: "Discount applied!",
-        agreeTerms: "I agree with the terms and conditions and privacy policy",
-        privacyPolicyLink: "Read our privacy policy",
-        importantInformation: "Important Information",
-        deliveryInfo: "You will receive an email link to download your music within 24 hours",
-        personalUseInfo: "Songs are for personal use only (contact us for commercial use)",
-        spotifyInfo: "We can publish your song on Spotify upon request",
-        contactInfo: "Any questions? Contact us at:",
-        completeOrderPay: "Complete Order & Pay",
-        processing: "Processing...",
-        continueShopping: "Continue Shopping",
-        tryAgain: "Try Again",
-        emptyCartTitle: "Your cart is empty",
-        emptyCartDescription: "You haven't added any items to your cart yet.",
-        startShopping: "Start Shopping",
+  function restoreFormData() {
+    try {
+      const savedData = localStorage.getItem(FORM_DATA_KEY);
+      if (savedData) {
+        const formData = JSON.parse(savedData);
         
-        // Validation messages
-        pleaseComplete: "Please complete the following:",
-        validEmail: "Valid email address",
-        agreeToTerms: "Agreement with terms and conditions",
-        enterDiscountCode: "Please enter a discount code.",
-        invalidDiscountCode: "Invalid discount code. Please check and try again.",
-        agreeToEmails: "You must agree to receive emails to get your discount code.",
-        discountAlreadyApplied: "Discount already applied.",
-        discountAppliedMessage: "Discount applied! This will be applied at checkout.",
-        orderUpdated: "Order updated! Redirecting to checkout...",
-        processingError: "An error occurred. Please try again.",
-        updateError: "Failed to update order information. Please try again."
-      },
-      nl: {
-        cartPageTitle: "Uw Bestelling",
-        orderSummary: "Bestelling Overzicht",
-        removeItem: "Item Verwijderen", 
-        subtotal: "Subtotaal:",
-        discountApplied: "Korting",
-        total: "Totaal:",
-        taxNote: "Belastingen en verzendkosten worden berekend bij het afrekenen",
-        customerInformation: "Klantgegevens",
-        firstName: "Voornaam *",
-        middleName: "Tussenvoegsel",
-        lastName: "Achternaam *",
-        emailAddress: "E-mailadres *",
-        phoneNumber: "Telefoonnummer *",
-        phonePlaceholder: "+31 6 12345678",
-        musicDeliveryTitle: "📧 Muziek Levering Informatie",
-        musicDeliveryDescription: "We sturen u binnen 24 uur een link via e-mail naar uw persoonlijke pagina waar u uw muziek kunt downloaden.",
-        discountCodeTitle: "Kortingscode",
-        discountCodePlaceholder: "Voer kortingscode in (bijv. MUSIC15)",
-        applyDiscount: "Toepassen",
-        discountHelp: "💡 Heeft u een kortingscode van onze popup? Plak deze hier om te besparen op uw bestelling!",
-        discountAppliedSuccess: "Korting toegepast!",
-        agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
-        privacyPolicyLink: "Lees ons privacybeleid",
-        importantInformation: "Belangrijke Informatie",
-        deliveryInfo: "U ontvangt binnen 24 uur een e-mail link om uw muziek te downloaden",
-        personalUseInfo: "Liedjes zijn alleen voor persoonlijk gebruik (neem contact op voor commercieel gebruik)",
-        spotifyInfo: "We kunnen uw liedje op verzoek op Spotify publiceren",
-        contactInfo: "Vragen? Neem contact met ons op:",
-        completeOrderPay: "Bestelling Voltooien & Betalen",
-        processing: "Verwerken...",
-        continueShopping: "Verder Winkelen",
-        tryAgain: "Probeer Opnieuw",
-        emptyCartTitle: "Uw winkelwagen is leeg",
-        emptyCartDescription: "U heeft nog geen items aan uw winkelwagen toegevoegd.",
-        startShopping: "Begin met Winkelen",
-        
-        // Validation messages in Dutch
-        pleaseComplete: "Vul de volgende verplichte velden in:",
-        validEmail: "Geldig e-mailadres",
-        agreeToTerms: "Akkoord met algemene voorwaarden",
-        enterDiscountCode: "Voer een kortingscode in.",
-        invalidDiscountCode: "Ongeldige kortingscode. Controleer en probeer opnieuw.",
-        agreeToEmails: "U moet akkoord gaan met het ontvangen van e-mails om uw kortingscode te ontvangen.",
-        discountAlreadyApplied: "Korting al toegepast.",
-        discountAppliedMessage: "Korting toegepast! Dit wordt toegepast bij het afrekenen.",
-        orderUpdated: "Bestelling bijgewerkt! Doorverwijzen naar afrekenen...",
-        processingError: "Er is een fout opgetreden. Probeer het opnieuw.",
-        updateError: "Kan bestellingsinformatie niet bijwerken. Probeer het opnieuw."
-      }
-    };
-
-    // Apply cart translations
-    function applyCartTranslations(lang) {
-      console.log('🌐 Applying cart translations for:', lang);
-      const translations = cartTranslations[lang];
-      if (!translations) return;
-      
-      document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.dataset.translate;
-        if (translations[key]) {
-          element.textContent = translations[key];
-        }
-      });
-      
-      document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-        const key = element.dataset.translatePlaceholder;
-        if (translations[key]) {
-          element.placeholder = translations[key];
-        }
-      });
-      
-      console.log('✅ Cart translations applied');
-    }
-
-    // Get translation text
-    function getTranslation(key) {
-      const lang = getCurrentLanguage();
-      return cartTranslations[lang] && cartTranslations[lang][key] 
-        ? cartTranslations[lang][key] 
-        : cartTranslations.en[key] || key;
-    }
-
-    // Save form data to localStorage
-    function saveFormData() {
-      const formData = {};
-      const form = document.getElementById('customerDetailsForm');
-      if (form) {
-        const inputs = form.querySelectorAll('input');
-        inputs.forEach(input => {
-          if (input.type !== 'submit' && input.type !== 'button') {
-            formData[input.name] = input.value;
+        Object.entries(formData).forEach(([name, value]) => {
+          if (name === 'agreeTerms') {
+            const termsCheckbox = document.getElementById('agreeTerms');
+            if (termsCheckbox && value) {
+              termsCheckbox.checked = value;
+            }
+          } else {
+            const input = document.querySelector(`[name="${name}"]`);
+            if (input && value) {
+              input.value = value;
+            }
           }
         });
-        
-        const termsCheckbox = document.getElementById('agreeTerms');
-        if (termsCheckbox) {
-          formData.agreeTerms = termsCheckbox.checked;
+      }
+    } catch (error) {
+      console.error('Error restoring form data:', error);
+    }
+  }
+
+  function clearFormData() {
+    localStorage.removeItem(FORM_DATA_KEY);
+  }
+
+  // Validation
+  function validateCustomerDetails() {
+    const requiredFields = ['firstName', 'lastName', 'customerEmail', 'mobilePhone'];
+    let isValid = true;
+    let missingFields = [];
+
+    requiredFields.forEach(fieldName => {
+      const field = document.getElementById(fieldName);
+      if (!field || !field.value.trim()) {
+        isValid = false;
+        const label = getTranslation(fieldName);
+        missingFields.push(label);
+        if (field) {
+          field.style.borderColor = '#ef4444';
+          field.style.background = 'rgba(239, 68, 68, 0.1)';
         }
-        
-        localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+      } else {
+        if (field) {
+          field.style.borderColor = '';
+          field.style.background = '';
+        }
+      }
+    });
+
+    // Check terms agreement
+    const termsCheckbox = document.getElementById('agreeTerms');
+    const termsCard = document.querySelector('.terms-agreement');
+    if (!termsCheckbox || !termsCheckbox.checked) {
+      isValid = false;
+      missingFields.push(getTranslation('agreeToTerms'));
+      if (termsCard) {
+        termsCard.style.borderColor = '#ef4444';
+        termsCard.style.background = 'rgba(239, 68, 68, 0.05)';
+      }
+    } else {
+      if (termsCard) {
+        termsCard.style.borderColor = '';
+        termsCard.style.background = '';
       }
     }
 
-    // Restore form data from localStorage
-    function restoreFormData() {
-      try {
-        const savedData = localStorage.getItem(FORM_DATA_KEY);
-        if (savedData) {
-          const formData = JSON.parse(savedData);
-          
-          Object.entries(formData).forEach(([name, value]) => {
-            if (name === 'agreeTerms') {
-              const termsCheckbox = document.getElementById('agreeTerms');
-              if (termsCheckbox && value) {
-                termsCheckbox.checked = value;
-              }
-            } else {
-              const input = document.querySelector(`[name="${name}"]`);
-              if (input && value) {
-                input.value = value;
-              }
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error restoring form data:', error);
+    // Validate email format
+    const emailField = document.getElementById('customerEmail');
+    if (emailField && emailField.value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailField.value)) {
+        isValid = false;
+        missingFields.push(getTranslation('validEmail'));
+        emailField.style.borderColor = '#ef4444';
+        emailField.style.background = 'rgba(239, 68, 68, 0.1)';
       }
     }
 
-    // Clear saved form data
-    function clearFormData() {
-      localStorage.removeItem(FORM_DATA_KEY);
+    if (!isValid) {
+      const message = getTranslation('pleaseComplete') + '\n• ' + missingFields.join('\n• ');
+      alert(message);
+      
+      // Scroll to first error field
+      const firstErrorField = document.querySelector('input[style*="border-color: rgb(239, 68, 68)"], .terms-agreement[style*="border-color: rgb(239, 68, 68)"]');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    return isValid;
+  }
+
+  // Button state management
+  function setButtonLoading(isLoading) {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (!checkoutBtn) return;
+
+    if (isLoading) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.setAttribute('data-processing', 'true');
+      const textSpan = checkoutBtn.querySelector('.button-text');
+      const loadingSpan = checkoutBtn.querySelector('.button-loading');
+      if (textSpan) textSpan.style.display = 'none';
+      if (loadingSpan) loadingSpan.style.display = 'inline-flex';
+    } else {
+      checkoutBtn.disabled = false;
+      checkoutBtn.setAttribute('data-processing', 'false');
+      const textSpan = checkoutBtn.querySelector('.button-text');
+      const loadingSpan = checkoutBtn.querySelector('.button-loading');
+      if (textSpan) textSpan.style.display = 'inline';
+      if (loadingSpan) loadingSpan.style.display = 'none';
+    }
+  }
+
+  // Show success message
+  function showSuccessMessage(message) {
+    const notification = document.createElement('div');
+    notification.className = 'success-notification';
+    notification.innerHTML = `
+      <div class="success-icon">✅</div>
+      <div class="success-text">${message}</div>
+    `;
+    
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      animation: slideInRight 0.3s ease-out;
+      max-width: 300px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 3000);
+  }
+
+  // Show discount message
+  function showDiscountMessage(type, message) {
+    const messageDiv = document.getElementById('discountMessage');
+    if (messageDiv) {
+      messageDiv.className = `discount-message ${type}`;
+      messageDiv.textContent = message;
+      messageDiv.style.display = 'block';
+    }
+  }
+
+  // FIXED: Apply discount code using proper Shopify method
+  function applyDiscountCode() {
+    const codeInput = document.getElementById('discountCodeInput');
+    const applyBtn = document.getElementById('applyDiscountBtn');
+    
+    if (!codeInput || !applyBtn) return;
+    
+    const code = codeInput.value.trim().toUpperCase();
+    
+    if (!code) {
+      showDiscountMessage('error', getTranslation('enterDiscountCode'));
+      return;
+    }
+    
+    // Disable button and show loading
+    applyBtn.disabled = true;
+    const originalText = applyBtn.textContent;
+    applyBtn.textContent = getTranslation('processing');
+    
+    console.log('Applying discount code:', code);
+    
+    // Save form data before redirect
+    saveFormData();
+    
+    // Validate discount codes
+    const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15'];
+    
+    if (validCodes.includes(code)) {
+      // Use Shopify's discount URL - this is the correct method
+      console.log('Valid discount code, redirecting with discount...');
+      showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+      
+      // Redirect to apply discount using Shopify's standard method
+      setTimeout(() => {
+        window.location.href = `/discount/${encodeURIComponent(code)}?redirect=${encodeURIComponent('/cart')}`;
+      }, 500);
+      
+    } else {
+      console.log('Invalid discount code:', code);
+      showDiscountMessage('error', getTranslation('invalidDiscountCode'));
+      applyBtn.disabled = false;
+      applyBtn.textContent = originalText;
+    }
+  }
+
+  // FIXED: Checkout process
+  function processCheckout() {
+    if (!validateCustomerDetails()) {
+      return false;
+    }
+
+    setButtonLoading(true);
+    
+    try {
+      // Save customer details for later use
+      const customerForm = document.getElementById('customerDetailsForm');
+      const customerData = new FormData(customerForm);
+      const customerDetails = {};
+      for (let [key, value] of customerData.entries()) {
+        customerDetails[key] = value;
+      }
+
+      // Save customer details in localStorage for the order
+      localStorage.setItem('musicado_customer_details', JSON.stringify(customerDetails));
+      
+      // Show success message
+      showSuccessMessage(getTranslation('redirectingToCheckout'));
+      
+      // Clear form data since we're completing the order
+      clearFormData();
+      
+      // Redirect to Shopify's standard checkout
+      setTimeout(() => {
+        window.location.href = '/checkout';
+      }, 1000);
+
+    } catch (error) {
+      console.error('Checkout processing error:', error);
+      setButtonLoading(false);
+      alert(getTranslation('processingError'));
+      return false;
+    }
+  }
+
+  // Setup event listeners
+  function setupEventListeners() {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const applyDiscountBtn = document.getElementById('applyDiscountBtn');
+    const discountInput = document.getElementById('discountCodeInput');
+    const form = document.getElementById('customerDetailsForm');
+
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        processCheckout();
+      });
+    }
+
+    if (applyDiscountBtn) {
+      applyDiscountBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        applyDiscountCode();
+      });
+    }
+
+    if (discountInput) {
+      discountInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyDiscountCode();
+        }
+      });
     }
 
     // Auto-save form data on input
-    function setupFormAutoSave() {
-      const form = document.getElementById('customerDetailsForm');
-      if (form) {
-        form.addEventListener('input', saveFormData);
-        form.addEventListener('change', saveFormData);
-      }
-      
-      const termsCheckbox = document.getElementById('agreeTerms');
-      if (termsCheckbox) {
-        termsCheckbox.addEventListener('change', saveFormData);
-      }
+    if (form) {
+      form.addEventListener('input', saveFormData);
+      form.addEventListener('change', saveFormData);
+    }
+    
+    const termsCheckbox = document.getElementById('agreeTerms');
+    if (termsCheckbox) {
+      termsCheckbox.addEventListener('change', saveFormData);
     }
 
-    // Generate unique submission token
-    function generateSubmissionToken() {
-      return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-    }
-
-    // Reset payment processing state
-    function resetPaymentState() {
-      paymentProcessingState.isProcessing = false;
-      paymentProcessingState.submissionToken = null;
-      if (paymentProcessingState.timeoutId) {
-        clearTimeout(paymentProcessingState.timeoutId);
-        paymentProcessingState.timeoutId = null;
-      }
-      resetButtonState();
-    }
-
-    // Reset button state
-    function resetButtonState() {
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      if (checkoutBtn) {
-        checkoutBtn.disabled = false;
-        checkoutBtn.setAttribute('data-processing', 'false');
-        const textSpan = checkoutBtn.querySelector('.button-text');
-        const loadingSpan = checkoutBtn.querySelector('.button-loading');
-        if (textSpan) textSpan.style.display = 'inline';
-        if (loadingSpan) loadingSpan.style.display = 'none';
-      }
-    }
-
-    // Set button loading state
-    function setButtonLoading(isLoading) {
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      if (!checkoutBtn) return;
-
-      if (isLoading) {
-        checkoutBtn.disabled = true;
-        checkoutBtn.setAttribute('data-processing', 'true');
-        const textSpan = checkoutBtn.querySelector('.button-text');
-        const loadingSpan = checkoutBtn.querySelector('.button-loading');
-        if (textSpan) textSpan.style.display = 'none';
-        if (loadingSpan) loadingSpan.style.display = 'inline-flex';
-      } else {
-        resetButtonState();
-      }
-    }
-
-    // Validate customer details
-    function validateCustomerDetails() {
-      const requiredFields = ['firstName', 'lastName', 'customerEmail', 'mobilePhone'];
-      let isValid = true;
-      let missingFields = [];
-
-      requiredFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        if (!field || !field.value.trim()) {
-          isValid = false;
-          const label = getTranslation(fieldName);
-          missingFields.push(label);
-          if (field) {
-            field.style.borderColor = '#ef4444';
-            field.style.background = 'rgba(239, 68, 68, 0.1)';
-          }
-        } else {
-          if (field) {
-            field.style.borderColor = '';
-            field.style.background = '';
-          }
+    // Auto-clear validation errors on input
+    const formInputs = document.querySelectorAll('#customerDetailsForm input');
+    formInputs.forEach(input => {
+      input.addEventListener('input', function() {
+        if (this.style.borderColor === 'rgb(239, 68, 68)') {
+          this.style.borderColor = '';
+          this.style.background = '';
         }
       });
+    });
 
-      // Check terms agreement
-      const termsCheckbox = document.getElementById('agreeTerms');
-      const termsCard = document.querySelector('.terms-agreement');
-      if (!termsCheckbox || !termsCheckbox.checked) {
-        isValid = false;
-        missingFields.push(getTranslation('agreeToTerms'));
-        if (termsCard) {
-          termsCard.style.borderColor = '#ef4444';
-          termsCard.style.background = 'rgba(239, 68, 68, 0.05)';
-        }
-      } else {
-        if (termsCard) {
+    // Clear terms validation error on check
+    if (termsCheckbox) {
+      termsCheckbox.addEventListener('change', function() {
+        const termsCard = document.querySelector('.terms-agreement');
+        if (this.checked && termsCard) {
           termsCard.style.borderColor = '';
           termsCard.style.background = '';
         }
-      }
-
-      // Validate email format
-      const emailField = document.getElementById('customerEmail');
-      if (emailField && emailField.value) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(emailField.value)) {
-          isValid = false;
-          missingFields.push(getTranslation('validEmail'));
-          emailField.style.borderColor = '#ef4444';
-          emailField.style.background = 'rgba(239, 68, 68, 0.1)';
-        }
-      }
-
-      if (!isValid) {
-        const message = getTranslation('pleaseComplete') + '\n• ' + missingFields.join('\n• ');
-        alert(message);
-        
-        // Scroll to first error field
-        const firstErrorField = document.querySelector('input[style*="border-color: rgb(239, 68, 68)"], .terms-agreement[style*="border-color: rgb(239, 68, 68)"]');
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-
-      return isValid;
-    }
-
-    // Show payment error
-    function showPaymentError(message) {
-      const errorDiv = document.getElementById('paymentError');
-      const checkoutActions = document.querySelector('.checkout-actions');
-      
-      if (errorDiv && checkoutActions) {
-        errorDiv.querySelector('.error-message').textContent = message;
-        errorDiv.style.display = 'block';
-        checkoutActions.style.display = 'none';
-        
-        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      
-      resetPaymentState();
-    }
-
-    // Hide payment error
-    function hidePaymentError() {
-      const errorDiv = document.getElementById('paymentError');
-      const checkoutActions = document.querySelector('.checkout-actions');
-      
-      if (errorDiv) errorDiv.style.display = 'none';
-      if (checkoutActions) checkoutActions.style.display = 'block';
-      
-      resetPaymentState();
-    }
-
-    // Process checkout
-    function processCheckout() {
-      if (paymentProcessingState.isProcessing) {
-        console.log('Checkout already in progress, preventing duplicate submission');
-        return false;
-      }
-
-      if (!validateCustomerDetails()) {
-        return false;
-      }
-
-      paymentProcessingState.isProcessing = true;
-      paymentProcessingState.submissionToken = generateSubmissionToken();
-      
-      paymentProcessingState.timeoutId = setTimeout(() => {
-        console.warn('Checkout processing timeout - resetting state');
-        resetPaymentState();
-      }, 30000);
-
-      setButtonLoading(true);
-
-      try {
-        saveFormData();
-        
-        const customerForm = document.getElementById('customerDetailsForm');
-        const customerData = new FormData(customerForm);
-        const customerDetails = {};
-        for (let [key, value] of customerData.entries()) {
-          customerDetails[key] = value;
-        }
-
-        updateCartWithCustomerDetails(customerDetails);
-
-      } catch (error) {
-        console.error('Checkout processing error:', error);
-        showPaymentError(getTranslation('processingError'));
-        return false;
-      }
-    }
-
-    // Update cart with customer details
-    function updateCartWithCustomerDetails(customerDetails) {
-      const customerNote = `Customer Details:
-Name: ${customerDetails.firstName} ${customerDetails.middleName || ''} ${customerDetails.lastName}
-Email: ${customerDetails.customerEmail}
-Phone: ${customerDetails.mobilePhone}
-Order Date: ${new Date().toLocaleString()}`;
-
-      fetch('/cart/update.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          note: customerNote
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Cart updated with customer details:', data);
-        
-        clearFormData();
-        showSuccessMessage(getTranslation('orderUpdated'));
-        
-        setTimeout(() => {
-          window.location.href = '/checkout';
-        }, 1500);
-      })
-      .catch(error => {
-        console.error('Error updating cart:', error);
-        showPaymentError(getTranslation('updateError'));
       });
     }
 
-    // Apply discount code
-    function applyDiscountCode() {
-      const codeInput = document.getElementById('discountCodeInput');
-      const messageDiv = document.getElementById('discountMessage');
-      const applyBtn = document.getElementById('applyDiscountBtn');
-      
-      if (!codeInput || !messageDiv || !applyBtn) return;
-      
-      const code = codeInput.value.trim().toUpperCase();
-      
-      messageDiv.className = 'discount-message';
-      messageDiv.style.display = 'none';
-      
-      if (!code) {
-        showDiscountMessage('error', getTranslation('enterDiscountCode'));
-        return;
-      }
-      
-      applyBtn.disabled = true;
-      applyBtn.textContent = getTranslation('processing');
-      
-      console.log('Applying discount code:', code);
-      
-      saveFormData();
-      
-      const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15'];
-      
-      if (validCodes.includes(code)) {
-        showDiscountMessage('success', getTranslation('processing'));
-        
-        applyDiscountViaCartUpdate(code).then(success => {
-          if (success) {
-            showDiscountMessage('success', getTranslation('discountAppliedMessage'));
-            setTimeout(() => {
-              location.reload();
-            }, 1000);
-          } else {
-            applyDiscountViaURL(code);
-          }
-        }).catch(error => {
-          console.error('Cart update method failed:', error);
-          applyDiscountViaURL(code);
-        });
-        
-      } else {
-        console.log('Invalid discount code:', code);
-        showDiscountMessage('error', getTranslation('invalidDiscountCode'));
-        applyBtn.disabled = false;
-        applyBtn.textContent = getTranslation('applyDiscount');
-      }
-    }
-
-    // Try to apply discount via cart update API
-    function applyDiscountViaCartUpdate(code) {
-      return fetch('/cart/update.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          discount: code
-        })
-      })
-      .then(response => {
-        if (response.ok) {
-          return response.json().then(() => true);
+    // Privacy policy link
+    const privacyLink = document.getElementById('privacyPolicyLink');
+    if (privacyLink) {
+      privacyLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Open privacy modal if available, or link to privacy page
+        if (document.getElementById('privacyModal')) {
+          document.getElementById('privacyModal').style.display = 'block';
+        } else {
+          // Fallback to external privacy page
+          window.open('/pages/privacy-policy', '_blank');
         }
-        return false;
-      })
-      .catch(() => false);
-    }
-
-    // Fallback: Apply discount via URL redirect
-    function applyDiscountViaURL(code) {
-      const encodedCode = encodeURIComponent(code);
-      console.log('Using URL method for discount:', encodedCode);
-      window.location.href = `/discount/${encodedCode}?redirect=/cart`;
-    }
-
-    // Show discount message
-    function showDiscountMessage(type, message) {
-      const messageDiv = document.getElementById('discountMessage');
-      if (messageDiv) {
-        messageDiv.className = `discount-message ${type}`;
-        messageDiv.textContent = message;
-        messageDiv.style.display = 'block';
-      }
-    }
-
-    // Show success message
-    function showSuccessMessage(message) {
-      const notification = document.createElement('div');
-      notification.className = 'success-notification';
-      notification.innerHTML = `
-        <div class="success-icon">✅</div>
-        <div class="success-text">${message}</div>
-      `;
-      
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-weight: 600;
-        animation: slideInRight 0.3s ease-out;
-        max-width: 300px;
-      `;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 3000);
-    }
-
-    // Setup event listeners
-    function setupEventListeners() {
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      const applyDiscountBtn = document.getElementById('applyDiscountBtn');
-      const retryPaymentBtn = document.getElementById('retryPaymentBtn');
-      const discountInput = document.getElementById('discountCodeInput');
-
-      if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          processCheckout();
-        });
-      }
-
-      if (applyDiscountBtn) {
-        applyDiscountBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          applyDiscountCode();
-        });
-      }
-
-      if (retryPaymentBtn) {
-        retryPaymentBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          hidePaymentError();
-        });
-      }
-
-      if (discountInput) {
-        discountInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            applyDiscountCode();
-          }
-        });
-      }
-
-      // Auto-clear validation errors on input
-      const formInputs = document.querySelectorAll('#customerDetailsForm input');
-      formInputs.forEach(input => {
-        input.addEventListener('input', function() {
-          if (this.style.borderColor === 'rgb(239, 68, 68)') {
-            this.style.borderColor = '';
-            this.style.background = '';
-          }
-        });
       });
-
-      // Clear terms validation error on check
-      const termsCheckbox = document.getElementById('agreeTerms');
-      if (termsCheckbox) {
-        termsCheckbox.addEventListener('change', function() {
-          const termsCard = document.querySelector('.terms-agreement');
-          if (this.checked && termsCard) {
-            termsCard.style.borderColor = '';
-            termsCard.style.background = '';
-          }
-        });
-      }
-
-// Language switching is handled by the main header language selector
-// No additional language switcher needed on cart page
-      
-    // Initialize everything
-    function initializeAll() {
-      console.log('🎯 Initializing cart with language:', currentLang);
-      
-      // CRITICAL: Set language in MusicadoApp FIRST
-      if (typeof MusicadoApp !== 'undefined' && MusicadoApp.setLanguage) {
-        console.log('🔧 Setting MusicadoApp language to:', currentLang);
-        MusicadoApp.setLanguage(currentLang);
-      }
-      
-      // Set active language button
-      const activeBtn = document.querySelector(`header [data-lang="${currentLang}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        console.log('✅ Active language button set');
-      }
-      
-      // Apply initial translations
-      applyCartTranslations(currentLang);
-      
-      // Setup form handling
-      setupFormAutoSave();
-      restoreFormData();
-      setupEventListeners();
-      
-      // Check for discount URL parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('discount')) {
-        const discountCode = urlParams.get('discount');
-        showDiscountMessage('success', getTranslation('discountAppliedSuccess'));
-        
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-      
-      console.log('🎉 Cart page initialization complete with language:', currentLang);
     }
-
-    // Start initialization
-    initializeAll();
   }
 
-  // Start the initialization process
-  waitForMusicadoApp();
+  // Initialize everything
+  function initialize() {
+    console.log('🎯 Initializing cart with language:', currentLang);
+    
+    // Apply initial translations
+    applyTranslations(currentLang);
+    
+    // Setup form handling
+    restoreFormData();
+    setupEventListeners();
+    
+    // Update language buttons in header
+    const activeBtn = document.querySelector(`header [data-lang="${currentLang}"]`);
+    if (activeBtn) {
+      document.querySelectorAll('header .lang-btn').forEach(btn => btn.classList.remove('active'));
+      activeBtn.classList.add('active');
+    }
+    
+    // Check for discount success parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('discount_applied') || urlParams.get('discount') === 'success') {
+      showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+      
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+    
+    console.log('🎉 Cart page initialization complete');
+  }
+
+  // Start initialization
+  initialize();
 });
 </script>
 
-<!-- FIXED styles with proper title styling -->
+<!-- Cart page styles -->
 <style>
-
-/* FIXED: Cart title styling - make it white and visible */
+/* Cart page specific styles */
 .cart-page {
   padding: 80px 0 40px 0;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
@@ -1027,17 +831,16 @@ Order Date: ${new Date().toLocaleString()}`;
   z-index: -1;
 }
 
-/* CRITICAL: Cart title styling fix */
 .cart-title,
 .cart-page h1 {
   text-align: center;
   margin-bottom: 40px;
   font-size: 2.5rem;
-  color: #e2e8f0 !important; /* Force white color */
+  color: #e2e8f0 !important;
   font-weight: 700;
   text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
-  background: none !important; /* Ensure no background interference */
-  opacity: 1 !important; /* Ensure full opacity */
+  background: none !important;
+  opacity: 1 !important;
 }
 
 .container {
@@ -1451,7 +1254,6 @@ Order Date: ${new Date().toLocaleString()}`;
   font-style: italic;
 }
 
-/* Applied discount display */
 .applied-discount {
   margin-top: 1rem;
   padding: 1rem;
@@ -1679,38 +1481,6 @@ Order Date: ${new Date().toLocaleString()}`;
   transform: translateY(-1px);
 }
 
-.payment-error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.error-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.payment-error .error-message {
-  color: #ef4444;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  font-size: 1.1rem;
-}
-
-.btn-secondary {
-  background: rgba(107, 114, 128, 0.8);
-  color: white;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-}
-
-.btn-secondary:hover {
-  background: rgba(75, 85, 99, 0.9);
-  transform: translateY(-1px);
-}
-
 .empty-cart {
   text-align: center;
   background: rgba(30, 41, 59, 0.4);
@@ -1830,7 +1600,6 @@ Order Date: ${new Date().toLocaleString()}`;
     min-width: unset;
     width: 100%;
   }
- 
 }
 
 @media (max-width: 480px) {

@@ -262,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
   font-weight: 700;
   text-align: center !important;
   text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  width: 100%;
 }
 
 .discount-step p {
@@ -270,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 1.1rem;
   line-height: 1.6;
   text-align: center !important;
+  width: 100%;
 }
 
 /* Email Form Styles */
@@ -343,11 +345,19 @@ document.addEventListener('DOMContentLoaded', function() {
   color: #ef4444;
 }
 
-/* Code Form Styles - Mirroring Email Form */
+/* Code Form Styles - Fixed for proper centering */
 .code-form {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.code-form .btn {
+  max-width: 300px;
+  margin: 0 auto;
 }
 
 

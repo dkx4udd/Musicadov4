@@ -200,7 +200,7 @@
             agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
             privacyPolicyLink: "Lees ons privacybeleid",
             importantInformation: "Belangrijke Informatie",
-            deliveryInfo: "U ontvangt binnen 24 uur een e-mail link om uw muziek te downloaden",
+            deliveryInfo: "U ontvangt binnen 24 uur een email met het door u gekozen product",
             personalUseInfo: "Liedjes zijn alleen voor persoonlijk gebruik (neem contact op voor commercieel gebruik)",
             spotifyInfo: "We kunnen uw liedje op verzoek op Spotify publiceren",
             contactInfo: "Vragen? Neem contact met ons op:",

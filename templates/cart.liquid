@@ -105,7 +105,22 @@ window.shopifyCustomerData = {
 
         <!-- Customer Details and Payment Section -->
         <div class="checkout-section">
-          <!-- Checkout Actions - Moved to top and made prominent -->
+          <!-- Terms and Conditions - Moved between order summary and pay button -->
+          <div class="card">
+            <div class="terms-agreement">
+              <div class="terms-checkbox">
+                <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                <label for="agreeTerms">
+                  <span data-translate="agreeTerms">I agree with the terms and conditions and privacy policy</span>
+                  <a href="#" id="privacyPolicyLink" class="privacy-link" data-translate="privacyPolicyLink">
+                    Read our privacy policy
+                  </a>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checkout Actions - Now below terms -->
           <div class="checkout-actions-prominent">
             <button type="button" id="checkoutBtn" class="btn checkout-btn-prominent" data-processing="false">
               <span class="button-text" data-translate="completeOrderPay">Complete Order & Pay</span>
@@ -155,20 +170,6 @@ window.shopifyCustomerData = {
             {% endif %}
           </div>
 
-          <!-- Terms and Conditions -->
-          <div class="card">
-            <div class="terms-agreement">
-              <div class="terms-checkbox">
-                <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                <label for="agreeTerms">
-                  <span data-translate="agreeTerms">I agree with the terms and conditions and privacy policy</span>
-                  <a href="#" id="privacyPolicyLink" class="privacy-link" data-translate="privacyPolicyLink">
-                    Read our privacy policy
-                  </a>
-                </label>
-              </div>
-            </div>
-          </div>
 
           <!-- Important Information -->
           <div class="card">

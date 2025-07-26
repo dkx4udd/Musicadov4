@@ -44,7 +44,19 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
 <div class="page active" id="page1">
   <div class="container">
     <div class="banner">
-      {% if settings.banner_image %}
+      {% comment %} Video banner option {% endcomment %}
+      {% if settings.banner_video_url %}
+        <video class="banner-video" autoplay muted loop playsinline>
+          <source src="{{ settings.banner_video_url }}" type="video/mp4">
+          {% if settings.banner_video_webm_url %}
+            <source src="{{ settings.banner_video_webm_url }}" type="video/webm">
+          {% endif %}
+          {% comment %} Fallback image for browsers that don't support video {% endcomment %}
+          {% if settings.banner_image %}
+            <img src="{{ settings.banner_image | image_url: width: 1200 }}" alt="{{ settings.banner_title | escape }}">
+          {% endif %}
+        </video>
+      {% elsif settings.banner_image %}
         <img src="{{ settings.banner_image | image_url: width: 1200 }}" alt="{{ settings.banner_title | escape }}">
       {% endif %}
       <div class="banner-content">

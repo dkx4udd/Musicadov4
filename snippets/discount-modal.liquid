@@ -37,25 +37,12 @@
 
       <!-- Code Step (Hidden by default) -->
       <div class="discount-step" id="codeStep" style="display: none;">
-        <h2 data-translate="discountSuccessTitle">🎉 Your Discount Code!</h2>
-        <p data-translate="discountSuccessMessage">Here's your 15% discount code. Copy it and use it at checkout:</p>
+        <h2 data-translate="discountSuccessTitle">🎉 Thank You!</h2>
+        <p data-translate="discountSuccessMessage">Check your email to get your 15% discount</p>
         
         <div class="code-form">
-          <div class="code-display-box">
-            <div class="code-text">MUSIC15</div>
-          </div>
-          
-          <button type="button" id="copyDiscountCode" class="btn code-copy-btn">
-            <span class="copy-text" data-translate="copyCode">Copy Code</span>
-            <span class="copied-text" data-translate="codeCopied" style="display: none;">Code Copied!</span>
-          </button>
-          
-          <div class="code-info">
-            <small data-translate="discountValidityInfo">This code is valid for 30 days. Save it for your order!</small>
-          </div>
-          
           <button type="button" class="btn continue-shopping-btn" id="continueShoppingBtn">
-            <span data-translate="continueToCheckout">Close & Continue Shopping</span>
+            <span data-translate="continueToCheckout">Close Window</span>
           </button>
         </div>
       </div>
@@ -363,51 +350,6 @@ document.addEventListener('DOMContentLoaded', function() {
   gap: 1.5rem;
 }
 
-.code-display-box {
-  background: rgba(15, 23, 42, 0.8);
-  border: 2px solid rgba(251, 191, 36, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  backdrop-filter: blur(10px);
-}
-
-.code-text {
-  font-family: 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fbbf24;
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
-  letter-spacing: 3px;
-}
-
-.code-copy-btn {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #1e293b;
-  width: 100%;
-  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.code-copy-btn:hover {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(251, 191, 36, 0.4);
-}
-
-.code-info {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-}
-
-.code-info small {
-  color: #94a3b8;
-  font-style: italic;
-}
 
 /* Button Styles */
 .btn {

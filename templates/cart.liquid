@@ -105,43 +105,20 @@ window.shopifyCustomerData = {
 
         <!-- Customer Details and Payment Section -->
         <div class="checkout-section">
-          <!-- Customer Details Form -->
-          <div class="card">
-            <h3 data-translate="customerInformation">Customer Information</h3>
-            <form id="customerDetailsForm">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="firstName" data-translate="firstName">First Name *</label>
-                  <input type="text" id="firstName" name="firstName" required>
-                </div>
-                <div class="form-group">
-                  <label for="middleName" data-translate="middleName">Middle Name</label>
-                  <input type="text" id="middleName" name="middleName">
-                </div>
-                <div class="form-group">
-                  <label for="lastName" data-translate="lastName">Last Name *</label>
-                  <input type="text" id="lastName" name="lastName" required>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="customerEmail" data-translate="emailAddress">Email Address *</label>
-                  <input type="email" id="customerEmail" name="customerEmail" required>
-                </div>
-                <div class="form-group">
-                  <label for="mobilePhone" data-translate="phoneNumber">Phone Number *</label>
-                  <input type="tel" id="mobilePhone" name="mobilePhone" required data-translate-placeholder="phonePlaceholder">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <div class="delivery-info-box">
-                  <h4 data-translate="musicDeliveryTitle">📧 Music Delivery Information</h4>
-                  <p data-translate="musicDeliveryDescription">We will send you a link via email to your personal page where you can download your music within 24 hours.</p>
-                </div>
-              </div>
-            </form>
+          <!-- Checkout Actions - Moved to top and made prominent -->
+          <div class="checkout-actions-prominent">
+            <button type="button" id="checkoutBtn" class="btn checkout-btn-prominent" data-processing="false">
+              <span class="button-text" data-translate="completeOrderPay">Complete Order & Pay</span>
+              <span class="button-loading" style="display: none;">
+                <span class="loading-spinner"></span>
+                <span data-translate="processing">Processing...</span>
+              </span>
+            </button>
+            
+            <div class="secure-payment-badge">
+              <span>🔒</span>
+              <span data-translate="securePayment">Secure Payment via Shopify</span>
+            </div>
           </div>
 
           <!-- Discount Code Section -->
@@ -211,16 +188,8 @@ window.shopifyCustomerData = {
             </div>
           </div>
 
-          <!-- Checkout Actions -->
-          <div class="checkout-actions">
-            <button type="button" id="checkoutBtn" class="btn checkout-btn" data-processing="false">
-              <span class="button-text" data-translate="completeOrderPay">Complete Order & Pay</span>
-              <span class="button-loading" style="display: none;">
-                <span class="loading-spinner"></span>
-                <span data-translate="processing">Processing...</span>
-              </span>
-            </button>
-            
+          <!-- Continue Shopping Link -->
+          <div class="continue-shopping-section">
             <a href="{{ routes.root_url }}" class="btn continue-shopping" data-translate="continueShopping">
               Continue Shopping
             </a>
@@ -322,14 +291,13 @@ document.addEventListener('DOMContentLoaded', function() {
       startShopping: "Start Shopping",
       
       // Validation and error messages
-      pleaseComplete: "Please complete the following:",
-      validEmail: "Valid email address",
       agreeToTerms: "Agreement with terms and conditions",
       enterDiscountCode: "Please enter a discount code.",
       invalidDiscountCode: "Invalid discount code. Please check and try again.",
       discountAppliedMessage: "Discount applied successfully!",
       processingError: "An error occurred. Please try again.",
-      redirectingToCheckout: "Redirecting to checkout..."
+      redirectingToCheckout: "Redirecting to checkout...",
+      securePayment: "Secure Payment via Shopify"
     },
     nl: {
       cartPageTitle: "Uw Bestelling",
@@ -369,14 +337,13 @@ document.addEventListener('DOMContentLoaded', function() {
       startShopping: "Begin met Winkelen",
       
       // Validation and error messages in Dutch
-      pleaseComplete: "Vul de volgende verplichte velden in:",
-      validEmail: "Geldig e-mailadres",
       agreeToTerms: "Akkoord met algemene voorwaarden",
       enterDiscountCode: "Voer een kortingscode in.",
       invalidDiscountCode: "Ongeldige kortingscode. Controleer en probeer opnieuw.",
       discountAppliedMessage: "Korting succesvol toegepast!",
       processingError: "Er is een fout opgetreden. Probeer het opnieuw.",
-      redirectingToCheckout: "Doorverwijzen naar afrekenen..."
+      redirectingToCheckout: "Doorverwijzen naar afrekenen...",
+      securePayment: "Veilig Betalen via Shopify"
     }
   };
 
@@ -407,24 +374,11 @@ document.addEventListener('DOMContentLoaded', function() {
     return translations && translations[key] ? translations[key] : cartTranslations.en[key] || key;
   }
 
-  // Form data management
+  // Form data management - Simplified
   function saveFormData() {
-    const formData = {};
-    const form = document.getElementById('customerDetailsForm');
-    if (form) {
-      const inputs = form.querySelectorAll('input');
-      inputs.forEach(input => {
-        if (input.type !== 'submit' && input.type !== 'button') {
-          formData[input.name] = input.value;
-        }
-      });
-      
-      const termsCheckbox = document.getElementById('agreeTerms');
-      if (termsCheckbox) {
-        formData.agreeTerms = termsCheckbox.checked;
-      }
-      
-      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+    const termsCheckbox = document.getElementById('agreeTerms');
+    if (termsCheckbox) {
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify({ agreeTerms: termsCheckbox.checked }));
     }
   }
 
@@ -433,20 +387,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const savedData = localStorage.getItem(FORM_DATA_KEY);
       if (savedData) {
         const formData = JSON.parse(savedData);
-        
-        Object.entries(formData).forEach(([name, value]) => {
-          if (name === 'agreeTerms') {
-            const termsCheckbox = document.getElementById('agreeTerms');
-            if (termsCheckbox && value) {
-              termsCheckbox.checked = value;
-            }
-          } else {
-            const input = document.querySelector(`[name="${name}"]`);
-            if (input && value) {
-              input.value = value;
-            }
-          }
-        });
+        const termsCheckbox = document.getElementById('agreeTerms');
+        if (termsCheckbox && formData.agreeTerms) {
+          termsCheckbox.checked = formData.agreeTerms;
+        }
       }
     } catch (error) {
       console.error('Error restoring form data:', error);
@@ -457,40 +401,23 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.removeItem(FORM_DATA_KEY);
   }
 
-  // Validation
+  // Validation - Simplified for terms only
   function validateCustomerDetails() {
-    const requiredFields = ['firstName', 'lastName', 'customerEmail', 'mobilePhone'];
-    let isValid = true;
-    let missingFields = [];
-
-    requiredFields.forEach(fieldName => {
-      const field = document.getElementById(fieldName);
-      if (!field || !field.value.trim()) {
-        isValid = false;
-        const label = getTranslation(fieldName);
-        missingFields.push(label);
-        if (field) {
-          field.style.borderColor = '#ef4444';
-          field.style.background = 'rgba(239, 68, 68, 0.1)';
-        }
-      } else {
-        if (field) {
-          field.style.borderColor = '';
-          field.style.background = '';
-        }
-      }
-    });
-
     // Check terms agreement
     const termsCheckbox = document.getElementById('agreeTerms');
     const termsCard = document.querySelector('.terms-agreement');
+    
     if (!termsCheckbox || !termsCheckbox.checked) {
-      isValid = false;
-      missingFields.push(getTranslation('agreeToTerms'));
+      const message = getTranslation('agreeToTerms');
+      alert(message);
+      
       if (termsCard) {
         termsCard.style.borderColor = '#ef4444';
         termsCard.style.background = 'rgba(239, 68, 68, 0.05)';
+        termsCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+      
+      return false;
     } else {
       if (termsCard) {
         termsCard.style.borderColor = '';
@@ -498,30 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Validate email format
-    const emailField = document.getElementById('customerEmail');
-    if (emailField && emailField.value) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailField.value)) {
-        isValid = false;
-        missingFields.push(getTranslation('validEmail'));
-        emailField.style.borderColor = '#ef4444';
-        emailField.style.background = 'rgba(239, 68, 68, 0.1)';
-      }
-    }
-
-    if (!isValid) {
-      const message = getTranslation('pleaseComplete') + '\n• ' + missingFields.join('\n• ');
-      alert(message);
-      
-      // Scroll to first error field
-      const firstErrorField = document.querySelector('input[style*="border-color: rgb(239, 68, 68)"], .terms-agreement[style*="border-color: rgb(239, 68, 68)"]');
-      if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-
-    return isValid;
+    return true;
   }
 
   // Button state management
@@ -637,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Checkout process
+  // Checkout process - Simplified
   function processCheckout() {
     if (!validateCustomerDetails()) {
       return false;
@@ -646,17 +550,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setButtonLoading(true);
     
     try {
-      // Save customer details for later use
-      const customerForm = document.getElementById('customerDetailsForm');
-      const customerData = new FormData(customerForm);
-      const customerDetails = {};
-      for (let [key, value] of customerData.entries()) {
-        customerDetails[key] = value;
-      }
-
-      // Save customer details in localStorage for the order
-      localStorage.setItem('musicado_customer_details', JSON.stringify(customerDetails));
-      
       // Show success message
       showSuccessMessage(getTranslation('redirectingToCheckout'));
       
@@ -708,27 +601,15 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // Auto-save form data on input
-    if (form) {
-      form.addEventListener('input', saveFormData);
-      form.addEventListener('change', saveFormData);
-    }
+    // Save terms checkbox state
+    const form = document.getElementById('customerDetailsForm'); // This will be null now, but keeping for compatibility
     
     const termsCheckbox = document.getElementById('agreeTerms');
     if (termsCheckbox) {
       termsCheckbox.addEventListener('change', saveFormData);
     }
 
-    // Auto-clear validation errors on input
-    const formInputs = document.querySelectorAll('#customerDetailsForm input');
-    formInputs.forEach(input => {
-      input.addEventListener('input', function() {
-        if (this.style.borderColor === 'rgb(239, 68, 68)') {
-          this.style.borderColor = '';
-          this.style.background = '';
-        }
-      });
-    });
+    // Auto-clear validation errors (no customer form inputs now)
 
     // Clear terms validation error on check
     if (termsCheckbox) {
@@ -1369,6 +1250,85 @@ document.addEventListener('DOMContentLoaded', function() {
 .contact-link:hover {
   text-decoration: underline;
   color: #0284c7;
+}
+
+.checkout-actions-prominent {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 10px 30px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.checkout-actions-prominent:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 15px 40px rgba(16, 185, 129, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+}
+
+.checkout-btn-prominent {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-size: 20px;
+  padding: 20px 40px;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+  min-height: 70px;
+  width: 100%;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-btn-prominent::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.6s ease;
+}
+
+.checkout-btn-prominent:hover::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.checkout-btn-prominent:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(16, 185, 129, 0.5);
+}
+
+.secure-payment-badge {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.secure-payment-badge span:first-child {
+  font-size: 1.1em;
+}
+
+.continue-shopping-section {
+  text-align: center;
+  margin-top: 1rem;
 }
 
 .checkout-actions {

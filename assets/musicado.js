@@ -141,12 +141,12 @@
             subscribing: "Aanmelden...",
             errorTryAgain: "Fout - Probeer opnieuw",
             discountTermsPrivacy: "We respecteren uw privacy. Geen spam, en u kunt zich altijd uitschrijven.",
-            discountSuccessTitle: "🎉 Uw Kortingscode!",
-            discountSuccessMessage: "Hier is uw 15% kortingscode. Kopieer deze en gebruik hem bij het afrekenen:",
+            discountSuccessTitle: "🎉 Bedankt!",
+            discountSuccessMessage: "Controleer uw e-mail om uw 15% korting te ontvangen",
             discountValidityInfo: "Deze code is 30 dagen geldig. Bewaar hem voor uw bestelling!",
             copyCode: "Kopieer Code",
             codeCopied: "Code Gekopieerd!",
-            continueToCheckout: "Sluiten & Verder Winkelen",
+            continueToCheckout: "Venster Sluiten",
             fullAlbumContactTitle: "🎵 Volledig Album Aanvraag",
             fullAlbumContactDescription: "Geïnteresseerd in een volledig album? We maken graag iets geweldigs voor je! Laat je gegevens achter en we nemen binnen 24 uur contact met je op met een persoonlijke offerte.",
             emailAddress: "E-mailadres *",
@@ -305,12 +305,12 @@
             subscribing: "Subscribing...",
             errorTryAgain: "Error - Try again",
             discountTermsPrivacy: "We respect your privacy. No spam, and you can unsubscribe anytime.",
-            discountSuccessTitle: "🎉 Your Discount Code!",
-            discountSuccessMessage: "Here's your 15% discount code. Copy it and use it at checkout:",
+            discountSuccessTitle: "🎉 Thank You!",
+            discountSuccessMessage: "Check your email to get your 15% discount",
             discountValidityInfo: "This code is valid for 30 days. Save it for your order!",
             copyCode: "Copy Code",
             codeCopied: "Code Copied!",
-            continueToCheckout: "Close & Continue Shopping",
+            continueToCheckout: "Close Window",
             fullAlbumContactTitle: "🎵 Full Album Inquiry",
             fullAlbumContactDescription: "Interested in a full album? We'd love to create something amazing for you! Leave your details and we'll contact you within 24 hours with a personalized quote.",
             emailAddress: "Email Address *",
@@ -1781,8 +1781,8 @@
             });
         },
 
-        // Copy discount code to clipboard
-        copyDiscountCode: function() {
+        // Copy discount code to clipboard - REMOVED (no longer showing code)
+        /*copyDiscountCode: function() {
             console.log('📋 Copying discount code...');
             
             const codeText = 'MUSIC15';
@@ -1821,10 +1821,10 @@
                         'Copy this code: ' + codeText);
                 }
             });
-        },
+        },*/
 
-        // Show copy success notification
-        showCopySuccessNotification: function() {
+        // Show copy success notification - REMOVED (no longer needed)
+        /*showCopySuccessNotification: function() {
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
@@ -1856,7 +1856,7 @@
                     notification.parentNode.removeChild(notification);
                 }
             }, 3000);
-        },
+        },*/
 
         closeDiscountModal: function() {
             console.log('❌ Closing discount modal...');
@@ -1918,8 +1918,8 @@
                     console.log('✅ Submit email button listener added');
                 }
 
-                // Copy code button
-                const copyCodeBtn = document.getElementById('copyDiscountCode');
+                // Copy code button - REMOVED (no longer showing code)
+                /*const copyCodeBtn = document.getElementById('copyDiscountCode');
                 if (copyCodeBtn) {
                     copyCodeBtn.removeEventListener('click', this.copyDiscountCode);
                     copyCodeBtn.addEventListener('click', (e) => {
@@ -1927,7 +1927,7 @@
                         this.copyDiscountCode();
                     });
                     console.log('✅ Copy code button listener added');
-                }
+                }*/
                 
                 console.log('✅ All discount modal listeners set up');
                 
@@ -2397,7 +2397,7 @@
     
     // FIXED: Export discount functions for global access with proper binding
     window.submitDiscountEmail = () => MusicadoApp.submitDiscountEmail();
-    window.copyDiscountCode = () => MusicadoApp.copyDiscountCode();
+    // window.copyDiscountCode = () => MusicadoApp.copyDiscountCode(); // REMOVED - no longer showing code
     window.closeDiscountModal = () => MusicadoApp.closeDiscountModal();
     
     // Legacy function for manual discount application (unchanged)

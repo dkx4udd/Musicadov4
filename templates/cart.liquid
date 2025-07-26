@@ -498,14 +498,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Apply discount code using proper Shopify method
   function applyDiscountCode() {
+    console.log('🎫 applyDiscountCode function called');
     const codeInput = document.getElementById('discountCodeInput');
     const applyBtn = document.getElementById('applyDiscountBtn');
     
-    if (!codeInput || !applyBtn) return;
+    console.log('📊 Elements found:', {
+      codeInput: !!codeInput,
+      applyBtn: !!applyBtn,
+      inputValue: codeInput ? codeInput.value : 'N/A'
+    });
+    
+    if (!codeInput || !applyBtn) {
+      console.error('❌ Required elements not found!');
+      return;
+    }
     
     const code = codeInput.value.trim().toUpperCase();
+    console.log('🔤 Code entered:', code);
     
     if (!code) {
+      console.log('⚠️ No code entered');
       showDiscountMessage('error', getTranslation('enterDiscountCode'));
       return;
     }
@@ -515,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const originalText = applyBtn.textContent;
     applyBtn.textContent = getTranslation('processing');
     
-    console.log('Applying discount code:', code);
+    console.log('🔄 Processing discount code:', code);
     
     // Save form data before redirect
     saveFormData();
@@ -571,15 +583,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Setup event listeners
   function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
     const checkoutBtn = document.getElementById('checkoutBtn');
     const applyDiscountBtn = document.getElementById('applyDiscountBtn');
     const discountInput = document.getElementById('discountCodeInput');
     const form = document.getElementById('customerDetailsForm');
 
+    console.log('📊 Element check:', {
+      checkoutBtn: !!checkoutBtn,
+      applyDiscountBtn: !!applyDiscountBtn,
+      discountInput: !!discountInput
+    });
+
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        console.log('🛒 Checkout button clicked');
         processCheckout();
       });
     }
@@ -588,8 +608,12 @@ document.addEventListener('DOMContentLoaded', function() {
       applyDiscountBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        console.log('🎫 Apply discount button clicked');
         applyDiscountCode();
       });
+      console.log('✅ Discount button listener added');
+    } else {
+      console.error('❌ Apply discount button not found!');
     }
 
     if (discountInput) {
@@ -641,6 +665,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize everything
   function initialize() {
     console.log('🎯 Initializing cart with language:', currentLang);
+    
+    // Debug: Check if discount elements exist on page load
+    setTimeout(() => {
+      const debugElements = {
+        discountCodeInput: !!document.getElementById('discountCodeInput'),
+        applyDiscountBtn: !!document.getElementById('applyDiscountBtn'),
+        discountMessage: !!document.getElementById('discountMessage'),
+        checkoutBtn: !!document.getElementById('checkoutBtn')
+      };
+      console.log('🔍 Debug - Elements after 1 second:', debugElements);
+    }, 1000);
     
     // Apply initial translations
     applyTranslations(currentLang);

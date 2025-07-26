@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return 'nl';
   }
   
-  const currentLang = getSavedLanguage();
+  let currentLang = getSavedLanguage();
   console.log('🎯 Using language:', currentLang);
   
   // Cart-specific translations
@@ -682,12 +682,42 @@ document.addEventListener('DOMContentLoaded', function() {
     restoreFormData();
     setupEventListeners();
     
+    // Setup language switching
+    function setupLanguageSwitching() {
+      const langButtons = document.querySelectorAll('header .lang-btn');
+      
+      langButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const newLang = this.getAttribute('data-lang');
+          if (newLang && (newLang === 'en' || newLang === 'nl')) {
+            // Save language preference
+            localStorage.setItem(LANGUAGE_KEY, newLang);
+            console.log('🌐 Language switched to:', newLang);
+            
+            // Update button states
+            langButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Apply new translations
+            applyTranslations(newLang);
+            
+            // Update current language variable
+            currentLang = newLang;
+          }
+        });
+      });
+    }
+    
     // Update language buttons in header
     const activeBtn = document.querySelector(`header [data-lang="${currentLang}"]`);
     if (activeBtn) {
       document.querySelectorAll('header .lang-btn').forEach(btn => btn.classList.remove('active'));
       activeBtn.classList.add('active');
     }
+    
+    // Setup language switching
+    setupLanguageSwitching();
     
     // Check for discount success or error parameters
     const urlParams = new URLSearchParams(window.location.search);

@@ -1529,8 +1529,9 @@ document.addEventListener('DOMContentLoaded', function() {
     gap: 20px;
   }
   
+  /* Remove order: -1 to keep natural flow (order summary first, then checkout) */
   .checkout-section {
-    order: -1;
+    order: 0;
   }
 }
 

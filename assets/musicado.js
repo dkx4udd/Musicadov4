@@ -67,8 +67,8 @@
     // REORDERED: Dutch first, English second
     const translations = {
         nl: {
-            intro: "Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken.",
-            mainIntro: "Creëer moeiteloos uw eigen muziek in slechts een paar klikken: Kies elke stijl— van folk, hip-hop, pop of klassiek. Voeg uw eigen woorden of teksten toe, en deel uw unieke track met uw geliefden.",
+            intro: "Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken. Niet tevreden? 100% geld terug garantie!!!",
+            mainIntro: "Het is muziek, maar persoonlijk",
             listenExamples: "Luister naar onze voorbeelden",
             example1Title: "Laden...",
             example1Description: "Willekeurig voorbeeld uit onze collectie",
@@ -130,7 +130,7 @@
             spanish: "Spaans",
             portuguese: "Portugees",
             songTitles: "Geef de liedjes een titel (laat leeg voor ons om te kiezen):",
-            ownLyrics: "Heeft u uw eigen teksten of een verhaal over het liedje: Voer hier in:",
+            ownLyrics: "Heeft u uw eigen teksten of een verhaal over het liedje, geef ons alle details: Voer hier in:",
             addToCart: "Toevoegen aan Winkelwagen",
             discountTitle: "🎵 Krijg 15% KORTING op uw aankoop!",
             discountEmailDescription: "Voer uw e-mailadres in om 15% korting te krijgen op uw aangepaste liedjescreatie!",
@@ -231,8 +231,8 @@
             itemsInCart: "items in winkelwagen"
         },
         en: {
-            intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you.",
-            mainIntro: "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones.",
+            intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you, -	100% moneyback Guarantee",
+            mainIntro: "It’s music, but personal",
             listenExamples: "Listen to our examples",
             example1Title: "Loading...",
             example1Description: "Random example from our collection",
@@ -294,7 +294,7 @@
             spanish: "Spanish",
             portuguese: "Portuguese",
             songTitles: "Give the songs a title (leave blank for us to choose):",
-            ownLyrics: "Do you have your own lyrics or a story about the song: Enter here:",
+            ownLyrics: "Do you have your own lyrics or a story about the song?: Enter here and dont leave out any details!:",
             addToCart: "Add to Cart",
             discountTitle: "🎵 Get 15% OFF Your Purchase!",
             discountEmailDescription: "Enter your email to unlock 15% off your custom song creation!",

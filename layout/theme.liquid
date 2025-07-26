@@ -400,6 +400,8 @@
   </script>
 
   <!-- Theme JavaScript -->
-  {{ 'musicado.js' | asset_url | script_tag }}
+  {% unless template == 'cart' %}
+    {{ 'musicado.js' | asset_url | script_tag }}
+  {% endunless %}
 </body>
 </html>

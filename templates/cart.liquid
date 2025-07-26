@@ -520,16 +520,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save form data before redirect
     saveFormData();
     
-    // For now, let's try to apply any discount code and let Shopify validate it
-    console.log('Attempting to apply discount code:', code);
-    showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+    // Validate discount codes
+    const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15', '15OFF'];
     
-    // Use Shopify's discount URL to apply the discount and return to cart
-    setTimeout(() => {
-      const discountUrl = `/discount/${encodeURIComponent(code)}?redirect=/cart`;
-      console.log('Applying discount via:', discountUrl);
-      window.location.href = discountUrl;
-    }, 800);
+    if (validCodes.includes(code)) {
+      // Use Shopify's discount URL - this is the correct method
+      console.log('Valid discount code, redirecting with discount...');
+      showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+      
+      // Redirect to apply discount using Shopify's standard method
+      setTimeout(() => {
+        window.location.href = `/discount/${encodeURIComponent(code)}?redirect=${encodeURIComponent('/cart')}`;
+      }, 500);
+      
+    } else {
+      console.log('Invalid discount code:', code);
+      showDiscountMessage('error', getTranslation('invalidDiscountCode'));
+      applyBtn.disabled = false;
+      applyBtn.textContent = originalText;
+    }
   }
 
   // Checkout process - Simplified

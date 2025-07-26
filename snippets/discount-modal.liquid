@@ -205,13 +205,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .discount-step#codeStep {
   position: absolute;
-  top: 2.5rem;
-  left: 2.5rem;
-  right: 2.5rem;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 0;
   opacity: 0;
   visibility: hidden;
   text-align: center !important;
+  width: 100%;
+  padding: 0;
 }
 
 .discount-step#codeStep[style*="display: block"] {
@@ -220,6 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
   opacity: 1;
   visibility: visible;
   text-align: center !important;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  padding: 0;
 }
 
 .discount-step#emailStep[style*="display: none"] {
@@ -356,8 +363,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .code-form .btn {
-  max-width: 300px;
-  margin: 0 auto;
+  max-width: 280px;
+  margin: 1rem auto;
+  width: calc(100% - 2rem);
 }
 
 
@@ -560,9 +568,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   .discount-step#codeStep {
-    left: 1.5rem;
-    right: 1.5rem;
-    top: 2rem;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 0;
   }
   
   .discount-step h2 {
@@ -587,9 +596,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   .discount-step#codeStep {
-    left: 1rem;
-    right: 1rem;
-    top: 1.5rem;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 0;
   }
   
   .discount-step h2 {

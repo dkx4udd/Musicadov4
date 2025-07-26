@@ -520,25 +520,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save form data before redirect
     saveFormData();
     
-    // Validate discount codes
-    const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15'];
+    // For now, let's try to apply any discount code and let Shopify validate it
+    console.log('Attempting to apply discount code:', code);
+    showDiscountMessage('success', getTranslation('discountAppliedMessage'));
     
-    if (validCodes.includes(code)) {
-      // Use Shopify's discount URL - this is the correct method
-      console.log('Valid discount code, redirecting with discount...');
-      showDiscountMessage('success', getTranslation('discountAppliedMessage'));
-      
-      // Redirect to apply discount using Shopify's standard method
-      setTimeout(() => {
-        window.location.href = `/discount/${encodeURIComponent(code)}?redirect=${encodeURIComponent('/cart')}`;
-      }, 500);
-      
-    } else {
-      console.log('Invalid discount code:', code);
-      showDiscountMessage('error', getTranslation('invalidDiscountCode'));
-      applyBtn.disabled = false;
-      applyBtn.textContent = originalText;
-    }
+    // Use Shopify's discount URL to apply the discount and return to cart
+    setTimeout(() => {
+      const discountUrl = `/discount/${encodeURIComponent(code)}?redirect=/cart`;
+      console.log('Applying discount via:', discountUrl);
+      window.location.href = discountUrl;
+    }, 800);
   }
 
   // Checkout process - Simplified
@@ -656,10 +647,16 @@ document.addEventListener('DOMContentLoaded', function() {
       activeBtn.classList.add('active');
     }
     
-    // Check for discount success parameter
+    // Check for discount success or error parameters
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('discount_applied') || urlParams.get('discount') === 'success') {
       showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+      
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    } else if (urlParams.has('discount_error') || urlParams.get('discount') === 'error') {
+      showDiscountMessage('error', getTranslation('invalidDiscountCode'));
       
       // Clean up URL
       const newUrl = window.location.pathname;

@@ -404,24 +404,24 @@
     // MP3 files - Updated with actual Shopify CDN URLs
     const mp3Files = [
         { 
-            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Wonderlijke_wereld_van_AI_-_Matelletam.mp3?v=1751830505", 
-            title: { en: "Wonderlijke wereld van AI - Matelletam", nl: "Wonderlijke wereld van AI - Matelletam" },
-            style: { en: "Electronic/Ambient style", nl: "Electronic/Ambient stijl" }
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Deeper_Than_the_Sky_alternative.mp3", 
+            title: { en: "Deeper Than the Sky (Alternative)", nl: "Dieper Dan de Lucht (Alternatief)" },
+            style: { en: "Alternative/Indie style", nl: "Alternative/Indie stijl" }
         },
         { 
-            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Wonderlijke_wereld_van_AI_-_RockyRocky.mp3?v=1751830504", 
-            title: { en: "Wonderlijke wereld van AI - RockyRocky", nl: "Wonderlijke wereld van AI - RockyRocky" },
-            style: { en: "Rock/Pop style", nl: "Rock/Pop stijl" }
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Deeper_Than_the_Sky.mp3", 
+            title: { en: "Deeper Than the Sky", nl: "Dieper Dan de Lucht" },
+            style: { en: "Pop/Rock style", nl: "Pop/Rock stijl" }
         },
         { 
-            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Survivor_-_Eye_Of_The_Tiger_Official_HD_Video.mp3?v=1751830504", 
-            title: { en: "Survivor - Eye Of The Tiger", nl: "Survivor - Eye Of The Tiger" },
-            style: { en: "Classic Rock style", nl: "Klassieke Rock stijl" }
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Kan_Je_Mij_Vergeven.mp3", 
+            title: { en: "Can You Forgive Me", nl: "Kan Je Mij Vergeven" },
+            style: { en: "Emotional Ballad style", nl: "Emotionele Ballad stijl" }
         },
         { 
-            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/Music_for_vlogs_-_Birthday.mp3?v=1751830505", 
-            title: { en: "Birthday Celebration", nl: "Verjaardag Viering" },
-            style: { en: "Upbeat/Celebration style", nl: "Vrolijke/Viering stijl" }
+            url: "https://cdn.shopify.com/s/files/1/0905/1462/0749/files/chillen_op_vakantie_in_Tunesie.mp3", 
+            title: { en: "Chilling on Holiday in Tunisia", nl: "Chillen op Vakantie in Tunesië" },
+            style: { en: "Summer/Vacation style", nl: "Zomer/Vakantie stijl" }
         }
     ];
 

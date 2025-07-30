@@ -3,7 +3,6 @@
        {% if section.settings.banner_image %}
          style="background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 1200 }}');"
        {% endif %}>
-    <h1>{{ section.settings.banner_text | default: shop.name }}</h1>
   </div>
 </div>
 
@@ -15,7 +14,7 @@
       "type": "image_picker",
       "id": "banner_image",
       "label": "Banner Afbeelding",
-      "info": "Aanbevolen afmeting: 1200x300px. Als geen afbeelding is geselecteerd, wordt een standaard gradiënt achtergrond gebruikt."
+      "info": "Aanbevolen afmeting: 1920x1080px. Als geen afbeelding is geselecteerd, wordt een standaard gradiënt achtergrond gebruikt."
     },
     {
       "type": "text",
@@ -28,11 +27,11 @@
       "type": "range",
       "id": "banner_height",
       "min": 200,
-      "max": 500,
+      "max": 1080,
       "step": 50,
       "unit": "px",
       "label": "Banner Hoogte",
-      "default": 300,
+      "default": 600,
       "info": "Hoogte van de banner sectie"
     },
     {
@@ -85,7 +84,7 @@
         "banner_text": "🎵 musicado",
         "text_alignment": "center",
         "text_color": "#ffffff",
-        "banner_height": 300,
+        "banner_height": 600,
         "overlay_opacity": 60
       }
     }

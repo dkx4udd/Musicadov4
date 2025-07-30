@@ -73,6 +73,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    width: 100%;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
   }
   
   .banner-container .banner h1 {
@@ -80,11 +87,47 @@
     text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
     font-size: 2.5rem;
     font-weight: 700;
+    position: relative;
+    z-index: 2;
   }
   
   {% if section.settings.banner_image %}
     .banner-container .banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: rgba(15, 23, 42, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+      z-index: 1;
     }
   {% endif %}
+  
+  /* Mobile responsiveness for hero banner */
+  @media (max-width: 768px) {
+    .banner-container .banner {
+      height: 400px;
+      background-size: cover !important;
+      background-position: center center !important;
+    }
+    
+    .banner-container .banner h1 {
+      font-size: 1.8rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .banner-container .banner {
+      height: 300px;
+      background-size: cover !important;
+      background-position: center center !important;
+      border-radius: 16px;
+    }
+    
+    .banner-container .banner h1 {
+      font-size: 1.4rem;
+      padding: 0 1rem;
+    }
+  }
 </style>

@@ -531,18 +531,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const floatingButton = document.getElementById('floatingBuyButton');
   const productSection = document.getElementById('selectionForm');
   
-  // Show/hide button based on scroll position
-  function handleScroll() {
-    const scrollPosition = window.scrollY;
-    const windowHeight = window.innerHeight;
-    
-    // Show button after scrolling down 100vh (one screen height)
-    if (scrollPosition > windowHeight) {
-      floatingButton.classList.add('show');
-    } else {
-      floatingButton.classList.remove('show');
-    }
-  }
+  // Show button immediately
+  floatingButton.classList.add('show');
   
   // Smooth scroll to product section
   function scrollToProducts() {
@@ -554,12 +544,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Event listeners
-  window.addEventListener('scroll', handleScroll);
+  // Event listener for click
   floatingButton.addEventListener('click', scrollToProducts);
-  
-  // Initial check
-  handleScroll();
 });
 </script>
 

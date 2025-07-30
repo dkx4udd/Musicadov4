@@ -68,8 +68,16 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
     <div class="card">
       <div class="intro-description">
         <p data-translate="mainIntro">
-          {{ settings.intro_text | default: "Effortlessly create your own music in just a few clicks: Choose any style— from folk, hip-hop, pop or classic. Add your own words or lyrics, and share your unique track with your loved ones." }}
+          Stop met saaie cadeautjes, Geef iets wat echt emoties brengt, voor minder dan de prijs van een parfum
         </p>
+      </div>
+      
+      <!-- Random Video Player -->
+      <div class="subheadline-video-container">
+        <video id="subheadlineVideo" controls autoplay muted loop playsinline>
+          <source src="" type="video/mp4">
+          Your browser does not support the video element.
+        </video>
       </div>
     </div>
     
@@ -104,15 +112,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
     <!-- Dynamic Subheadline Section -->
     <div class="card">
       <div class="dynamic-subheadline-section">
-        <h2 class="random-subheadline" id="randomSubheadline">Stop met saaie cadeautjes, Geef iets wat echt emoties brengt, voor minder dan de prijs van een parfum</h2>
-        
-        <!-- Random Video Player -->
-        <div class="subheadline-video-container">
-          <video id="subheadlineVideo" controls autoplay muted loop playsinline>
-            <source src="" type="video/mp4">
-            Your browser does not support the video element.
-          </video>
-        </div>
+        <h2 class="random-subheadline" id="randomSubheadline"></h2>
         
         <div class="price-comparison">
           <div class="comparison-container">

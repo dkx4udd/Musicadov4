@@ -778,8 +778,20 @@
         },
 
         setRandomSubheadline: function() {
-            // Disabled - using fixed text instead
-            return;
+            const headlines = subheadlines[currentLanguage];
+            const randomIndex = Math.floor(Math.random() * headlines.length);
+            const selectedHeadline = headlines[randomIndex];
+            
+            const subheadlineElement = document.getElementById('randomSubheadline');
+            if (subheadlineElement) {
+                subheadlineElement.textContent = selectedHeadline;
+                
+                // Add a subtle animation
+                subheadlineElement.style.opacity = '0';
+                setTimeout(() => {
+                    subheadlineElement.style.opacity = '1';
+                }, 100);
+            }
         },
 
         // Audio Management Functions

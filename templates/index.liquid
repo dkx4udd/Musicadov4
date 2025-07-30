@@ -68,13 +68,13 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
     <div class="card">
       <div class="intro-description">
         <p data-translate="mainIntro">
-          Stop met saaie cadeautjes, Geef iets wat echt emoties brengt, voor minder dan de prijs van een parfum
+          Stop met saaie cadeautjes, Geef iets wat echte emoties brengt voor de prijs van een parfum
         </p>
       </div>
       
       <!-- Random Video Player -->
       <div class="subheadline-video-container">
-        <video id="subheadlineVideo" controls autoplay muted loop playsinline>
+        <video id="subheadlineVideo" controls autoplay muted playsinline>
           <source src="" type="video/mp4">
           Your browser does not support the video element.
         </video>
@@ -464,29 +464,41 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
 <!-- Include the main Musicado script -->
 <script src="{{ 'musicado.js' | asset_url }}" defer></script>
 
-<!-- Random Video Player Script -->
+<!-- Video Playlist Script -->
 <script>
-// Video URLs for random selection
+// Video URLs for playlist
 const videoUrls = [
   'https://cdn.shopify.com/videos/c/o/v/a3716ff5fad6486d90adb39a290b4f39.mp4',
   'https://cdn.shopify.com/videos/c/o/v/ab212e95f9834d56b6ec1946bf6b91a5.mp4',
   'https://cdn.shopify.com/videos/c/o/v/4842be399cb745618973e44f9d77b037.mp4'
 ];
 
-// Function to load random video
-function loadRandomSubheadlineVideo() {
+let currentVideoIndex = 0;
+
+// Function to load next video in sequence
+function loadNextVideo() {
   const videoPlayer = document.getElementById('subheadlineVideo');
   if (videoPlayer) {
-    const randomIndex = Math.floor(Math.random() * videoUrls.length);
-    const selectedVideo = videoUrls[randomIndex];
-    videoPlayer.src = selectedVideo;
+    videoPlayer.src = videoUrls[currentVideoIndex];
     videoPlayer.load();
+    videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
   }
 }
 
-// Load random video on page load
+// Set up video cycling
 document.addEventListener('DOMContentLoaded', function() {
-  loadRandomSubheadlineVideo();
+  const videoPlayer = document.getElementById('subheadlineVideo');
+  
+  if (videoPlayer) {
+    // Load first video
+    loadNextVideo();
+    
+    // When video ends, play next one
+    videoPlayer.addEventListener('ended', function() {
+      currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
+      loadNextVideo();
+    });
+  }
 });
 </script>
 

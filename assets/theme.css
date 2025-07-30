@@ -1211,6 +1211,72 @@ audio::-webkit-media-controls-time-remaining-display {
     line-height: 1.4;
 }
 
+/* Floating Buy Button */
+.floating-buy-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 
+        0 10px 30px rgba(16, 185, 129, 0.4),
+        0 5px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(100px);
+    pointer-events: none;
+}
+
+.floating-buy-button.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.floating-buy-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 15px 40px rgba(16, 185, 129, 0.5),
+        0 8px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #0f9263 0%, #0891b2 100%);
+}
+
+.floating-buy-button:active {
+    transform: translateY(-2px);
+}
+
+/* Pulse animation for attention */
+@keyframes pulse {
+    0% {
+        box-shadow: 
+            0 10px 30px rgba(16, 185, 129, 0.4),
+            0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 
+            0 10px 30px rgba(16, 185, 129, 0.6),
+            0 5px 15px rgba(0, 0, 0, 0.3),
+            0 0 0 15px rgba(16, 185, 129, 0.1);
+    }
+    100% {
+        box-shadow: 
+            0 10px 30px rgba(16, 185, 129, 0.4),
+            0 5px 15px rgba(0, 0, 0, 0.3),
+            0 0 0 20px rgba(16, 185, 129, 0);
+    }
+}
+
+.floating-buy-button.show {
+    animation: pulse 2s infinite;
+}
+
 /* Footer Styling */
 .footer {
     background: rgba(15, 23, 42, 0.6);
@@ -2428,6 +2494,13 @@ audio::-webkit-media-controls-time-remaining-display {
 
     .total-row.final {
         font-size: 1.1rem;
+    }
+    
+    .floating-buy-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        font-size: 1rem;
     }
 }
 

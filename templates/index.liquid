@@ -468,6 +468,9 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
   </div>
 </div>
 
+<!-- Floating Buy Now Button -->
+<button id="floatingBuyButton" class="floating-buy-button" data-translate="buyNow">Nu Kopen</button>
+
 <!-- KEPT: Include the discount modal snippet (full album modal functionality preserved) -->
 {% render 'discount-modal' %}
 
@@ -519,6 +522,44 @@ document.addEventListener('DOMContentLoaded', function() {
       loadNextVideo();
     });
   }
+});
+</script>
+
+<!-- Floating Buy Button Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const floatingButton = document.getElementById('floatingBuyButton');
+  const productSection = document.getElementById('selectionForm');
+  
+  // Show/hide button based on scroll position
+  function handleScroll() {
+    const scrollPosition = window.scrollY;
+    const windowHeight = window.innerHeight;
+    
+    // Show button after scrolling down 100vh (one screen height)
+    if (scrollPosition > windowHeight) {
+      floatingButton.classList.add('show');
+    } else {
+      floatingButton.classList.remove('show');
+    }
+  }
+  
+  // Smooth scroll to product section
+  function scrollToProducts() {
+    if (productSection) {
+      productSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }
+  
+  // Event listeners
+  window.addEventListener('scroll', handleScroll);
+  floatingButton.addEventListener('click', scrollToProducts);
+  
+  // Initial check
+  handleScroll();
 });
 </script>
 

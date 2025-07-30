@@ -104,7 +104,15 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
     <!-- Dynamic Subheadline Section -->
     <div class="card">
       <div class="dynamic-subheadline-section">
-        <h2 class="random-subheadline" id="randomSubheadline"></h2>
+        <h2 class="random-subheadline" id="randomSubheadline">Stop met saaie cadeautjes, Geef iets wat echt emoties brengt, voor minder dan de prijs van een parfum</h2>
+        
+        <!-- Random Video Player -->
+        <div class="subheadline-video-container">
+          <video id="subheadlineVideo" controls autoplay muted loop playsinline>
+            <source src="" type="video/mp4">
+            Your browser does not support the video element.
+          </video>
+        </div>
         
         <div class="price-comparison">
           <div class="comparison-container">
@@ -455,6 +463,32 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
 
 <!-- Include the main Musicado script -->
 <script src="{{ 'musicado.js' | asset_url }}" defer></script>
+
+<!-- Random Video Player Script -->
+<script>
+// Video URLs for random selection
+const videoUrls = [
+  'https://cdn.shopify.com/videos/c/o/v/a3716ff5fad6486d90adb39a290b4f39.mp4',
+  'https://cdn.shopify.com/videos/c/o/v/ab212e95f9834d56b6ec1946bf6b91a5.mp4',
+  'https://cdn.shopify.com/videos/c/o/v/4842be399cb745618973e44f9d77b037.mp4'
+];
+
+// Function to load random video
+function loadRandomSubheadlineVideo() {
+  const videoPlayer = document.getElementById('subheadlineVideo');
+  if (videoPlayer) {
+    const randomIndex = Math.floor(Math.random() * videoUrls.length);
+    const selectedVideo = videoUrls[randomIndex];
+    videoPlayer.src = selectedVideo;
+    videoPlayer.load();
+  }
+}
+
+// Load random video on page load
+document.addEventListener('DOMContentLoaded', function() {
+  loadRandomSubheadlineVideo();
+});
+</script>
 
 <!-- FIXED: Simplified cart integration script -->
 <script>

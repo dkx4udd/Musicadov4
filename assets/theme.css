@@ -211,6 +211,22 @@ header {
     padding: 1rem 0;
 }
 
+/* Subheadline Video Container */
+.subheadline-video-container {
+    margin: 2rem auto;
+    max-width: 800px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.subheadline-video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .random-subheadline {
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
     -webkit-background-clip: text;
@@ -2219,6 +2235,11 @@ audio::-webkit-media-controls-time-remaining-display {
     .random-subheadline {
         font-size: 1.3rem;
         line-height: 1.2;
+    }
+    
+    .subheadline-video-container {
+        margin: 1.5rem auto;
+        max-width: 100%;
     }
 
     .expensive-option, .our-option {

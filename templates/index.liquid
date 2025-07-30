@@ -537,9 +537,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Smooth scroll to product section
   function scrollToProducts() {
     if (productSection) {
-      productSection.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
+      const rect = productSection.getBoundingClientRect();
+      const offset = window.scrollY + rect.top - 100; // 100px offset from top
+      
+      window.scrollTo({
+        top: offset,
+        behavior: 'smooth'
       });
     }
   }

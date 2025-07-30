@@ -1961,8 +1961,10 @@ audio::-webkit-media-controls-time-remaining-display {
     }
 
     .banner {
-        height: 500px;
+        height: 400px;
         font-size: 1.8rem;
+        background-size: cover !important;
+        background-position: center center !important;
     }
 
     .intro-description {
@@ -2225,8 +2227,10 @@ audio::-webkit-media-controls-time-remaining-display {
     }
 
     .banner {
-        height: 400px;
+        height: 300px;
         font-size: 1.4rem;
+        background-size: cover !important;
+        background-position: center center !important;
     }
 
     .intro-description {

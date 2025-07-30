@@ -219,12 +219,17 @@ header {
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(59, 130, 246, 0.3);
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: rgba(15, 23, 42, 0.8);
 }
 
 .subheadline-video-container video {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
 }
 
 .random-subheadline {

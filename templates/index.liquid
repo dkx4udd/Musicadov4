@@ -67,14 +67,14 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
     <!-- Intro Description Box -->
     <div class="card">
       <div class="intro-description">
-        <p data-translate="mainIntro">
+        <p>
           Stop met saaie cadeautjes, Geef iets wat echte emoties brengt voor de prijs van een parfum
         </p>
       </div>
       
       <!-- Random Video Player -->
       <div class="subheadline-video-container">
-        <video id="subheadlineVideo" controls autoplay muted playsinline>
+        <video id="subheadlineVideo" autoplay muted playsinline>
           <source src="" type="video/mp4">
           Your browser does not support the video element.
         </video>
@@ -479,9 +479,19 @@ let currentVideoIndex = 0;
 function loadNextVideo() {
   const videoPlayer = document.getElementById('subheadlineVideo');
   if (videoPlayer) {
-    videoPlayer.src = videoUrls[currentVideoIndex];
-    videoPlayer.load();
-    videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+    // Fade out
+    videoPlayer.style.opacity = '0';
+    
+    setTimeout(() => {
+      videoPlayer.src = videoUrls[currentVideoIndex];
+      videoPlayer.load();
+      
+      // Fade in when video is ready
+      videoPlayer.onloadeddata = function() {
+        videoPlayer.style.opacity = '1';
+        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+      };
+    }, 300);
   }
 }
 

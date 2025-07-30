@@ -245,6 +245,23 @@ header {
     padding: 0 1rem;
 }
 
+/* Price Comparison Image Styles */
+.comparison-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.comparison-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 600px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
 /* Price Comparison Styles */
 .price-comparison {
     margin-top: 2rem;
@@ -2507,6 +2524,14 @@ audio::-webkit-media-controls-time-remaining-display {
         right: 20px;
         padding: 12px 24px;
         font-size: 1rem;
+    }
+    
+    .comparison-image-container {
+        padding: 1rem 0;
+    }
+    
+    .comparison-image {
+        max-height: 400px;
     }
 }
 

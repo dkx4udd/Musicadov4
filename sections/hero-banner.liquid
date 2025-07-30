@@ -3,6 +3,9 @@
        {% if section.settings.banner_image %}
          style="background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 1200 }}');"
        {% endif %}>
+    {% if section.settings.banner_text and section.settings.banner_text != blank %}
+      <h1>{{ section.settings.banner_text }}</h1>
+    {% endif %}
   </div>
 </div>
 
@@ -15,6 +18,13 @@
       "id": "banner_image",
       "label": "Banner Afbeelding",
       "info": "Aanbevolen afmeting: 1920x1080px. Als geen afbeelding is geselecteerd, wordt een standaard gradiënt achtergrond gebruikt."
+    },
+    {
+      "type": "text",
+      "id": "banner_text",
+      "label": "Banner Tekst (optioneel)",
+      "default": "",
+      "info": "Laat leeg om geen tekst weer te geven"
     },
     {
       "type": "range",
@@ -47,6 +57,7 @@
     {
       "name": "Hero Banner",
       "settings": {
+        "banner_text": "",
         "banner_height": 600,
         "overlay_opacity": 60
       }
@@ -58,6 +69,17 @@
 <style>
   .banner-container .banner {
     height: {{ section.settings.banner_height }}px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .banner-container .banner h1 {
+    color: #ffffff;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+    font-size: 2.5rem;
+    font-weight: 700;
   }
   
   {% if section.settings.banner_image %}

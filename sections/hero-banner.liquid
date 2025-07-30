@@ -17,13 +17,6 @@
       "info": "Aanbevolen afmeting: 1920x1080px. Als geen afbeelding is geselecteerd, wordt een standaard gradiënt achtergrond gebruikt."
     },
     {
-      "type": "text",
-      "id": "banner_text",
-      "label": "Banner Tekst",
-      "default": "🎵 musicado",
-      "info": "De hoofdkop tekst weergegeven op de banner"
-    },
-    {
       "type": "range",
       "id": "banner_height",
       "min": 200,
@@ -33,33 +26,6 @@
       "label": "Banner Hoogte",
       "default": 600,
       "info": "Hoogte van de banner sectie"
-    },
-    {
-      "type": "select",
-      "id": "text_alignment",
-      "label": "Tekst Uitlijning",
-      "options": [
-        {
-          "value": "left",
-          "label": "Links"
-        },
-        {
-          "value": "center",
-          "label": "Midden"
-        },
-        {
-          "value": "right",
-          "label": "Rechts"
-        }
-      ],
-      "default": "center"
-    },
-    {
-      "type": "color",
-      "id": "text_color",
-      "label": "Tekst Kleur",
-      "default": "#ffffff",
-      "info": "Kleur van de banner tekst"
     },
     {
       "type": "header",
@@ -81,9 +47,6 @@
     {
       "name": "Hero Banner",
       "settings": {
-        "banner_text": "🎵 musicado",
-        "text_alignment": "center",
-        "text_color": "#ffffff",
         "banner_height": 600,
         "overlay_opacity": 60
       }
@@ -95,11 +58,6 @@
 <style>
   .banner-container .banner {
     height: {{ section.settings.banner_height }}px;
-    text-align: {{ section.settings.text_alignment }};
-  }
-  
-  .banner-container .banner h1 {
-    color: {{ section.settings.text_color }};
   }
   
   {% if section.settings.banner_image %}

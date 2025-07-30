@@ -1963,8 +1963,9 @@ audio::-webkit-media-controls-time-remaining-display {
     .banner {
         height: 400px;
         font-size: 1.8rem;
-        background-size: cover !important;
+        background-size: contain !important;
         background-position: center center !important;
+        background-repeat: no-repeat !important;
     }
 
     .intro-description {
@@ -2229,8 +2230,9 @@ audio::-webkit-media-controls-time-remaining-display {
     .banner {
         height: 300px;
         font-size: 1.4rem;
-        background-size: cover !important;
+        background-size: contain !important;
         background-position: center center !important;
+        background-repeat: no-repeat !important;
     }
 
     .intro-description {

@@ -69,13 +69,14 @@
 {% endschema %}
 
 <style>
-  .banner-container {
+  /* Hero banner specific styles with higher specificity */
+  .shopify-section .banner-container {
     width: 100%;
     overflow: hidden;
   }
   
-  .banner-container .banner {
-    height: {{ section.settings.banner_height }}px;
+  .shopify-section .banner-container .banner {
+    height: {{ section.settings.banner_height }}px !important;
     text-align: center;
     display: flex;
     align-items: center;
@@ -87,16 +88,17 @@
     border-radius: 24px;
     position: relative;
     overflow: hidden;
+    margin-bottom: 0;
   }
   
   /* Set background image based on screen size */
   {% if section.settings.banner_image %}
-    .banner-container .banner {
+    .shopify-section .banner-container .banner {
       background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 1920 }}');
     }
   {% endif %}
   
-  .banner-container .banner h1 {
+  .shopify-section .banner-container .banner h1 {
     color: #ffffff;
     text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
     font-size: 2.5rem;
@@ -106,7 +108,7 @@
   }
   
   {% if section.settings.banner_image %}
-    .banner-container .banner::before {
+    .shopify-section .banner-container .banner::before {
       content: '';
       position: absolute;
       top: 0;
@@ -120,25 +122,25 @@
   
   /* Tablet responsiveness */
   @media (max-width: 768px) {
-    .banner-container .banner {
+    .shopify-section .banner-container .banner {
       height: 300px !important;
       {% if section.settings.banner_image %}
         background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 768 }}') !important;
       {% endif %}
     }
     
-    .banner-container .banner h1 {
+    .shopify-section .banner-container .banner h1 {
       font-size: 1.8rem;
     }
   }
   
   /* Mobile responsiveness */
   @media (max-width: 480px) {
-    .banner-container {
+    .shopify-section .banner-container {
       padding: 0 10px;
     }
     
-    .banner-container .banner {
+    .shopify-section .banner-container .banner {
       height: 180px !important;
       max-height: 40vh !important; /* Limit to 40% of viewport height */
       border-radius: 16px;
@@ -149,7 +151,7 @@
       background-position: center center !important;
     }
     
-    .banner-container .banner h1 {
+    .shopify-section .banner-container .banner h1 {
       font-size: 1.2rem;
       padding: 0 1rem;
     }
@@ -157,11 +159,11 @@
   
   /* Extra small mobile devices */
   @media (max-width: 360px) {
-    .banner-container .banner {
+    .shopify-section .banner-container .banner {
       height: 150px !important;
     }
     
-    .banner-container .banner h1 {
+    .shopify-section .banner-container .banner h1 {
       font-size: 1rem;
     }
   }

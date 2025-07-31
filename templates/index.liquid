@@ -90,7 +90,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
             <h3 id="audioTitle1" data-translate="example1Title">Loading...</h3>
             <p id="audioDesc1" data-translate="example1Description">Random example from our collection</p>
           </div>
-          <audio id="audioPlayer1" controls preload="metadata">
+          <audio id="audioPlayer1" controls controlsList="nodownload" preload="metadata">
             <span data-translate="audioNotSupported">Your browser does not support the audio element.</span>
           </audio>
           <button onclick="loadRandomAudio(1)" class="btn audio-refresh-btn" data-translate="playAnother">🔄 Play Another Example</button>
@@ -101,7 +101,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
             <h3 id="audioTitle2" data-translate="example2Title">Loading...</h3>
             <p id="audioDesc2" data-translate="example2Description">Random example from our collection</p>
           </div>
-          <audio id="audioPlayer2" controls preload="metadata">
+          <audio id="audioPlayer2" controls controlsList="nodownload" preload="metadata">
             <span data-translate="audioNotSupported">Your browser does not support the audio element.</span>
           </audio>
           <button onclick="loadRandomAudio(2)" class="btn audio-refresh-btn" data-translate="playAnother">🔄 Play Another Example</button>

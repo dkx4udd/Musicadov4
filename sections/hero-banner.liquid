@@ -142,19 +142,36 @@
     }
     
     .shopify-section .banner-container .banner {
-      height: 180px !important;
-      max-height: 40vh !important; /* Limit to 40% of viewport height */
+      height: auto !important;
+      min-height: 150px !important;
+      max-height: 250px !important;
       border-radius: 16px;
+      aspect-ratio: 16/9;
     }
     
     .shopify-section .banner-container .banner-image {
-      object-fit: cover;
+      position: relative !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
       object-position: center center;
+    }
+    
+    .shopify-section .banner-container .banner-overlay {
+      display: none; /* Hide overlay on mobile for better visibility */
     }
     
     .shopify-section .banner-container .banner h1 {
       font-size: 1.2rem;
       padding: 0 1rem;
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 0.5rem;
+      margin: 0;
     }
   }
   

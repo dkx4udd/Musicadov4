@@ -64,9 +64,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
           <img src="{{ settings.banner_image | image_url: width: 1920 }}" alt="{{ settings.banner_title | escape }}" class="banner-img">
         </picture>
       {% endif %}
-      <div class="banner-content">
-        {{ settings.banner_title | default: shop.name }}
-      </div>
+      {% comment %} Banner title removed per user request {% endcomment %}
     </div>
     
     <!-- Intro Description Box -->
@@ -967,14 +965,6 @@ document.addEventListener('DOMContentLoaded', function() {
     max-height: 250px !important;
   }
   
-  .banner-content {
-    position: absolute !important;
-    bottom: 10px !important;
-    left: 0 !important;
-    right: 0 !important;
-    background: rgba(15, 23, 42, 0.8) !important;
-    padding: 0.5rem !important;
-  }
 }
 
 @media (max-width: 360px) {

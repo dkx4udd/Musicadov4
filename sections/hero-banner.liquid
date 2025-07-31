@@ -1,10 +1,16 @@
 <div class="banner-container">
-  <div class="banner" 
-       {% if section.settings.banner_image %}
-         data-desktop-image="{{ section.settings.banner_image | image_url: width: 1920 }}"
-         data-tablet-image="{{ section.settings.banner_image | image_url: width: 768 }}"
-         data-mobile-image="{{ section.settings.banner_image | image_url: width: 480 }}"
-       {% endif %}>
+  <div class="banner">
+    {% if section.settings.banner_image %}
+      <img src="{{ section.settings.banner_image | image_url: width: 1920 }}" 
+           srcset="{{ section.settings.banner_image | image_url: width: 480 }} 480w,
+                   {{ section.settings.banner_image | image_url: width: 768 }} 768w,
+                   {{ section.settings.banner_image | image_url: width: 1200 }} 1200w,
+                   {{ section.settings.banner_image | image_url: width: 1920 }} 1920w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 100vw, 100vw"
+           alt="Hero banner"
+           class="banner-image">
+    {% endif %}
+    <div class="banner-overlay"></div>
     {% unless section.settings.banner_text == blank or section.settings.banner_text == " " or section.settings.banner_text == "none" %}
       <h1>{{ section.settings.banner_text }}</h1>
     {% endunless %}
@@ -81,22 +87,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
     width: 100%;
     border-radius: 24px;
     position: relative;
     overflow: hidden;
     margin-bottom: 0;
+    background-color: #1e293b;
   }
   
-  /* Set background image based on screen size */
-  {% if section.settings.banner_image %}
-    .shopify-section .banner-container .banner {
-      background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 1920 }}');
-    }
-  {% endif %}
+  .shopify-section .banner-container .banner-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  
+  .shopify-section .banner-container .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(15, 23, 42, {{ section.settings.overlay_opacity | divided_by: 100.0 }}), rgba(30, 41, 59, {{ section.settings.overlay_opacity | divided_by: 100.0 }}));
+    z-index: 1;
+  }
   
   .shopify-section .banner-container .banner h1 {
     color: #ffffff;
@@ -107,26 +124,10 @@
     z-index: 2;
   }
   
-  {% if section.settings.banner_image %}
-    .shopify-section .banner-container .banner::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
-      z-index: 1;
-    }
-  {% endif %}
-  
   /* Tablet responsiveness */
   @media (max-width: 768px) {
     .shopify-section .banner-container .banner {
       height: 300px !important;
-      {% if section.settings.banner_image %}
-        background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 768 }}') !important;
-      {% endif %}
     }
     
     .shopify-section .banner-container .banner h1 {
@@ -144,11 +145,11 @@
       height: 180px !important;
       max-height: 40vh !important; /* Limit to 40% of viewport height */
       border-radius: 16px;
-      {% if section.settings.banner_image %}
-        background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.6)), url('{{ section.settings.banner_image | image_url: width: 480 }}') !important;
-      {% endif %}
-      background-size: cover !important;
-      background-position: center center !important;
+    }
+    
+    .shopify-section .banner-container .banner-image {
+      object-fit: cover;
+      object-position: center center;
     }
     
     .shopify-section .banner-container .banner h1 {

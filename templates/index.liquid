@@ -77,16 +77,16 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
       
       <!-- Random Video Player -->
       <div class="subheadline-video-container">
-        <video id="subheadlineVideo" playsinline>
+        <video id="subheadlineVideo" autoplay muted playsinline>
           <source src="" type="video/mp4">
           Your browser does not support the video element.
         </video>
         <div class="video-controls">
           <button id="playPauseBtn" class="play-pause-btn">
-            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
               <path d="M8 5v14l11-7z"/>
             </svg>
-            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
             </svg>
           </button>
@@ -490,7 +490,8 @@ function loadNextVideo() {
       // Fade in when video is ready
       videoPlayer.onloadeddata = function() {
         videoPlayer.style.opacity = '1';
-        // Don't autoplay - wait for user interaction
+        // Try to autoplay
+        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
       };
     }, 300);
   }
@@ -502,6 +503,11 @@ function togglePlayPause() {
   const playPauseBtn = document.getElementById('playPauseBtn');
   const playIcon = playPauseBtn.querySelector('.play-icon');
   const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+  
+  // Unmute on first user interaction to enable audio
+  if (videoPlayer.muted) {
+    videoPlayer.muted = false;
+  }
   
   if (videoPlayer.paused) {
     videoPlayer.play();

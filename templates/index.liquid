@@ -77,7 +77,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
       
       <!-- Random Video Player -->
       <div class="subheadline-video-container">
-        <video id="subheadlineVideo" autoplay muted playsinline>
+        <video id="subheadlineVideo" autoplay playsinline>
           <source src="" type="video/mp4">
           Your browser does not support the video element.
         </video>
@@ -490,8 +490,14 @@ function loadNextVideo() {
       // Fade in when video is ready
       videoPlayer.onloadeddata = function() {
         videoPlayer.style.opacity = '1';
-        // Try to autoplay
-        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+        // Try to autoplay with sound first
+        videoPlayer.muted = false;
+        videoPlayer.play().catch(e => {
+          console.log('Autoplay with sound prevented, trying muted:', e);
+          // If autoplay with sound fails, try muted
+          videoPlayer.muted = true;
+          videoPlayer.play().catch(e2 => console.log('All autoplay prevented:', e2));
+        });
       };
     }, 300);
   }
@@ -504,13 +510,14 @@ function togglePlayPause() {
   const playIcon = playPauseBtn.querySelector('.play-icon');
   const pauseIcon = playPauseBtn.querySelector('.pause-icon');
   
-  // Unmute on first user interaction to enable audio
-  if (videoPlayer.muted) {
-    videoPlayer.muted = false;
-  }
-  
   if (videoPlayer.paused) {
-    videoPlayer.play();
+    // Try to play with sound, fallback to muted if needed
+    videoPlayer.muted = false;
+    videoPlayer.play().catch(e => {
+      console.log('Play with sound failed, trying muted:', e);
+      videoPlayer.muted = true;
+      videoPlayer.play();
+    });
     playIcon.style.display = 'none';
     pauseIcon.style.display = 'block';
   } else {

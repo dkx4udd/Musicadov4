@@ -77,10 +77,20 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
       
       <!-- Random Video Player -->
       <div class="subheadline-video-container">
-        <video id="subheadlineVideo" autoplay muted playsinline>
+        <video id="subheadlineVideo" muted playsinline>
           <source src="" type="video/mp4">
           Your browser does not support the video element.
         </video>
+        <div class="video-controls">
+          <button id="playPauseBtn" class="play-pause-btn">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
     
@@ -461,9 +471,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
 <script>
 // Video URLs for playlist
 const videoUrls = [
-  'https://cdn.shopify.com/videos/c/o/v/a3716ff5fad6486d90adb39a290b4f39.mp4',
-  'https://cdn.shopify.com/videos/c/o/v/ab212e95f9834d56b6ec1946bf6b91a5.mp4',
-  'https://cdn.shopify.com/videos/c/o/v/4842be399cb745618973e44f9d77b037.mp4'
+  'https://cdn.shopify.com/videos/c/o/v/8b6c93ab11c542709d7494298fd30bbf.mp4'
 ];
 
 let currentVideoIndex = 0;
@@ -482,24 +490,69 @@ function loadNextVideo() {
       // Fade in when video is ready
       videoPlayer.onloadeddata = function() {
         videoPlayer.style.opacity = '1';
-        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+        // Don't autoplay - wait for user interaction
       };
     }, 300);
+  }
+}
+
+// Play/Pause button functionality
+function togglePlayPause() {
+  const videoPlayer = document.getElementById('subheadlineVideo');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const playIcon = playPauseBtn.querySelector('.play-icon');
+  const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+  
+  if (videoPlayer.paused) {
+    videoPlayer.play();
+    playIcon.style.display = 'none';
+    pauseIcon.style.display = 'block';
+  } else {
+    videoPlayer.pause();
+    playIcon.style.display = 'block';
+    pauseIcon.style.display = 'none';
   }
 }
 
 // Set up video cycling
 document.addEventListener('DOMContentLoaded', function() {
   const videoPlayer = document.getElementById('subheadlineVideo');
+  const playPauseBtn = document.getElementById('playPauseBtn');
   
-  if (videoPlayer) {
+  if (videoPlayer && playPauseBtn) {
     // Load first video
     loadNextVideo();
     
-    // When video ends, play next one
+    // Add click listener for play/pause button
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    
+    // When video ends, play next one (if there are multiple videos)
     videoPlayer.addEventListener('ended', function() {
-      currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
-      loadNextVideo();
+      if (videoUrls.length > 1) {
+        currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
+        loadNextVideo();
+      } else {
+        // Reset play button when single video ends
+        const playIcon = playPauseBtn.querySelector('.play-icon');
+        const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+      }
+    });
+    
+    // Update button state when video play/pause state changes
+    videoPlayer.addEventListener('play', function() {
+      const playIcon = playPauseBtn.querySelector('.play-icon');
+      const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    });
+    
+    videoPlayer.addEventListener('pause', function() {
+      const playIcon = playPauseBtn.querySelector('.play-icon');
+      const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
     });
   }
 });
@@ -976,6 +1029,81 @@ document.addEventListener('DOMContentLoaded', function() {
   .banner picture,
   .banner img {
     max-height: 200px !important;
+  }
+}
+
+/* Video Controls Styling */
+.subheadline-video-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.video-controls {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.play-pause-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.play-pause-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.play-pause-btn svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.play-pause-btn:active {
+  transform: scale(0.95);
+}
+
+/* Mobile responsive controls */
+@media (max-width: 768px) {
+  .play-pause-btn {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .play-pause-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .play-pause-btn {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .play-pause-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .video-controls {
+    bottom: 10px;
   }
 }
 </style>

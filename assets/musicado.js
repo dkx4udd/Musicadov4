@@ -69,6 +69,7 @@
         nl: {
             intro: "Welkom bij onze professionele muziekcreatie service! Kies uw pakket en laat ons aangepaste liedjes voor u maken. Niet tevreden? 100% geld terug garantie!!!",
             mainIntro: "Het is muziek, maar persoonlijk",
+            introDescription: "Tot 3x goedkoper dan een klein flesje parfum",
             listenExamples: "Luister naar onze voorbeelden",
             example1Title: "Laden...",
             example1Description: "Willekeurig voorbeeld uit onze collectie",
@@ -234,7 +235,8 @@
         },
         en: {
             intro: "Welcome to our professional music creation service! Choose your package and let us create custom songs just for you, -	100% moneyback Guarantee",
-            mainIntro: "It’s music, but personal",
+            mainIntro: "It's music, but personal",
+            introDescription: "Up to 3x cheaper than a small bottle of perfume",
             listenExamples: "Listen to our examples",
             example1Title: "Loading...",
             example1Description: "Random example from our collection",

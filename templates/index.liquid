@@ -77,16 +77,16 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
       
       <!-- Random Video Player -->
       <div class="subheadline-video-container">
-        <video id="subheadlineVideo" autoplay muted playsinline>
+        <video id="subheadlineVideo" muted playsinline>
           <source src="" type="video/mp4">
           Your browser does not support the video element.
         </video>
         <div class="video-controls">
           <button id="playPauseBtn" class="play-pause-btn">
-            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z"/>
             </svg>
-            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
               <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
             </svg>
           </button>
@@ -479,7 +479,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
 <script>
 // Video URLs for playlist
 const videoUrls = [
-  'https://cdn.shopify.com/videos/c/o/v/8b6c93ab11c542709d7494298fd30bbf.mp4'
+  'https://cdn.shopify.com/videos/c/o/v/4f1a6247ce5249959e5f1745d3770c44.mp4'
 ];
 
 let currentVideoIndex = 0;
@@ -498,8 +498,8 @@ function loadNextVideo() {
       // Fade in when video is ready
       videoPlayer.onloadeddata = function() {
         videoPlayer.style.opacity = '1';
-        // Autoplay muted (required by browsers)
-        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+        // Don't autoplay - wait for user to click play
+        console.log('Video loaded and ready to play');
       };
     }, 300);
   }

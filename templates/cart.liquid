@@ -165,6 +165,9 @@ window.shopifyCustomerData = {
                   <span class="success-icon">✅</span>
                   <span data-translate="discountAppliedSuccess">Discount applied!</span>
                   <span class="discount-amount">-{{ cart.total_discount | money }}</span>
+                  <button type="button" class="btn-link remove-discount" onclick="removeDiscount()">
+                    <span data-translate="removeDiscount">Remove</span>
+                  </button>
                 </div>
               </div>
             {% endif %}
@@ -273,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
       applyDiscount: "Apply",
       discountHelp: "💡 Have a discount code? Enter it here to save on your order!",
       discountAppliedSuccess: "Discount applied!",
+      removeDiscount: "Remove",
       agreeTerms: "I agree with the terms and conditions and privacy policy",
       privacyPolicyLink: "Read our privacy policy",
       importantInformation: "Important Information",
@@ -319,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
       applyDiscount: "Toepassen",
       discountHelp: "💡 Heeft u een kortingscode? Voer deze hier in om korting te krijgen op uw bestelling!",
       discountAppliedSuccess: "Korting toegepast!",
+      removeDiscount: "Verwijderen",
       agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
       privacyPolicyLink: "Lees ons privacybeleid",
       importantInformation: "Belangrijke Informatie",
@@ -494,6 +499,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Remove discount code
+  function removeDiscount() {
+    console.log('🗑️ Removing discount...');
+    // Clear discount by redirecting with CLEAR parameter
+    window.location.href = '/checkout?discount=';
+    setTimeout(() => {
+      window.location.href = '/cart';
+    }, 100);
+  }
+
   // Apply discount code using proper Shopify method
   function applyDiscountCode() {
     console.log('🎫 applyDiscountCode function called');
@@ -531,9 +546,8 @@ document.addEventListener('DOMContentLoaded', function() {
     saveFormData();
     
     // Let Shopify handle discount code validation
-    // Any non-empty code will be sent to Shopify for validation
+    // Use the discount URL to apply the code
     console.log('Sending discount code to Shopify for validation...');
-    showDiscountMessage('success', getTranslation('discountAppliedMessage'));
     
     // Redirect to apply discount using Shopify's standard method
     // Shopify will validate the code and apply it if valid
@@ -1188,6 +1202,21 @@ document.addEventListener('DOMContentLoaded', function() {
   background: rgba(16, 185, 129, 0.1);
   border: 2px solid rgba(16, 185, 129, 0.3);
   border-radius: 12px;
+}
+
+.remove-discount {
+  background: none;
+  border: none;
+  color: #ef4444;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 1rem;
+  font-size: 0.9rem;
+}
+
+.remove-discount:hover {
+  color: #dc2626;
 }
 
 .discount-success {

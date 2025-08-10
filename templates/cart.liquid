@@ -532,6 +532,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save form data before redirect
     saveFormData();
     
+    // Mark that user is applying a discount
+    sessionStorage.setItem('userAppliedDiscount', 'true');
+    
     // Let Shopify handle discount code validation
     // Use the discount URL to apply the code
     console.log('Sending discount code to Shopify for validation...');
@@ -711,18 +714,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup language switching
     setupLanguageSwitching();
     
-    // Check for discount success or error parameters
+    // Check if we just applied a discount (came from /discount/ redirect)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('discount_applied') || urlParams.get('discount') === 'success') {
-      showDiscountMessage('success', getTranslation('discountAppliedMessage'));
-      
-      // Clean up URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    } else if (urlParams.has('discount_error') || urlParams.get('discount') === 'error') {
-      showDiscountMessage('error', getTranslation('invalidDiscountCode'));
-      
-      // Clean up URL
+    const userJustAppliedDiscount = sessionStorage.getItem('userAppliedDiscount') === 'true';
+    
+    // If there's a discount but user didn't just apply it, clear it
+    {% if cart.total_discount > 0 %}
+      if (!userJustAppliedDiscount && !urlParams.has('discount_applied')) {
+        console.log('🧹 Clearing auto-applied discount...');
+        // Clear the discount by redirecting without it
+        window.location.href = '/checkout?discount=';
+        setTimeout(() => {
+          window.location.href = '/cart';
+        }, 100);
+      } else {
+        // User did apply it, so show success
+        showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+        // Clear the flag for next time
+        sessionStorage.removeItem('userAppliedDiscount');
+      }
+    {% else %}
+      // No discount, clear any flags
+      sessionStorage.removeItem('userAppliedDiscount');
+    {% endif %}
+    
+    // Clean up URL parameters
+    if (urlParams.has('discount_applied') || urlParams.get('discount') === 'success' || 
+        urlParams.has('discount_error') || urlParams.get('discount') === 'error') {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }

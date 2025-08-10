@@ -196,9 +196,9 @@
             musicDeliveryTitle: "📧 Muziek Levering Informatie",
             musicDeliveryDescription: "We sturen u binnen 24 uur een link via e-mail naar uw persoonlijke pagina waar u uw muziek kunt downloaden.",
             discountCodeTitle: "Kortingscode",
-            discountCodePlaceholder: "Voer kortingscode in (bijv. MUSIC15)",
+            discountCodePlaceholder: "Voer kortingscode in",
             applyDiscount: "Toepassen",
-            discountHelp: "💡 Heeft u een kortingscode van onze popup? Plak deze hier om te besparen op uw bestelling!",
+            discountHelp: "💡 Heeft u een kortingscode? Voer deze hier in om korting te krijgen op uw bestelling!",
             discountAppliedSuccess: "Korting toegepast!",
             agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
             privacyPolicyLink: "Lees ons privacybeleid",
@@ -363,9 +363,9 @@
             musicDeliveryTitle: "📧 Music Delivery Information",
             musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
             discountCodeTitle: "Discount Code",
-            discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
+            discountCodePlaceholder: "Enter discount code",
             applyDiscount: "Apply",
-            discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
+            discountHelp: "💡 Have a discount code? Enter it here to save on your order!",
             discountAppliedSuccess: "Discount applied!",
             agreeTerms: "I agree with the terms and conditions and privacy policy",
             privacyPolicyLink: "Read our privacy policy",
@@ -504,14 +504,15 @@
                 return { success: false, message: currentLanguage === 'nl' ? 'Korting al toegepast.' : 'Discount already applied.' };
             }
 
-            if (code !== 'MUSIC15') {
-                return { success: false, message: currentLanguage === 'nl' ? 'Ongeldige kortingscode.' : 'Invalid discount code.' };
+            // Let Shopify handle discount code validation - accept any non-empty code
+            if (!code || code.trim() === '') {
+                return { success: false, message: currentLanguage === 'nl' ? 'Voer een kortingscode in.' : 'Please enter a discount code.' };
             }
 
             AppState.discount = {
                 applied: true,
-                code: code,
-                amount: 0, // Will be calculated on cart page
+                code: code.trim(),
+                amount: 0, // Will be calculated by Shopify during checkout
                 source: source
             };
 
@@ -2408,7 +2409,11 @@
     
     // Legacy function for manual discount application (unchanged)
     window.applyDiscountCode = (code) => {
-        const result = StateManager.applyDiscount(code || 'MUSIC15', 'manual');
+        if (!code) {
+            alert(currentLanguage === 'nl' ? 'Voer een kortingscode in.' : 'Please enter a discount code.');
+            return;
+        }
+        const result = StateManager.applyDiscount(code, 'manual');
         if (result.success) {
             alert(result.message);
         } else {

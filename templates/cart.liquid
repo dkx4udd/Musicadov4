@@ -136,7 +136,8 @@ window.shopifyCustomerData = {
             </div>
           </div>
 
-          <!-- Discount Code Section -->
+          <!-- Discount Code Section - Only show if cart has items -->
+          {% if cart.item_count > 0 %}
           <div class="card discount-card" id="discountCard">
             <h3 data-translate="discountCodeTitle">Discount Code</h3>
             <div class="discount-input-container">
@@ -165,13 +166,11 @@ window.shopifyCustomerData = {
                   <span class="success-icon">✅</span>
                   <span data-translate="discountAppliedSuccess">Discount applied!</span>
                   <span class="discount-amount">-{{ cart.total_discount | money }}</span>
-                  <button type="button" class="btn-link remove-discount" onclick="removeDiscount()">
-                    <span data-translate="removeDiscount">Remove</span>
-                  </button>
                 </div>
               </div>
             {% endif %}
           </div>
+          {% endif %}
 
 
           <!-- Important Information -->
@@ -276,7 +275,6 @@ document.addEventListener('DOMContentLoaded', function() {
       applyDiscount: "Apply",
       discountHelp: "💡 Have a discount code? Enter it here to save on your order!",
       discountAppliedSuccess: "Discount applied!",
-      removeDiscount: "Remove",
       agreeTerms: "I agree with the terms and conditions and privacy policy",
       privacyPolicyLink: "Read our privacy policy",
       importantInformation: "Important Information",
@@ -323,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
       applyDiscount: "Toepassen",
       discountHelp: "💡 Heeft u een kortingscode? Voer deze hier in om korting te krijgen op uw bestelling!",
       discountAppliedSuccess: "Korting toegepast!",
-      removeDiscount: "Verwijderen",
       agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
       privacyPolicyLink: "Lees ons privacybeleid",
       importantInformation: "Belangrijke Informatie",
@@ -497,16 +494,6 @@ document.addEventListener('DOMContentLoaded', function() {
       messageDiv.textContent = message;
       messageDiv.style.display = 'block';
     }
-  }
-
-  // Remove discount code
-  function removeDiscount() {
-    console.log('🗑️ Removing discount...');
-    // Clear discount by redirecting with CLEAR parameter
-    window.location.href = '/checkout?discount=';
-    setTimeout(() => {
-      window.location.href = '/cart';
-    }, 100);
   }
 
   // Apply discount code using proper Shopify method
@@ -1202,21 +1189,6 @@ document.addEventListener('DOMContentLoaded', function() {
   background: rgba(16, 185, 129, 0.1);
   border: 2px solid rgba(16, 185, 129, 0.3);
   border-radius: 12px;
-}
-
-.remove-discount {
-  background: none;
-  border: none;
-  color: #ef4444;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 1rem;
-  font-size: 0.9rem;
-}
-
-.remove-discount:hover {
-  color: #dc2626;
 }
 
 .discount-success {

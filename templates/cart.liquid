@@ -145,7 +145,7 @@ window.shopifyCustomerData = {
                 id="discountCodeInput" 
                 name="discountCode" 
                 data-translate-placeholder="discountCodePlaceholder"
-                placeholder="Enter discount code (e.g. MUSIC15)"
+                placeholder="Enter discount code"
                 style="text-transform: uppercase;"
               >
               <button type="button" id="applyDiscountBtn" class="btn discount-apply-btn" data-translate="applyDiscount">
@@ -269,9 +269,9 @@ document.addEventListener('DOMContentLoaded', function() {
       musicDeliveryTitle: "📧 Music Delivery Information",
       musicDeliveryDescription: "We will send you a link via email to your personal page where you can download your music within 24 hours.",
       discountCodeTitle: "Discount Code",
-      discountCodePlaceholder: "Enter discount code (e.g. MUSIC15)",
+      discountCodePlaceholder: "Enter discount code",
       applyDiscount: "Apply",
-      discountHelp: "💡 Have a discount code from our popup? Paste it here to save on your order!",
+      discountHelp: "💡 Have a discount code? Enter it here to save on your order!",
       discountAppliedSuccess: "Discount applied!",
       agreeTerms: "I agree with the terms and conditions and privacy policy",
       privacyPolicyLink: "Read our privacy policy",
@@ -315,9 +315,9 @@ document.addEventListener('DOMContentLoaded', function() {
       musicDeliveryTitle: "📧 Muziek Levering Informatie",
       musicDeliveryDescription: "We sturen u binnen 24 uur een link via e-mail naar uw persoonlijke pagina waar u uw muziek kunt downloaden.",
       discountCodeTitle: "Kortingscode",
-      discountCodePlaceholder: "Voer kortingscode in (bijv. MUSIC15)",
+      discountCodePlaceholder: "Voer kortingscode in",
       applyDiscount: "Toepassen",
-      discountHelp: "💡 Heeft u een kortingscode van onze popup? Plak deze hier om te besparen op uw bestelling!",
+      discountHelp: "💡 Heeft u een kortingscode? Voer deze hier in om korting te krijgen op uw bestelling!",
       discountAppliedSuccess: "Korting toegepast!",
       agreeTerms: "Ik ga akkoord met de algemene voorwaarden en privacybeleid",
       privacyPolicyLink: "Lees ons privacybeleid",
@@ -530,25 +530,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save form data before redirect
     saveFormData();
     
-    // Validate discount codes
-    const validCodes = ['MUSIC15', '15MUSIC', 'WELCOME15', 'SAVE15', '15OFF'];
+    // Let Shopify handle discount code validation
+    // Any non-empty code will be sent to Shopify for validation
+    console.log('Sending discount code to Shopify for validation...');
+    showDiscountMessage('success', getTranslation('discountAppliedMessage'));
     
-    if (validCodes.includes(code)) {
-      // Use Shopify's discount URL - this is the correct method
-      console.log('Valid discount code, redirecting with discount...');
-      showDiscountMessage('success', getTranslation('discountAppliedMessage'));
-      
-      // Redirect to apply discount using Shopify's standard method
-      setTimeout(() => {
-        window.location.href = `/discount/${encodeURIComponent(code)}?redirect=${encodeURIComponent('/cart')}`;
-      }, 500);
-      
-    } else {
-      console.log('Invalid discount code:', code);
-      showDiscountMessage('error', getTranslation('invalidDiscountCode'));
-      applyBtn.disabled = false;
-      applyBtn.textContent = originalText;
-    }
+    // Redirect to apply discount using Shopify's standard method
+    // Shopify will validate the code and apply it if valid
+    setTimeout(() => {
+      window.location.href = `/discount/${encodeURIComponent(code)}?redirect=${encodeURIComponent('/cart')}`;
+    }, 500);
   }
 
   // Checkout process - Simplified

@@ -718,24 +718,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const userJustAppliedDiscount = sessionStorage.getItem('userAppliedDiscount') === 'true';
     
-    // If there's a discount but user didn't just apply it, clear it
+    // Check if we're coming back from a discount redirect
+    const referrer = document.referrer;
+    const cameFromDiscountURL = referrer.includes('/discount/') || window.location.search.includes('discount');
+    
     {% if cart.total_discount > 0 %}
-      if (!userJustAppliedDiscount && !urlParams.has('discount_applied')) {
-        console.log('🧹 Clearing auto-applied discount...');
+      if (userJustAppliedDiscount || cameFromDiscountURL) {
+        // User did apply it, so show success
+        console.log('✅ User-applied discount detected');
+        showDiscountMessage('success', getTranslation('discountAppliedMessage'));
+        // Clear the flag after successful application
+        sessionStorage.removeItem('userAppliedDiscount');
+        // Mark this discount as intentional for this session
+        sessionStorage.setItem('validDiscountSession', 'true');
+      } else if (sessionStorage.getItem('validDiscountSession') === 'true') {
+        // Discount was applied earlier in this session, keep it
+        console.log('📌 Keeping valid session discount');
+      } else {
+        // This is an auto-applied discount from a previous session, clear it
+        console.log('🧹 Clearing auto-applied discount from previous session...');
         // Clear the discount by redirecting without it
         window.location.href = '/checkout?discount=';
         setTimeout(() => {
           window.location.href = '/cart';
         }, 100);
-      } else {
-        // User did apply it, so show success
-        showDiscountMessage('success', getTranslation('discountAppliedMessage'));
-        // Clear the flag for next time
-        sessionStorage.removeItem('userAppliedDiscount');
       }
     {% else %}
-      // No discount, clear any flags
-      sessionStorage.removeItem('userAppliedDiscount');
+      // No discount present
+      if (userJustAppliedDiscount) {
+        // User tried to apply a discount but it didn't work
+        console.log('❌ Invalid discount code');
+        showDiscountMessage('error', getTranslation('invalidDiscountCode'));
+        sessionStorage.removeItem('userAppliedDiscount');
+      }
+      // Clear session discount marker if cart has no discount
+      sessionStorage.removeItem('validDiscountSession');
     {% endif %}
     
     // Clean up URL parameters

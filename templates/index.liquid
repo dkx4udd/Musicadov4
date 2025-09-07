@@ -67,6 +67,53 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
       {% comment %} Banner title removed per user request {% endcomment %}
     </div>
     
+    <!-- Why Choose Us Section -->
+    <div class="card why-choose-us-section">
+      <h2 class="section-title" data-translate="whyChooseUsTitle">Waarom voor ons kiezen</h2>
+      <div class="why-choose-us-grid">
+        <div class="why-choose-item">
+          <div class="why-icon">✍️</div>
+          <h3 data-translate="whyItem1Title">Professionele Songwriters</h3>
+          <p data-translate="whyItem1Text">Ervaren songwriters die uw verhaal omzetten in prachtige teksten</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">🎛️</div>
+          <h3 data-translate="whyItem2Title">Professionele Muziek Producent</h3>
+          <p data-translate="whyItem2Text">Top producenten zorgen voor studio-kwaliteit opnames</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">🎧</div>
+          <h3 data-translate="whyItem3Title">Spotify Publicatie</h3>
+          <p data-translate="whyItem3Text">Mogelijkheid om uw muziek op Spotify te zetten</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">💬</div>
+          <h3 data-translate="whyItem4Title">Persoonlijk Contact</h3>
+          <p data-translate="whyItem4Text">Persoonlijk contact als uw muzikale wens niet duidelijk is</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">🔄</div>
+          <h3 data-translate="whyItem5Title">Gratis Revisie</h3>
+          <p data-translate="whyItem5Text">Gratis 1 revisie om het perfect te maken</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">💯</div>
+          <h3 data-translate="whyItem6Title">Geld Terug Garantie</h3>
+          <p data-translate="whyItem6Text">Niet tevreden? 100% geld terug</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">⚡</div>
+          <h3 data-translate="whyItem7Title">Snelle Levering</h3>
+          <p data-translate="whyItem7Text">Uw persoonlijke nummer binnen 48 uur in uw mailbox</p>
+        </div>
+        <div class="why-choose-item">
+          <div class="why-icon">💝</div>
+          <h3 data-translate="whyItem8Title">100% Persoonlijk</h3>
+          <p data-translate="whyItem8Text">Elk nummer is uniek gemaakt met uw eigen woorden en verhaal</p>
+        </div>
+      </div>
+    </div>
+    
     <!-- Intro Description Box -->
     <div class="card">
       <div class="intro-description">
@@ -349,7 +396,7 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
         <!-- Own Lyrics -->
         <div class="form-group">
           <label for="ownLyrics" data-translate="ownLyrics">Do you have your own lyrics or a story about the song: Enter here:</label>
-          <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Enter your lyrics or story about the song here..." data-translate-placeholder="enterLyricsPlaceholder"></textarea>
+          <textarea id="ownLyrics" name="ownLyrics" rows="5" placeholder="Het is belangrijk (bij voorkeur chronologisch) uw verhaal te doen, wat wilt u in het liedje terug horen. Vul zo uitgebreid mogelijk in. Namen gebruiken mag." data-translate-placeholder="enterLyricsPlaceholder"></textarea>
         </div>
 
         <button type="submit" class="btn add-to-cart-btn" data-translate="addToCart">Add to Cart</button>
@@ -1159,6 +1206,168 @@ document.addEventListener('DOMContentLoaded', function() {
   .video-controls {
     bottom: 10px;
     gap: 8px;
+  }
+}
+
+/* Why Choose Us Section Styles */
+.why-choose-us-section {
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.why-choose-us-section .section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 20px rgba(59, 130, 246, 0.3);
+}
+
+.why-choose-us-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.why-choose-item {
+  background: rgba(30, 41, 59, 0.6);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  text-align: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.why-choose-item:hover {
+  transform: translateY(-5px);
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+}
+
+.why-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+.why-choose-item:nth-child(2) .why-icon {
+  animation-delay: 0.5s;
+}
+
+.why-choose-item:nth-child(3) .why-icon {
+  animation-delay: 1s;
+}
+
+.why-choose-item:nth-child(4) .why-icon {
+  animation-delay: 1.5s;
+}
+
+.why-choose-item:nth-child(5) .why-icon {
+  animation-delay: 2s;
+}
+
+.why-choose-item:nth-child(6) .why-icon {
+  animation-delay: 2.5s;
+}
+
+.why-choose-item:nth-child(7) .why-icon {
+  animation-delay: 3s;
+}
+
+.why-choose-item:nth-child(8) .why-icon {
+  animation-delay: 3.5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.why-choose-item h3 {
+  font-size: 1.3rem;
+  color: #f1f5f9;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.why-choose-item p {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Mobile responsiveness for Why Choose Us */
+@media (max-width: 768px) {
+  .why-choose-us-section {
+    padding: 2rem 1rem;
+  }
+  
+  .why-choose-us-section .section-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .why-choose-us-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .why-choose-item {
+    padding: 1.5rem;
+  }
+  
+  .why-icon {
+    font-size: 2.5rem;
+  }
+  
+  .why-choose-item h3 {
+    font-size: 1.1rem;
+  }
+  
+  .why-choose-item p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .why-choose-us-section .section-title {
+    font-size: 1.5rem;
+  }
+  
+  .why-choose-item {
+    padding: 1.2rem;
+  }
+  
+  .why-icon {
+    font-size: 2rem;
+  }
+}
+
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+  .why-icon {
+    animation: none;
+  }
+  
+  .why-choose-item:hover {
+    transform: none;
   }
 }
 </style>

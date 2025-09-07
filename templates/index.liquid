@@ -70,46 +70,62 @@ console.log('🏪 Index page - Shopify customer data loaded:', window.shopifyCus
     <!-- Why Choose Us Section -->
     <div class="card why-choose-us-section">
       <h2 class="section-title" data-translate="whyChooseUsTitle">Waarom voor ons kiezen</h2>
-      <div class="why-choose-us-grid">
-        <div class="why-choose-item">
-          <div class="why-icon">✍️</div>
-          <h3 data-translate="whyItem1Title">Professionele Songwriters</h3>
-          <p data-translate="whyItem1Text">Ervaren songwriters die uw verhaal omzetten in prachtige teksten</p>
+      <div class="why-choose-us-carousel-container">
+        <div class="why-choose-us-grid">
+          <div class="why-choose-item">
+            <div class="why-icon">✍️</div>
+            <h3 data-translate="whyItem1Title">Professionele Songwriters</h3>
+            <p data-translate="whyItem1Text">Ervaren songwriters die uw verhaal omzetten in prachtige teksten</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">🎛️</div>
+            <h3 data-translate="whyItem2Title">Professionele Muziek Producent</h3>
+            <p data-translate="whyItem2Text">Top producenten zorgen voor studio-kwaliteit opnames</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">🎧</div>
+            <h3 data-translate="whyItem3Title">Spotify Publicatie</h3>
+            <p data-translate="whyItem3Text">Mogelijkheid om uw muziek op Spotify te zetten</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">💬</div>
+            <h3 data-translate="whyItem4Title">Persoonlijk Contact</h3>
+            <p data-translate="whyItem4Text">Persoonlijk contact als uw muzikale wens niet duidelijk is</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">🔄</div>
+            <h3 data-translate="whyItem5Title">Gratis Revisie</h3>
+            <p data-translate="whyItem5Text">Gratis 1 revisie om het perfect te maken</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">💯</div>
+            <h3 data-translate="whyItem6Title">Geld Terug Garantie</h3>
+            <p data-translate="whyItem6Text">Niet tevreden? 100% geld terug</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">⚡</div>
+            <h3 data-translate="whyItem7Title">Snelle Levering</h3>
+            <p data-translate="whyItem7Text">Uw persoonlijke nummer binnen 48 uur in uw mailbox</p>
+          </div>
+          <div class="why-choose-item">
+            <div class="why-icon">💝</div>
+            <h3 data-translate="whyItem8Title">100% Persoonlijk</h3>
+            <p data-translate="whyItem8Text">Elk nummer is uniek gemaakt met uw eigen woorden en verhaal</p>
+          </div>
         </div>
-        <div class="why-choose-item">
-          <div class="why-icon">🎛️</div>
-          <h3 data-translate="whyItem2Title">Professionele Muziek Producent</h3>
-          <p data-translate="whyItem2Text">Top producenten zorgen voor studio-kwaliteit opnames</p>
-        </div>
-        <div class="why-choose-item">
-          <div class="why-icon">🎧</div>
-          <h3 data-translate="whyItem3Title">Spotify Publicatie</h3>
-          <p data-translate="whyItem3Text">Mogelijkheid om uw muziek op Spotify te zetten</p>
-        </div>
-        <div class="why-choose-item">
-          <div class="why-icon">💬</div>
-          <h3 data-translate="whyItem4Title">Persoonlijk Contact</h3>
-          <p data-translate="whyItem4Text">Persoonlijk contact als uw muzikale wens niet duidelijk is</p>
-        </div>
-        <div class="why-choose-item">
-          <div class="why-icon">🔄</div>
-          <h3 data-translate="whyItem5Title">Gratis Revisie</h3>
-          <p data-translate="whyItem5Text">Gratis 1 revisie om het perfect te maken</p>
-        </div>
-        <div class="why-choose-item">
-          <div class="why-icon">💯</div>
-          <h3 data-translate="whyItem6Title">Geld Terug Garantie</h3>
-          <p data-translate="whyItem6Text">Niet tevreden? 100% geld terug</p>
-        </div>
-        <div class="why-choose-item">
-          <div class="why-icon">⚡</div>
-          <h3 data-translate="whyItem7Title">Snelle Levering</h3>
-          <p data-translate="whyItem7Text">Uw persoonlijke nummer binnen 48 uur in uw mailbox</p>
-        </div>
-        <div class="why-choose-item">
-          <div class="why-icon">💝</div>
-          <h3 data-translate="whyItem8Title">100% Persoonlijk</h3>
-          <p data-translate="whyItem8Text">Elk nummer is uniek gemaakt met uw eigen woorden en verhaal</p>
+        <!-- Mobile Navigation Dots -->
+        <div class="why-choose-nav mobile-only">
+          <div class="nav-dots" id="whyChooseDots">
+            <span class="dot active" data-slide="0"></span>
+            <span class="dot" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+            <span class="dot" data-slide="3"></span>
+            <span class="dot" data-slide="4"></span>
+            <span class="dot" data-slide="5"></span>
+            <span class="dot" data-slide="6"></span>
+            <span class="dot" data-slide="7"></span>
+          </div>
+          <div class="swipe-hint" data-translate="swipeToExplore">← Veeg om meer te zien →</div>
         </div>
       </div>
     </div>
@@ -630,6 +646,92 @@ document.addEventListener('DOMContentLoaded', function() {
       playIcon.style.display = 'block';
       pauseIcon.style.display = 'none';
     });
+  }
+});
+</script>
+
+<!-- Why Choose Us Carousel Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Why Choose Us carousel functionality for mobile
+  const whyGrid = document.querySelector('.why-choose-us-grid');
+  const whyDots = document.querySelectorAll('#whyChooseDots .dot');
+  const whyItems = document.querySelectorAll('.why-choose-item');
+  
+  if (whyGrid && whyDots.length > 0 && window.innerWidth <= 768) {
+    let currentWhySlide = 0;
+    
+    // Update dots based on scroll position
+    function updateWhyDots() {
+      const scrollLeft = whyGrid.scrollLeft;
+      const itemWidth = whyItems[0].offsetWidth + 16; // width + margin
+      const newSlide = Math.round(scrollLeft / itemWidth);
+      
+      if (newSlide !== currentWhySlide) {
+        whyDots[currentWhySlide].classList.remove('active');
+        whyDots[newSlide].classList.add('active');
+        currentWhySlide = newSlide;
+      }
+    }
+    
+    // Scroll to specific slide
+    function scrollToWhySlide(slideIndex) {
+      const itemWidth = whyItems[0].offsetWidth + 16;
+      whyGrid.scrollTo({
+        left: slideIndex * itemWidth,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Add scroll listener
+    whyGrid.addEventListener('scroll', updateWhyDots);
+    
+    // Add click listeners to dots
+    whyDots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        scrollToWhySlide(index);
+      });
+    });
+    
+    // Touch/swipe support
+    let startX = 0;
+    let scrollLeftStart = 0;
+    let isScrolling = false;
+    
+    whyGrid.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].pageX;
+      scrollLeftStart = whyGrid.scrollLeft;
+      isScrolling = true;
+    });
+    
+    whyGrid.addEventListener('touchmove', (e) => {
+      if (!isScrolling) return;
+      e.preventDefault();
+      const x = e.touches[0].pageX;
+      const walk = (startX - x) * 1.5;
+      whyGrid.scrollLeft = scrollLeftStart + walk;
+    });
+    
+    whyGrid.addEventListener('touchend', () => {
+      isScrolling = false;
+      // Snap to nearest item
+      const itemWidth = whyItems[0].offsetWidth + 16;
+      const currentScroll = whyGrid.scrollLeft;
+      const nearestSlide = Math.round(currentScroll / itemWidth);
+      scrollToWhySlide(nearestSlide);
+    });
+    
+    // Hide swipe hint after first interaction
+    whyGrid.addEventListener('scroll', function hideHint() {
+      const hint = document.querySelector('.why-choose-nav .swipe-hint');
+      if (hint) {
+        hint.style.opacity = '0';
+        setTimeout(() => {
+          hint.style.display = 'none';
+        }, 300);
+      }
+      whyGrid.removeEventListener('scroll', hideHint);
+    }, { once: true });
   }
 });
 </script>
@@ -1313,24 +1415,97 @@ document.addEventListener('DOMContentLoaded', function() {
   line-height: 1.6;
 }
 
+/* Mobile carousel container */
+.why-choose-us-carousel-container {
+  position: relative;
+}
+
+.why-choose-nav {
+  display: none;
+}
+
 /* Mobile responsiveness for Why Choose Us */
 @media (max-width: 768px) {
   .why-choose-us-section {
-    padding: 2rem 1rem;
+    padding: 2rem 0;
+    overflow: hidden;
   }
   
   .why-choose-us-section .section-title {
     font-size: 2rem;
     margin-bottom: 2rem;
+    padding: 0 1rem;
+  }
+  
+  .why-choose-us-carousel-container {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 50px;
   }
   
   .why-choose-us-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    display: flex !important;
+    grid-template-columns: none;
+    gap: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 1rem;
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .why-choose-us-grid::-webkit-scrollbar {
+    display: none;
   }
   
   .why-choose-item {
+    flex: 0 0 85%;
+    max-width: 85%;
+    margin-right: 1rem;
+    scroll-snap-align: center;
     padding: 1.5rem;
+  }
+  
+  .why-choose-item:last-child {
+    margin-right: 1rem;
+  }
+  
+  /* Navigation dots for mobile */
+  .why-choose-nav {
+    display: block;
+    text-align: center;
+    padding-top: 1rem;
+  }
+  
+  .why-choose-nav .nav-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .why-choose-nav .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(156, 163, 175, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .why-choose-nav .dot.active {
+    background: #3b82f6;
+    width: 24px;
+    border-radius: 4px;
+  }
+  
+  .why-choose-nav .swipe-hint {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-style: italic;
   }
   
   .why-icon {
